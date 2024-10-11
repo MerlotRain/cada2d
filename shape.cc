@@ -19,3 +19,16 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+
+#include "cadsa_shape.h"
+
+using namespace cadsa;
+
+Shape::~Shape()
+{
+}
+
+bool Shape::equals(Shape *other, double tol)
+{
+    return false;
+}
