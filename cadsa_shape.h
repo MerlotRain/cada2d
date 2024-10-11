@@ -1,6 +1,8 @@
 #ifndef CADSA_SHAPE_H
 #define CADSA_SHAPE_H
 
+#include "cadsa.h"
+#include <vector>
 
 namespace cadsa {
 
@@ -13,11 +15,24 @@ class Vec2d
 
 public:
     Vec2d();
-    Vec2d(double x, double y);
+    Vec2d(double x, double y, bool valid = true);
     ~Vec2d() = default;
 
     void set(double x, double y);
     void setPolar(double radius, double angle);
+    double getAngle() const;
+    double getAngleTo(const Vec2d & v) const;
+    double getMagnitude() const;
+
+public:
+    Vec2d operator+(const Vec2d &rhs) const;
+    Vec2d operator-(const Vec2d &rhs) const;
+    Vec2d operator*(double s) const;
+    Vec2d operator/(double s) const;
+    Vec2d operator-() const;
+
+public:
+    static double getDotProduct(const Vec2d &v1, const Vec2d &v2);
 };
 
 class BBox
@@ -57,6 +72,12 @@ enum Ending
     ENDING_START,
     ENDING_END,
     ENDING_NONE,
+};
+
+enum From
+{
+    FROM_START,
+    FROM_END,
 };
 
 
@@ -116,12 +137,39 @@ class Line : public Shape
 
 public:
     Line();
+
+    Shape* clone() override;
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override; 
+
+    Vec2d getMiddlePoint() const;
+
 };
 
 class Circle : public Shape
 {
     Vec2d mCenter;
     double mRadius;
+
+public:
+    Circle();
+    Circle(double cx, double cy, double radius);
+
+    Vec2d center() const;
+    void setCenter(const Vec2d &c);
+    double radius() const;
+    void setRadius(double r);
+
+
+    Shape* clone() override;
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override; 
+
+    std::vector<Vec2d> getArcRefPoints() const;
+
+
 };
 
 class Arc : public Shape
@@ -131,6 +179,23 @@ class Arc : public Shape
     double mStartAngle;
     double mEndAngle;
     bool mReversed;
+
+public:
+    Arc();
+
+    double getSweep() const;
+
+    Shape* clone() override;
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+
+    Vec2d getStartPoint() const;
+    Vec2d getEndPoint() const;
+    Vec2d getMiddlePoint() const;
+    Vec2d getPointAtAngle(double a) const;
+    double getAngleAt(double dis, From from = From::FROM_START) const;
+    std::vector<Vec2d> getArcRefPoints() const;
 };
 
 class Ellipse : public Shape
@@ -150,6 +215,20 @@ class Polyline : public Shape
     std::vector<double> mEndWidths;
     std::vector<double> mStartWidths;
     bool mClosed;
+
+public:
+    Polyline();
+
+
+    Shape* clone() override;
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+
+    Shape* getSegmentAt(int i) const;
+    std::vector<Shape*> getExploded() const;
+
+
 };
 
 class XLine : public Shape
