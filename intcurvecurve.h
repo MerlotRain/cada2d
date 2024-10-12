@@ -23,13 +23,23 @@
 #ifndef INTCURVECURVE_H
 #define INTCURVECURVE_H
 
-namespace cadsa {
+#include "cada_shape.h"
+
+namespace cada {
 
 class IntCurveCurve
 {
+    Shape* mShape1;
+    Shape* mShape2;
+public:
+    IntCurveCurve(Shape* shape1, Shape* shape2);
+
+    std::vector<Vec2d> intersectPoints(bool limited = true, bool same = false, bool force = false) const;
+
+private:
 
 };
 
-} // namespace cadsa
+} // namespace cada
 
 #endif

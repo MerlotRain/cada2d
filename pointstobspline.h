@@ -23,13 +23,13 @@
  #ifndef POINTSTOBSPLINE_H
  #define POINTSTOBSPLINE_H
 
-namespace cadsa {
+namespace cada {
 
 class PointsToBSpline
 {
 
 };
 
-} // namespace cadsa
+} // namespace cada
 
  #endif

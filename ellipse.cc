@@ -20,9 +20,9 @@
  * IN THE SOFTWARE.
  */
 
-#include "cadsa_shape.h"
+#include "cada_shape.h"
 
-using namespace cadsa;
+using namespace cada;
 
 Ellipse::Ellipse() :mCenter(Vec2d::invalid), mMajorPoint(Vec2d::invalid), mRatio(0.0),mStartParam(0.0), mEndParam(0.0), mReversed(false) {}
 

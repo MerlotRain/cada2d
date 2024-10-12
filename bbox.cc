@@ -20,9 +20,9 @@
  * IN THE SOFTWARE.
  */
 
-#include "cadsa_shape.h"
+#include "cada_shape.h"
 
-using namespace cadsa;
+using namespace cada;
 
 BBox::BBox() :c1(Vec2d::invalid), c2(Vec2d::invalid) {}
 

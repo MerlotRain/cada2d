@@ -20,70 +20,47 @@
  * IN THE SOFTWARE.
  */
 
-#include "cada_shape.h"
 
-using namespace cada;
+#ifndef CADA_COLOR_H
+#define CADA_COLOR_H
 
-Line::Line()
+namespace cada {
+
+typedef unsigned int RGB;
+
+const unsigned int RGB_MASK = 0x00ffffff;
+
+inline int rgb_Red(RGB rgb)
 {
+    return ((rgb >> 16) & 0xff);
 }
 
-Line::Line(const Vec2d &begin, const Vec2d &end) : mBegin(begin), mEnd(end)
+inline int rgb_Green(RGB rgb)
 {
+    return ((rgb >> 8) & 0xff);
 }
 
-ShapeType Line::shapeType() const
+inline int rgb_Blue(RGB rgb)
 {
-    return ShapeType::CADA_LINE;
+    return (rgb & 0xff);
 }
 
-Shape *Line::clone()
+inline int rgb_Alpha(RGB rgb)
 {
-    Line *pClone = new Line();
-    return pClone;
+    return rgb >> 24;
 }
 
-std::vector<Vec2d> Line::getEndPoints() const
+inline RGB rgb_Rgb(int r, int g, int b)
 {
-    std::vector<Vec2d> ret;
-    ret.push_back(mBegin);
-    ret.push_back(mEnd);
-    return ret;
+    return (0xffu << 24) | ((r & 0xffu) << 16) | ((g & 0xffu) << 8) | (b & 0xffu);
 }
 
-std::vector<Vec2d> Line::getMiddlePoints() const
+inline RGB rgb_Rgba(int r, int g, int b, int a)
 {
-    std::vector<Vec2d> ret;
-    ret.push_back(getMiddlePoint());
-    return ret;
+    return ((a & 0xffu) << 24) | ((r & 0xffu) << 16) | ((g & 0xffu) << 8) | (b & 0xffu);
 }
 
-std::vector<Vec2d> Line::getCenterPoints() const
-{
-    return getMiddlePoints();
-}
 
-Side Line::sideOfPoint(const Vec2d& pt) const
-{
-    double entityAngle = getAngle();
-    double angleToCoord = mBegin.getAngleTo(pt);
-    double angleDiff = NS::getAngleDifference(entityAngle, angleToCoord);
+} // namespace cada
 
-    if(angleDiff < M_PI) { return LEFT_HAND; }
-    return RIGHT_HAND;
-}
-
-Vec2d getStartPoint() const
-{
-    return mBegin;
-}
-
-Vec2d getEndPoint() const
-{
-    return mEnd;
-}
-
-Vec2d Line::getMiddlePoint() const
-{
-    return (mBegin + mEnd) / 2.0;
-}
+#endif

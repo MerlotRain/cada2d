@@ -20,9 +20,9 @@
  * IN THE SOFTWARE.
  */
 
-#include "cadsa_shape.h"
+#include "cada_shape.h"
 
-using namespace cadsa;
+using namespace cada;
 
 Point::Point(const Vec2d &v) : mp(v)
 {

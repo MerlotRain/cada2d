@@ -20,11 +20,11 @@
  * IN THE SOFTWARE.
  */
 
-#include "cadsa_shape.h"
+#include "cada_shape.h"
 
 #include <assert.h>
 
-using namespace cadsa;
+using namespace cada;
 
 bool Polyline::isStraight(double bulge) const
 {

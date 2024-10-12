@@ -20,11 +20,11 @@
  * IN THE SOFTWARE.
  */
 
-#include "cadsa.h"
+#include "cada_math.h"
 
-using namespace cadsa;
+using namespace cada;
 
-bool NS::isNaN(double v)
+bool Math::isNaN(double v)
 {
 #ifdef __APPLE__
     return std::fpclassify(v) == FP_NAN;
@@ -35,7 +35,7 @@ bool NS::isNaN(double v)
 #endif
 }
 
-bool NS::isInf(double v)
+bool Math::isInf(double v)
 {
 #ifdef __APPLE__
     return std::fpclassify(v) == FP_INFINITE;
@@ -46,7 +46,7 @@ bool NS::isInf(double v)
 #endif
 }
 
-bool NS::isNormal(double v)
+bool Math::isNormal(double v)
 {
     if (isNaN(v) || isInf(v)) {
         return false;
@@ -54,12 +54,12 @@ bool NS::isNormal(double v)
     return true;
 }
 
-bool NS::isSane(double v)
+bool Math::isSane(double v)
 {
     return !isNaN(v) && !isInf(v) && v > -1e12 && v < 1e12;
 }
 
-bool NS::isAngleBetween(double a, double a1, double a2, bool reversed)
+bool Math::isAngleBetween(double a, double a1, double a2, bool reversed)
 {
     a = getNormalizedAngle(a);
     a1 = getNormalizedAngle(a1);
@@ -86,7 +86,7 @@ bool NS::isAngleBetween(double a, double a1, double a2, bool reversed)
     return ret;
 }
 
-double NS::getNormalizedAngle(double a)
+double Math::getNormalizedAngle(double a)
 {
     if (a >= 0.0) {
         int n = (int)floor(a / (2 * M_PI));
@@ -104,7 +104,7 @@ double NS::getNormalizedAngle(double a)
     return a;
 }
 
-double NS::getAngleDifference(double a1, double a2)
+double Math::getAngleDifference(double a1, double a2)
 {
     double ret;
 
@@ -116,7 +116,7 @@ double NS::getAngleDifference(double a1, double a2)
     return ret;
 }
 
-double NS::getAngleDifference180(double a1, double a2)
+double Math::getAngleDifference180(double a1, double a2)
 {
     double ret;
 

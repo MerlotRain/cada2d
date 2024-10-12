@@ -20,43 +20,15 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef CADSA_H
-#define CADSA_H
+#ifndef CADA_MATH_H
+#define CADA_MATH_H
 
-#include <cmath>
+#include <float.h>
+#include <math.h>
 
-namespace cadsa {
+namespace cada {
 
-class NS {
-public:
-    enum Side {
-        NO_SIDE,
-        LEFT_HAND,
-        RIGHT_HAND,
-        BOTH_SIDES,
-    };
-
-    enum Ending {
-        ENDING_START,
-        ENDING_END,
-        ENDING_NONE,
-    };
-
-    enum From {
-        FROM_START = 0x01,
-        FROM_END = 0x02,
-        FROM_ANY = FROM_START | FROM_END,
-        ALONG_POLYLINE = 0x04,
-    };
-
-    enum Orientation
-    {
-        UNKNOWN_ORIENTATION = -1,
-        ANY = 0,
-        CW,
-        CCW,
-    };
-
+class Math {
 public:
     static constexpr auto AngleTolerance = 1.0e-9;
     static constexpr auto PointTolerance = 1.0e-9;
@@ -72,6 +44,6 @@ public:
     static double getAngleDifference180(double a1, double a2);
 };
 
-} // namespace cadsa
+} // namespace cada
 
 #endif

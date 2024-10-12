@@ -20,13 +20,13 @@
  * IN THE SOFTWARE.
  */
 
-#include "cadsa_shape.h"
+#include "cada_shape.h"
 
 #include <assert.h>
 #include <math.h>
 #include <stdexcept>
 
-using namespace cadsa;
+using namespace cada;
 
 const Vec2d Vec2d::invalid = Vec2d(0, 0, false);
 const Vec2d Vec2d::nullVec2d = Vec2d(0, 0, true);
