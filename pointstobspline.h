@@ -19,3 +19,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+
+ #ifndef POINTSTOBSPLINE_H
+ #define POINTSTOBSPLINE_H
+
+namespace cadsa {
+
+class PointsToBSpline
+{
+
+};
+
+} // namespace cadsa
+
+ #endif

@@ -23,8 +23,16 @@
 #include "cadsa_shape.h"
 
 #include <assert.h>
+#include <math.h>
+#include <stdexcept>
 
 using namespace cadsa;
+
+const Vec2d Vec2d::invalid = Vec2d(0, 0, false);
+const Vec2d Vec2d::nullVec2d = Vec2d(0, 0, true);
+const Vec2d Vec2d::nanVec2d =
+    Vec2d(std::numeric_limits<double>::quiet_NaN(),
+          std::numeric_limits<double>::quiet_NaN(), true);
 
 Vec2d::Vec2d() : mX(0.0), mY(0.0), mValid(true)
 {
@@ -123,6 +131,31 @@ double Vec2d::getDistanceTo(const Vec2d &v) const
     }
 }
 
+Vec2d& Vec2d::move(const Vec2d &offset)
+{
+    *this += offset;
+    return *this;
+}
+
+Vec2d& Vec2d::rotate(double rotation)
+{
+    if(!mValid)
+        return *this;
+
+    double r = getMagnitude();
+    double a = getAngle() + rotation;
+
+    mX = cos(a) * r;
+    mY = sin(a) * r;
+    return *this;
+}
+
+Vec2d& Vec2d::rotate(double rotation, const Vec2d &center)
+{
+    *this = center + (*this - center).rotate(rotation);
+    return *this;
+}
+
 Vec2d Vec2d::operator+(const Vec2d &rhs) const
 {
     return Vec2d(mX + rhs.mX, mY + rhs.mY, mValid && rhs.mValid);
@@ -202,4 +235,14 @@ Vec2d Vec2d::createPolar(double radius, double angle)
     Vec2d ret;
     ret.setPolar(radius, angle);
     return ret;
+}
+
+Vec2d Vec2d::getMinimum(const Vec2d& v1, const Vec2d &v2)
+{
+    return Vec2d(min(v1.x(), v2.x()), min(v1.y(), v2.y()), v1.isValid() && v2.isValid());
+}
+
+Vec2d Vec2d::getMaximum(const Vec2d& v1, const Vec2d &v2)
+{
+    return Vec2d(max(v1.x(), v2.x()), max(v1.y(), v2.y()), v1.isValid() && v2.isValid());
 }

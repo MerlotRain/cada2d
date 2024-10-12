@@ -22,6 +22,8 @@
 
 #include "cadsa_shape.h"
 
+#include <assert.h>
+
 using namespace cadsa;
 
 bool Polyline::isStraight(double bulge) const
@@ -32,6 +34,189 @@ bool Polyline::isStraight(double bulge) const
 Polyline::Polyline()
 {
 }
+
+Polyline::~Polyline() = default;
+
+void Polyline::setVertices(const std::vector<Vec2d> &vs)
+{
+    mVertices = vs;
+    mBulges.clear();
+    mStartWidths.clear();
+    mEndWidths.clear();
+
+    for(size_t i = 0; i < mVertices.size(); ++i)
+    {
+        mBulges.push_back(0.0);
+        mStartWidths.push_back(0.0);
+        mEndWidths.push_back(0.0);
+    }
+    assert(mVertices.size() == mBulges.size());
+    assert(mVertices.size() == mStartWidths.size());
+    assert(mVertices.size() == mEndWidths.size());
+}
+
+std::vector<Vec2d> Polyline::vertices() const
+{
+    return mVertices;
+}
+
+void Polyline::setVertexAt(int i, const Vec2d &v)
+{
+    if(i < 0 || i >= mVertices.size())
+        throw std::out_of_range("i out of vertices range");
+
+    return mVertices[i] = v;
+}
+
+void Polyline::moveVertexAt(int i, const Vec2d &offset)
+{
+    if(i < 0 || i >= mVertices.size())
+        throw std::out_of_range("i out of vertices range");
+
+    mVertices[i] += offset;
+}
+
+Vec2d Polyline::vertexAt(int i) const
+{
+    if(i < 0 || i >= mVertices.size())
+        throw std::out_of_range("i out of vertices range");
+
+    return mVertices.at(i);
+}
+
+int Polyline::vertexIndex(const Vec2d &v, double tol) const
+{
+    for (int i = 0; i < mVertices.size(); i++)
+    {
+        if (mVertices[i].equalsFuzzy(v, tol)) { return i; }
+
+        if (mVertices[i].equalsFuzzy(v, 0.01))
+        {
+            // log
+        }
+    }
+
+    return -1;
+}
+
+Vec2d Polyline::lastVertex() const
+{
+    if(mVertices.size() == 0) return Vec2d::invalid;
+
+    return mVertices.at(mVertices.size() - 1);
+}
+
+int Polyline::countVertices() const { return mVertices.size(); }
+
+void Polyline::setBulges(const std::vector<double> &bs) { mBulges = bs; }
+
+std::vector<double> Polyline::bulges() const { return mBulges; }
+
+double Polyline::bulgeAt(int i) const
+{
+    if(i < 0 || i >= mBulges.size())
+        throw std::out_of_range("i out of bulges range");
+
+    return mBulges.at(i);
+}
+
+void Polyline::setBulgeAt(int i, double b)
+{
+    if(i < 0 || i >= mBulges.size())
+        throw std::out_of_range("i out of bulges range");
+
+    mBulges[i] = b;
+}
+
+bool Polyline::hasArcSegments() const
+{
+    for(size_t i = 0; i < mBulges.size(); ++i)
+    {
+        if(!isStraight(mBulges[i]))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
+std::vector<double> Polyline::vertexAngles() const
+{
+    Orientation orientation = getOrientation(true);
+    std::vector<double> ret;
+    for(size_t i = 0; i < mVertices.size(); ++i)
+    {
+        ret.push_back(vertexAngle(i, orientation));
+    }
+    return ret;
+}
+
+double Polyline::vertexAngle(int i, Orientation or) const
+{
+    
+}
+
+void Polyline::setStartWidthAt(int i, double w)
+{
+    if(i < 0 || i >= mStartWidths.size())
+        throw std::out_of_range("i out of StartWidths range");
+
+    mStartWidths[i] = w;
+}
+
+double Polyline::startWidthAt(int i) const
+{
+    if(i < 0 || i >= mStartWidths.size())
+        throw std::out_of_range("i out of StartWidths range");
+
+    return mStartWidths.at(i);
+}
+
+void Polyline::setEndWidthAt(int i, double w)
+{
+    if(i < 0 || i >= mEndWidths.size())
+        throw std::out_of_range("i out of EndWidths range");
+
+    mEndWidths[i] = w;
+}
+
+double Polyline::endWidthAt(int i) const
+{
+    if(i < 0 || i >= mEndWidths.size())
+        throw std::out_of_range("i out of EndWidths range");
+
+    return mEndWidths[i];
+}
+
+bool Polyline::hasWidths() const
+{
+    for (int i = 0; i < mStartWidths.length() && i < mEndWidths.length(); i++)
+    {
+        if (!NS::isNaN(mStartWidths[i]) && mStartWidths[i] > 0.0)
+        {
+            // widths in last vertex only count if closed:
+            if (i != mStartWidths.length() - 1 || isClosed()) { return true; }
+        }
+        if (!NS::isNaN(mEndWidths[i]) && mEndWidths[i] > 0.0)
+        {
+            if (i != mStartWidths.length() - 1 || isClosed()) { return true; }
+        }
+    }
+
+    return false;
+}
+
+std::vector<double> Polyline::startWidths() const { return mStartWidths; }
+
+void Polyline::setStartWidths(const std::vector<double> &ws) { mStartWidths = ws; }
+
+std::vector<double> Polyline::endWidths() const { return mEndWidths; }
+
+void Polyline::setEndWidths(const std::vector<double> &ws) { mEndWidths = ws; }
+
+void Polyline::setClosed(bool c) const { mClosed = c; }
+
+bool Polyline::closed() const { return mClosed; }
 
 ShapeType Polyline::shapeType() const
 {
@@ -65,6 +250,21 @@ std::vector<Vec2d> Polyline::getMiddlePoints() const
 std::vector<Vec2d> Polyline::getCenterPoints() const
 {
     return std::vector<Vec2d>();
+}
+
+Side Polyline::sideOfPoint(const Vec2d& pt) const
+{
+    int i = getClosestSegment(pt);
+    if (i < 0 || i >= countSegments()) { return NO_SIDE; }
+
+    auto segment = getSegmentAt(i);
+    if (!segment) 
+    { 
+        return NO_SIDE; 
+    }
+    Side s = segment->sideOfPoint(pt);
+    delete segment;
+    return s;
 }
 
 Shape *Polyline::getSegmentAt(int i) const
@@ -136,4 +336,31 @@ std::vector<Shape *> Polyline::getExploded() const
         ret.push_back(subShape);
     }
     return ret;
+}
+
+
+bool Polyline::move(const Vec2d &offset)
+{
+    for(int i = 0; i < mVertices.size(); ++i)
+    {
+        mVertices[i].move(offset);
+    }
+    return true;
+}
+
+bool Polyline::rotate(double rotation, const Vec2d &center)
+{
+    if(fabs(rotation) < NS::AngleTolerance)
+        return false;
+
+    for(int i = 0; i < mVertices.size(); ++i)
+    {
+        mVertices[i].rotate(rotation, center);
+    }
+    return true;
+}
+
+BBox Polyline::getBoundingBox() const
+{
+    
 }

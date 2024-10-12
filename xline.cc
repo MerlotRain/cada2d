@@ -19,3 +19,58 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+
+#include "cadsa_shape.h"
+
+using namespace cadsa;
+
+XLine::XLine() : mBasePoint(Vec2d::invalid), mDirectionVec(Vec2d::invalid) {}
+
+XLine::XLine(Line* line) : mBasePoint(line->getStartPoint()), mDirectionVec(line->getEndPoint() - line->getStartPoint())
+{}
+
+XLine::XLine(const Vec2d &base, const Vec2d &dir) : mBasePoint(base), mDirectionVec(dir) {}
+
+XLine::XLine(const Vec2d &base, double angle, double distance) {}
+
+ShapeType XLine::shapeType() const { ShapeType::CADA_XLINE; }
+
+Shape *XLine::clone() 
+{
+    XLine* pClone = new XLine();
+    pClone->mBasePoint = mBasePoint;
+    pClone->mDirectionVec = mDirectionVec;
+    return pClone;
+}
+
+Side XLine::sideOfPoint(const Vec2d& pt) const 
+{
+    Line l(mBasePoint, mBasePoint + mDirectionVec);
+    return l.sideOfPoint(pt);
+}
+
+bool XLine::move(const Vec2d &offset) 
+{
+    if(!offset.isValid() || offset.getMagnitude() < NS::PointTolerance)
+    {
+        return false;
+    }
+    mBasePoint += offset;
+    return true;
+}
+
+bool XLine::rotate(double rotation, const Vec2d &center)
+{
+    if(fabs(rotation) < NS::AngleTolerance)
+        return false;
+
+    mBasePoint.rotate(rotation, center);
+    mDirectionVec.rotate(rotation);
+    return true;
+}
+
+BBox XLine::getBoundingBox() const
+{
+    return RBox(RVector::getMinimum(mBasePoint, mBasePoint + mDirectionVec),
+                RVector::getMaximum(mBasePoint, mBasePoint + mDirectionVec));
+}

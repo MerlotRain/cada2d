@@ -24,6 +24,41 @@
 
 using namespace cadsa;
 
+bool NS::isNaN(double v)
+{
+#ifdef __APPLE__
+    return std::fpclassify(v) == FP_NAN;
+#elif defined __WIN32
+    return _isnan(v);
+#else
+    return std::isnan(v);
+#endif
+}
+
+bool NS::isInf(double v)
+{
+#ifdef __APPLE__
+    return std::fpclassify(v) == FP_INFINITE;
+#elif defined __WIN32
+    return !_finite(v);
+#else
+    return std::fpclassify(v) == FP_INFINITE;
+#endif
+}
+
+bool NS::isNormal(double v)
+{
+    if (isNaN(v) || isInf(v)) {
+        return false;
+    }
+    return true;
+}
+
+bool NS::isSane(double v)
+{
+    return !isNaN(v) && !isInf(v) && v > -1e12 && v < 1e12;
+}
+
 bool NS::isAngleBetween(double a, double a1, double a2, bool reversed)
 {
     a = getNormalizedAngle(a);
@@ -67,4 +102,27 @@ double NS::getNormalizedAngle(double a)
     }
 
     return a;
+}
+
+double NS::getAngleDifference(double a1, double a2)
+{
+    double ret;
+
+    if (a1 >= a2) { a2 += 2 * M_PI; }
+    ret = a2 - a1;
+
+    if (ret >= 2 * M_PI) { ret = 0.0; }
+
+    return ret;
+}
+
+double NS::getAngleDifference180(double a1, double a2)
+{
+    double ret;
+
+    ret = a2 - a1;
+    if (ret > M_PI) { ret = -(2 * M_PI - ret); }
+    if (ret < -M_PI) { ret = 2 * M_PI + ret; }
+
+    return ret;
 }

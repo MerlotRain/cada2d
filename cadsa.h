@@ -28,48 +28,48 @@
 namespace cadsa {
 
 class NS {
+public:
+    enum Side {
+        NO_SIDE,
+        LEFT_HAND,
+        RIGHT_HAND,
+        BOTH_SIDES,
+    };
+
+    enum Ending {
+        ENDING_START,
+        ENDING_END,
+        ENDING_NONE,
+    };
+
+    enum From {
+        FROM_START = 0x01,
+        FROM_END = 0x02,
+        FROM_ANY = FROM_START | FROM_END,
+        ALONG_POLYLINE = 0x04,
+    };
+
+    enum Orientation
+    {
+        UNKNOWN_ORIENTATION = -1,
+        ANY = 0,
+        CW,
+        CCW,
+    };
 
 public:
     static constexpr auto AngleTolerance = 1.0e-9;
     static constexpr auto PointTolerance = 1.0e-9;
 
-    static bool isNaN(double v)
-    {
-#ifdef __APPLE__
-        return std::fpclassify(v) == FP_NAN;
-#elif defined __WIN32
-        return _isnan(v);
-#else
-        return std::isnan(v);
-#endif
-    }
-
-    static bool isInf(double v)
-    {
-#ifdef __APPLE__
-        return std::fpclassify(v) == FP_INFINITE;
-#elif defined __WIN32
-        return !_finite(v);
-#else
-        return std::fpclassify(v) == FP_INFINITE;
-#endif
-    }
-
-    static bool isNormal(double v)
-    {
-        if (isNaN(v) || isInf(v)) {
-            return false;
-        }
-        return true;
-    }
-
-    static bool isSane(double v)
-    {
-        return !isNaN(v) && !isInf(v) && v > -1e12 && v < 1e12;
-    }
+    static bool isNaN(double v);
+    static bool isInf(double v);
+    static bool isNormal(double v);
+    static bool isSane(double v);
 
     static bool isAngleBetween(double a, double a1, double a2, bool reversed);
     static double getNormalizedAngle(double a);
+    static double getAngleDifference(double a1, double a2);
+    static double getAngleDifference180(double a1, double a2);
 };
 
 } // namespace cadsa

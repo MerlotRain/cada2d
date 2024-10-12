@@ -19,3 +19,17 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+
+#ifndef INTCURVECURVE_H
+#define INTCURVECURVE_H
+
+namespace cadsa {
+
+class IntCurveCurve
+{
+
+};
+
+} // namespace cadsa
+
+#endif

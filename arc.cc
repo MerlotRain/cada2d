@@ -83,6 +83,20 @@ std::vector<Vec2d> Arc::getMiddlePoints() const
     return ret;
 }
 
+Side Arc::sideOfPoint(const Vec2d& pt) const
+{
+    if (mReversed)
+    {
+        if (mCenter.getDistanceTo(pt) < mRadius) { return RIGHT_HAND; }
+        else { return LEFT_HAND; }
+    }
+    else
+    {
+        if (mCenter.getDistanceTo(pt) < mRadius) { return LEFT_HAND; }
+        else { return RIGHT_HAND; }
+    }
+}
+
 std::vector<Vec2d> Arc::getCenterPoints() const
 {
     std::vector<Vec2d> ret;
@@ -176,4 +190,35 @@ std::vector<Vec2d> Arc::getPointsWithDistanceToEnd(double distance,
     }
 
     return ret;
+}
+
+bool Arc::move(const Vec2d &offset)
+{
+    if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance)
+    {
+        return false;
+    }
+    mCenter += offset;
+    return true;
+}
+
+bool Arc::rotate(double rotation, const Vec2d &center)
+{
+    if (fabs(rotation) < NS::AngleTolerance) { return false; }
+
+    mCenter.rotate(rotation, c);
+
+    // important for circle shaped in hatch boundaries:
+    if (!isFullCircle())
+    {
+        mStartAngle = NS::getNormalizedAngle(mStartAngle + rotation);
+        mEndAngle = NS::getNormalizedAngle(mEndAngle + rotation);
+    }
+
+    return true;
+}
+
+bool Arc::isFullCircle(double tol) const
+{
+    return fabs(NS::getAngleDifference180(NS::getNormalizedAngle(mStartAngle), NS::getNormalizedAngle(mEndAngle))) < tol;
 }

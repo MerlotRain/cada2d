@@ -63,6 +63,26 @@ std::vector<Vec2d> Line::getCenterPoints() const
     return getMiddlePoints();
 }
 
+Side Line::sideOfPoint(const Vec2d& pt) const
+{
+    double entityAngle = getAngle();
+    double angleToCoord = mBegin.getAngleTo(pt);
+    double angleDiff = NS::getAngleDifference(entityAngle, angleToCoord);
+
+    if(angleDiff < M_PI) { return LEFT_HAND; }
+    return RIGHT_HAND;
+}
+
+Vec2d getStartPoint() const
+{
+    return mBegin;
+}
+
+Vec2d getEndPoint() const
+{
+    return mEnd;
+}
+
 Vec2d Line::getMiddlePoint() const
 {
     return (mBegin + mEnd) / 2.0;

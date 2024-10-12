@@ -32,3 +32,23 @@ bool Shape::equals(Shape *other, double tol)
 {
     return false;
 }
+
+bool Shape::isIntersects(Shape* shp, bool limited) const
+{
+
+}
+
+std::vector<Vec2d> Shape::intersectionPoints(Shape* shp, bool limited, bool same, bool force) const
+{
+
+}
+
+std::vector<Vec2d> Shape::selfIntersectionPoints(double tol) const
+{
+
+}
+
+Side Shape::sideOfPoint(const Vec2d& pt) const
+{
+    return NO_SIDE;
+}
