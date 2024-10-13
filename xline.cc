@@ -24,44 +24,56 @@
 
 using namespace cada;
 
-XLine::XLine() : mBasePoint(Vec2d::invalid), mDirectionVec(Vec2d::invalid) {}
-
-XLine::XLine(Line* line) : mBasePoint(line->getStartPoint()), mDirectionVec(line->getEndPoint() - line->getStartPoint())
-{}
-
-XLine::XLine(const Vec2d &base, const Vec2d &dir) : mBasePoint(base), mDirectionVec(dir) {}
-
-XLine::XLine(const Vec2d &base, double angle, double distance) {}
-
-ShapeType XLine::shapeType() const { ShapeType::CADA_XLINE; }
-
-Shape *XLine::clone() 
+XLine::XLine() : mBasePoint(Vec3d::invalid), mDirectionVec(Vec3d::invalid)
 {
-    XLine* pClone = new XLine();
+}
+
+XLine::XLine(Line *line)
+    : mBasePoint(line->getStartPoint()),
+      mDirectionVec(line->getEndPoint() - line->getStartPoint())
+{
+}
+
+XLine::XLine(const Vec3d &base, const Vec3d &dir)
+    : mBasePoint(base), mDirectionVec(dir)
+{
+}
+
+XLine::XLine(const Vec3d &base, double angle, double distance)
+{
+}
+
+ShapeType XLine::shapeType() const
+{
+    ShapeType::CADA_XLINE;
+}
+
+Shape *XLine::clone()
+{
+    XLine *pClone = new XLine();
     pClone->mBasePoint = mBasePoint;
     pClone->mDirectionVec = mDirectionVec;
     return pClone;
 }
 
-Side XLine::sideOfPoint(const Vec2d& pt) const 
+Side XLine::sideOfPoint(const Vec3d &pt) const
 {
     Line l(mBasePoint, mBasePoint + mDirectionVec);
     return l.sideOfPoint(pt);
 }
 
-bool XLine::move(const Vec2d &offset) 
+bool XLine::move(const Vec3d &offset)
 {
-    if(!offset.isValid() || offset.getMagnitude() < NS::PointTolerance)
-    {
+    if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance) {
         return false;
     }
     mBasePoint += offset;
     return true;
 }
 
-bool XLine::rotate(double rotation, const Vec2d &center)
+bool XLine::rotate(double rotation, const Vec3d &center)
 {
-    if(fabs(rotation) < NS::AngleTolerance)
+    if (fabs(rotation) < NS::AngleTolerance)
         return false;
 
     mBasePoint.rotate(rotation, center);

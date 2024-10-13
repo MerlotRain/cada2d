@@ -26,68 +26,71 @@
 namespace cada {
 namespace NS {
 
-    enum Side {
-        NoSide,
-        LeftHand,
-        RightHand,
-        BothSides,
-    };
+static constexpr auto AngleTolerance = 1.0e-9;
+static constexpr auto PointTolerance = 1.0e-9;
 
-    enum Ending {
-        EndingStart,
-        EndingEnd,
-        EndingNone,
-    };
+enum Side {
+    NoSide,
+    LeftHand,
+    RightHand,
+    BothSides,
+};
 
-    enum From {
-        FromStart = 0x01,
-        FromEnd = 0x02,
-        FromAny = FromStart | FromEnd,
-        AlongPolyline = 0x04,
-    };
+enum Ending {
+    EndingStart,
+    EndingEnd,
+    EndingNone,
+};
 
-    enum Orientation
-    {        
-        UnknownOrientation = -1,
-        Any = 0,
-        CW,
-        CCW,
-    };
+enum From {
+    FromStart = 0x01,
+    FromEnd = 0x02,
+    FromAny = FromStart | FromEnd,
+    AlongPolyline = 0x04,
+};
 
-    enum TextFlag {
-        NoFlags = 0x000,
-        Bold = 0x001,
-        Italic = 0x002,
-        Simple = 0x004,
-        DimensionLabel = 0x008,
-        Highlighted = 0x010,
-        Backward = 0x020,
-        UpsideDown = 0x040
-    };
+enum Orientation {
+    UnknownOrientation = -1,
+    Any = 0,
+    CW,
+    CCW,
+};
 
-    enum ShapeType {
-        Point,
-        Line,
-        Arc,
-        Circle,
-        Ellipse,
-        XLine,
-        Ray,
-        Polyline,
-        BSpline,
-        Triangle
-    };
+enum TextFlag {
+    NoFlags = 0x000,
+    Bold = 0x001,
+    Italic = 0x002,
+    Simple = 0x004,
+    DimensionLabel = 0x008,
+    Highlighted = 0x010,
+    Backward = 0x020,
+    UpsideDown = 0x040
+};
 
-    enum DimensionType {
-        Angular2L,
-        Angular3P,
-        ArcLength,
-        Diametric,
-        Aligned,
-        Rotated,
-        Ordinate,
-        Radial
-    };
+enum ShapeType {
+    Unkonwn,
+    Point,
+    Line,
+    Arc,
+    Circle,
+    Ellipse,
+    XLine,
+    Ray,
+    Polyline,
+    BSpline,
+    Triangle
+};
+
+enum DimensionType {
+    Angular2L,
+    Angular3P,
+    ArcLength,
+    Diametric,
+    Aligned,
+    Rotated,
+    Ordinate,
+    Radial
+};
 
 } // namespace NS
 } // namespace cada

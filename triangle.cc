@@ -24,25 +24,29 @@
 
 using namespace cada;
 
-Triangle::Triangle() {}
+Triangle::Triangle()
+{
+}
 
-Triangle::Triangle(const Vec2d &p1, const Vec2d &p2, const Vec2d &p3)
+Triangle::Triangle(const Vec3d &p1, const Vec3d &p2, const Vec3d &p3)
 {
     mCorner[0] = p1;
     mCorner[1] = p2;
     mCorner[2] = p3;
 }
 
-ShapeType Triangle::shapeType() const { return ShapeType::CADA_TRIANGLE; }
-
-Shape *Triangle::clone() 
+ShapeType Triangle::shapeType() const
 {
-
+    return ShapeType::CADA_TRIANGLE;
 }
 
-std::vector<Vec2d> Triangle::getEndPoints() const 
+Shape *Triangle::clone()
 {
-    std::vector<Vec2d> ret;
+}
+
+std::vector<Vec3d> Triangle::getEndPoints() const
+{
+    std::vector<Vec3d> ret;
 
     ret.push_back(mCorner[0]);
     ret.push_back(mCorner[1]);
@@ -51,9 +55,9 @@ std::vector<Vec2d> Triangle::getEndPoints() const
     return ret;
 }
 
-std::vector<Vec2d> Triangle::getMiddlePoints() const 
+std::vector<Vec3d> Triangle::getMiddlePoints() const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
 
     ret.push_back((mCorner[0] + mCorner[1]) / 2.0);
     ret.push_back((mCorner[1] + mCorner[2]) / 2.0);
@@ -62,19 +66,21 @@ std::vector<Vec2d> Triangle::getMiddlePoints() const
     return ret;
 }
 
-std::vector<Vec2d> Triangle::getCenterPoints() const { return getMiddlePoints(); }
+std::vector<Vec3d> Triangle::getCenterPoints() const
+{
+    return getMiddlePoints();
+}
 
-std::vector<Shape *> Triangle::getExploded() const 
+std::vector<Shape *> Triangle::getExploded() const
 {
     std::vector<Shape *> ret;
-    for(int i = 0; i < 3; ++i)
-    {
-        ret.push_back(new Line(mCorner[i], mCorner[(i+1) % 3]));
+    for (int i = 0; i < 3; ++i) {
+        ret.push_back(new Line(mCorner[i], mCorner[(i + 1) % 3]));
     }
     return ret;
 }
 
-bool Triangle::move(const Vec2d &offset) 
+bool Triangle::move(const Vec3d &offset)
 {
     mCorner[0].move(offset);
     mCorner[1].move(offset);
@@ -82,7 +88,7 @@ bool Triangle::move(const Vec2d &offset)
     return true;
 }
 
-bool Triangle::rotate(double rotation, const Vec2d &center) 
+bool Triangle::rotate(double rotation, const Vec3d &center)
 {
     mCorner[0].rotate(rotation, center);
     mCorner[1].rotate(rotation, center);
@@ -92,8 +98,8 @@ bool Triangle::rotate(double rotation, const Vec2d &center)
 
 BBox Triangle::getBoundingBox() const
 {
-    return BBox(Vec2d::getMinimum(Vec2d::getMinimum(mCorner[0], mCorner[1]),
-                                    mCorner[2]),
-                Vec2d::getMaximum(Vec2d::getMaximum(mCorner[0], mCorner[1]),
-                                    mCorner[2]));
+    return BBox(Vec3d::getMinimum(Vec3d::getMinimum(mCorner[0], mCorner[1]),
+                                  mCorner[2]),
+                Vec3d::getMaximum(Vec3d::getMaximum(mCorner[0], mCorner[1]),
+                                  mCorner[2]));
 }

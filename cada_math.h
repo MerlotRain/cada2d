@@ -30,9 +30,6 @@ namespace cada {
 
 class Math {
 public:
-    static constexpr auto AngleTolerance = 1.0e-9;
-    static constexpr auto PointTolerance = 1.0e-9;
-
     static bool isNaN(double v);
     static bool isInf(double v);
     static bool isNormal(double v);

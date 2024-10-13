@@ -28,13 +28,13 @@ Line::Line()
 {
 }
 
-Line::Line(const Vec2d &begin, const Vec2d &end) : mBegin(begin), mEnd(end)
+Line::Line(const Vec3d &begin, const Vec3d &end) : mBegin(begin), mEnd(end)
 {
 }
 
-ShapeType Line::shapeType() const
+NS::ShapeType Line::shapeType() const
 {
-    return ShapeType::CADA_LINE;
+    return NS::Line;
 }
 
 Shape *Line::clone()
@@ -43,47 +43,49 @@ Shape *Line::clone()
     return pClone;
 }
 
-std::vector<Vec2d> Line::getEndPoints() const
+std::vector<Vec3d> Line::getEndPoints() const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
     ret.push_back(mBegin);
     ret.push_back(mEnd);
     return ret;
 }
 
-std::vector<Vec2d> Line::getMiddlePoints() const
+std::vector<Vec3d> Line::getMiddlePoints() const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
     ret.push_back(getMiddlePoint());
     return ret;
 }
 
-std::vector<Vec2d> Line::getCenterPoints() const
+std::vector<Vec3d> Line::getCenterPoints() const
 {
     return getMiddlePoints();
 }
 
-Side Line::sideOfPoint(const Vec2d& pt) const
+NS::Side Line::getSideOfPoint(const Vec3d &pt) const
 {
     double entityAngle = getAngle();
     double angleToCoord = mBegin.getAngleTo(pt);
-    double angleDiff = NS::getAngleDifference(entityAngle, angleToCoord);
+    double angleDiff = Math::getAngleDifference(entityAngle, angleToCoord);
 
-    if(angleDiff < M_PI) { return LEFT_HAND; }
-    return RIGHT_HAND;
+    if (angleDiff < M_PI) {
+        return NS::LeftHand;
+    }
+    return NS::RightHand;
 }
 
-Vec2d getStartPoint() const
+Vec3d Line::getStartPoint() const
 {
     return mBegin;
 }
 
-Vec2d getEndPoint() const
+Vec3d Line::getEndPoint() const
 {
     return mEnd;
 }
 
-Vec2d Line::getMiddlePoint() const
+Vec3d Line::getMiddlePoint() const
 {
     return (mBegin + mEnd) / 2.0;
 }

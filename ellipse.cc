@@ -24,21 +24,30 @@
 
 using namespace cada;
 
-Ellipse::Ellipse() :mCenter(Vec2d::invalid), mMajorPoint(Vec2d::invalid), mRatio(0.0),mStartParam(0.0), mEndParam(0.0), mReversed(false) {}
+Ellipse::Ellipse()
+    : mCenter(Vec3d::invalid), mMajorPoint(Vec3d::invalid), mRatio(0.0),
+      mStartParam(0.0), mEndParam(0.0), mReversed(false)
+{
+}
 
-Ellipse::Ellipse(const Vec2d &center, const Vec2d &majorPoint, double ratio, double startParam, double endParam, bool reversed)
-    : mCenter(center), mMajorPoint(majorPoint), mRatio(ratio), mStartParam(startParam), mEndParam(endParam), mReversed(reversed) 
+Ellipse::Ellipse(const Vec3d &center, const Vec3d &majorPoint, double ratio,
+                 double startParam, double endParam, bool reversed)
+    : mCenter(center), mMajorPoint(majorPoint), mRatio(ratio),
+      mStartParam(startParam), mEndParam(endParam), mReversed(reversed)
 {
     correctMajorMinor();
 }
 
-ShapeType Ellipse::shapeType() const { return ShapeType::CADA_ELLIPSE; }
-
-Shape *Ellipse::clone() 
+NS::ShapeType Ellipse::shapeType() const
 {
-    Ellipse* pClone = new Ellipse();
+    return NS::Ellipse;
+}
+
+Shape *Ellipse::clone()
+{
+    Ellipse *pClone = new Ellipse();
     pClone->mCenter = mCenter;
-    pClone->mMajorPoint= mMajorPoint;
+    pClone->mMajorPoint = mMajorPoint;
     pClone->mRatio = mRatio;
     pClone->mStartParam = mStartParam;
     pClone->mEndParam = mEndParam;
@@ -46,52 +55,49 @@ Shape *Ellipse::clone()
     return pClone;
 }
 
-std::vector<Vec2d> Ellipse::getEndPoints() const 
+std::vector<Vec3d> Ellipse::getEndPoints() const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
     ret.push_back(getStartPoint());
     ret.push_back(getEndPoint());
     return ret;
 }
 
-std::vector<Vec2d> Ellipse::getMiddlePoints() const { return std::vector<Vec2d>(); }
-
-std::vector<Vec2d> Ellipse::getCenterPoints() const 
+std::vector<Vec3d> Ellipse::getMiddlePoints() const
 {
-    std::vector<Vec2d> ret;
+    return std::vector<Vec3d>();
+}
+
+std::vector<Vec3d> Ellipse::getCenterPoints() const
+{
+    std::vector<Vec3d> ret;
     ret.push_back(getCenter());
     return ret;
 }
 
-Side Ellipse::sideOfPoint(const Vec2d& pt) const 
+NS::Side Ellipse::getSideOfPoint(const Vec3d &pt) const
 {
-    if(isContains(pt))
-    {
-        if(!mReversed)
-        {
-            return RIGHT_HAND;
+    if (isContains(pt)) {
+        if (!mReversed) {
+            return NS::RightHand;
         }
-        else
-        {
-            return LEFT_HAND;
+        else {
+            return NS::LeftHand;
         }
     }
-    else
-    {
-        if(!mReversed)
-        {
-            return LEFT_HAND;
+    else {
+        if (!mReversed) {
+            return NS::LeftHand;
         }
-        else
-        {
-            return RIGHT_HAND;
+        else {
+            return NS::RightHand;
         }
     }
 }
 
-bool Ellipse::move(const Vec2d &offset)
+bool Ellipse::move(const Vec3d &offset)
 {
-    if(!offset.isValid() || offset.getMagnitude() < NS::PointTolerance)
+    if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance)
         return false;
 
     mCenter += offset;
@@ -99,10 +105,9 @@ bool Ellipse::move(const Vec2d &offset)
     return true;
 }
 
-bool Ellipse::rotate(double rotation, const Vec2d &center)
+bool Ellipse::rotate(double rotation, const Vec3d &center)
 {
-    if(fabs(rotation) < NS::AngleTolerance)
-    {
+    if (fabs(rotation) < NS::AngleTolerance) {
         return false;
     }
 

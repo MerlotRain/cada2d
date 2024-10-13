@@ -27,17 +27,17 @@
 
 namespace cada {
 
-class IntCurveCurve
-{
-    Shape* mShape1;
-    Shape* mShape2;
-public:
-    IntCurveCurve(Shape* shape1, Shape* shape2);
+class IntCurveCurve {
+    Shape *mShape1;
+    Shape *mShape2;
 
-    std::vector<Vec2d> intersectPoints(bool limited = true, bool same = false, bool force = false) const;
+public:
+    IntCurveCurve(Shape *shape1, Shape *shape2);
+
+    std::vector<Vec3d> intersectPoints(bool limited = true, bool same = false,
+                                       bool force = false) const;
 
 private:
-
 };
 
 } // namespace cada

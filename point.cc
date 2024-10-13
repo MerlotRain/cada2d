@@ -24,7 +24,7 @@
 
 using namespace cada;
 
-Point::Point(const Vec2d &v) : mp(v)
+Point::Point(const Vec3d &v) : mp(v)
 {
 }
 
@@ -42,23 +42,23 @@ Shape *Point::clone()
     return nullptr;
 }
 
-std::vector<Vec2d> Point::getEndPoints() const
+std::vector<Vec3d> Point::getEndPoints() const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
     ret.push_back(mp);
     return ret;
 }
 
-std::vector<Vec2d> Point::getMiddlePoints() const
+std::vector<Vec3d> Point::getMiddlePoints() const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
     ret.push_back(mp);
     return ret;
 }
 
-std::vector<Vec2d> Point::getCenterPoints() const
+std::vector<Vec3d> Point::getCenterPoints() const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
     ret.push_back(mp);
     return ret;
 }

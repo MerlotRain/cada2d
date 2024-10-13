@@ -28,7 +28,7 @@ Arc::Arc()
 {
 }
 
-Arc::Arc(const Vec2d &center, double radius, double startAngle, double endAngle,
+Arc::Arc(const Vec3d &center, double radius, double startAngle, double endAngle,
          bool reversed)
     : mCenter(center), mRadius(radius), mStartAngle(startAngle),
       mEndAngle(endAngle), mReversed(reversed)
@@ -58,9 +58,9 @@ double Arc::getSweep() const
     return ret;
 }
 
-ShapeType Arc::shapeType() const
+NS::ShapeType Arc::shapeType() const
 {
-    return ShapeType::CADA_ARC;
+    return NS::Arc;
 }
 
 Shape *Arc::clone()
@@ -68,96 +68,102 @@ Shape *Arc::clone()
     return NULL; // TODO
 }
 
-std::vector<Vec2d> Arc::getEndPoints() const
+std::vector<Vec3d> Arc::getEndPoints() const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
     ret.push_back(getStartPoint());
     ret.push_back(getEndPoint());
     return ret;
 }
 
-std::vector<Vec2d> Arc::getMiddlePoints() const
+std::vector<Vec3d> Arc::getMiddlePoints() const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
     ret.push_back(getMiddlePoint());
     return ret;
 }
 
-Side Arc::sideOfPoint(const Vec2d& pt) const
+NS::Side Arc::getSideOfPoint(const Vec3d &pt) const
 {
-    if (mReversed)
-    {
-        if (mCenter.getDistanceTo(pt) < mRadius) { return RIGHT_HAND; }
-        else { return LEFT_HAND; }
+    if (mReversed) {
+        if (mCenter.getDistanceTo(pt) < mRadius) {
+            return NS::RightHand;
+        }
+        else {
+            return NS::LeftHand;
+        }
     }
-    else
-    {
-        if (mCenter.getDistanceTo(pt) < mRadius) { return LEFT_HAND; }
-        else { return RIGHT_HAND; }
+    else {
+        if (mCenter.getDistanceTo(pt) < mRadius) {
+            return NS::LeftHand;
+        }
+        else {
+            return NS::RightHand;
+        }
     }
 }
 
-std::vector<Vec2d> Arc::getCenterPoints() const
+std::vector<Vec3d> Arc::getCenterPoints() const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
     ret.push_back(mCenter);
     return ret;
 }
 
-Vec2d Arc::getStartPoint() const
+Vec3d Arc::getStartPoint() const
 {
     return getPointAtAngle(mStartAngle);
 }
 
-Vec2d Arc::getEndPoint() const
+Vec3d Arc::getEndPoint() const
 {
     return getPointAtAngle(mEndAngle);
 }
 
-Vec2d Arc::getMiddlePoint() const
+Vec3d Arc::getMiddlePoint() const
 {
     double a = mStartAngle + getSweep() / 2.0;
-    Vec2d v = Vec2d::createPolar(mRadius, a);
+    Vec3d v = Vec3d::createPolar(mRadius, a);
     v += mCenter;
     return v;
 }
 
-Vec2d Arc::getPointAtAngle(double a) const
+Vec3d Arc::getPointAtAngle(double a) const
 {
-    return Vec2d(mCenter.x() + cos(a) + mRadius,
-                 mCenter.y() + sin(a) * mRadius);
+    return Vec3d(mCenter.getX() + cos(a) + mRadius,
+                 mCenter.getY() + sin(a) * mRadius);
 }
 
-double Arc::getAngleAt(double dis, From from) const
+double Arc::getAngleAt(double dis, NS::From from) const
 {
-    std::vector<Vec2d> points = getPointsWithDistanceToEnd(dis, from);
+    std::vector<Vec3d> points = getPointsWithDistanceToEnd(dis, from);
     if (points.size() != 1) {
         return std::numeric_limits<double>::quiet_NaN();
     }
     return mCenter.getAngleTo(points[0]) + (mReversed ? -M_PI / 2 : M_PI / 2);
 }
 
-std::vector<Vec2d> Arc::getArcRefPoints() const
+std::vector<Vec3d> Arc::getArcRefPoints() const
 {
-    std::vector<Vec2d> ret, p;
-    p.push_back(mCenter + Vec2d(mRadius, 0));
-    p.push_back(mCenter + Vec2d(0, mRadius));
-    p.push_back(mCenter - Vec2d(mRadius, 0));
-    p.push_back(mCenter - Vec2d(0, mRadius));
+    std::vector<Vec3d> ret, p;
+    p.push_back(mCenter + Vec3d(mRadius, 0));
+    p.push_back(mCenter + Vec3d(0, mRadius));
+    p.push_back(mCenter - Vec3d(mRadius, 0));
+    p.push_back(mCenter - Vec3d(0, mRadius));
 
     for (int i = 0; i < p.size(); ++i) {
-        if (NS::isAngleBetween(mCenter.getAngleTo(p[i]), mStartAngle, mEndAngle,
-                               mReversed)) {
+        if (Math::isAngleBetween(mCenter.getAngleTo(p[i]), mStartAngle,
+                                 mEndAngle, mReversed)) {
             ret.push_back(p[i]);
         }
     }
     return ret;
 }
 
-std::vector<Vec2d> Arc::getPointsWithDistanceToEnd(double distance,
+std::vector<Vec3d> Arc::getPointsWithDistanceToEnd(double distance,
                                                    int from) const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
 
     if (mRadius < NS::PointTolerance) {
         return ret;
@@ -165,7 +171,7 @@ std::vector<Vec2d> Arc::getPointsWithDistanceToEnd(double distance,
 
     double a1;
     double a2;
-    Vec2d p;
+    Vec3d p;
     double aDist = distance / mRadius;
 
     if (mReversed) {
@@ -177,13 +183,13 @@ std::vector<Vec2d> Arc::getPointsWithDistanceToEnd(double distance,
         a2 = mEndAngle - aDist;
     }
 
-    if (from & FROM_START) {
+    if (from & NS::FromStart) {
         p.setPolar(mRadius, a1);
         p += mCenter;
         ret.push_back(p);
     }
 
-    if (from & FROM_END) {
+    if (from & NS::FromEnd) {
         p.setPolar(mRadius, a2);
         p += mCenter;
         ret.push_back(p);
@@ -192,27 +198,27 @@ std::vector<Vec2d> Arc::getPointsWithDistanceToEnd(double distance,
     return ret;
 }
 
-bool Arc::move(const Vec2d &offset)
+bool Arc::move(const Vec3d &offset)
 {
-    if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance)
-    {
+    if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance) {
         return false;
     }
     mCenter += offset;
     return true;
 }
 
-bool Arc::rotate(double rotation, const Vec2d &center)
+bool Arc::rotate(double rotation, const Vec3d &center)
 {
-    if (fabs(rotation) < NS::AngleTolerance) { return false; }
+    if (fabs(rotation) < NS::AngleTolerance) {
+        return false;
+    }
 
-    mCenter.rotate(rotation, c);
+    mCenter.rotate(rotation, center);
 
     // important for circle shaped in hatch boundaries:
-    if (!isFullCircle())
-    {
-        mStartAngle = NS::getNormalizedAngle(mStartAngle + rotation);
-        mEndAngle = NS::getNormalizedAngle(mEndAngle + rotation);
+    if (!isFullCircle()) {
+        mStartAngle = Math::getNormalizedAngle(mStartAngle + rotation);
+        mEndAngle = Math::getNormalizedAngle(mEndAngle + rotation);
     }
 
     return true;
@@ -220,5 +226,7 @@ bool Arc::rotate(double rotation, const Vec2d &center)
 
 bool Arc::isFullCircle(double tol) const
 {
-    return fabs(NS::getAngleDifference180(NS::getNormalizedAngle(mStartAngle), NS::getNormalizedAngle(mEndAngle))) < tol;
+    return fabs(Math::getAngleDifference180(
+               Math::getNormalizedAngle(mStartAngle),
+               Math::getNormalizedAngle(mEndAngle))) < tol;
 }

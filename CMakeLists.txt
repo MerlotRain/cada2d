@@ -9,13 +9,12 @@ add_library(cada2d STATIC
     ellipse.cc
     intcurvecurve.cc
     line.cc
-    mat.cc
     math.cc
     point.cc
     pointstobspline.cc
     polyline.cc
     ray.cc
     shape.cc
-    vec2d.cc
+    vec3d.cc
     xline.cc
 )

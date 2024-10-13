@@ -20,7 +20,6 @@
  * IN THE SOFTWARE.
  */
 
-
 #ifndef CADA_COLOR_H
 #define CADA_COLOR_H
 
@@ -52,14 +51,15 @@ inline int rgb_Alpha(RGB rgb)
 
 inline RGB rgb_Rgb(int r, int g, int b)
 {
-    return (0xffu << 24) | ((r & 0xffu) << 16) | ((g & 0xffu) << 8) | (b & 0xffu);
+    return (0xffu << 24) | ((r & 0xffu) << 16) | ((g & 0xffu) << 8) |
+           (b & 0xffu);
 }
 
 inline RGB rgb_Rgba(int r, int g, int b, int a)
 {
-    return ((a & 0xffu) << 24) | ((r & 0xffu) << 16) | ((g & 0xffu) << 8) | (b & 0xffu);
+    return ((a & 0xffu) << 24) | ((r & 0xffu) << 16) | ((g & 0xffu) << 8) |
+           (b & 0xffu);
 }
-
 
 } // namespace cada
 

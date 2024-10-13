@@ -32,17 +32,17 @@ Circle::Circle(double cx, double cy, double radius)
 {
 }
 
-Vec2d Circle::center() const
+Vec3d Circle::getCenter() const
 {
     return mCenter;
 }
 
-void Circle::setCenter(const Vec2d &c)
+void Circle::setCenter(const Vec3d &c)
 {
     mCenter = c;
 }
 
-double Circle::radius() const
+double Circle::getRadius() const
 {
     return mRadius;
 }
@@ -52,9 +52,9 @@ void Circle::setRadius(double r)
     mRadius = r;
 }
 
-ShapeType Circle::shapeType() const
+NS::ShapeType Circle::shapeType() const
 {
-    return ShapeType::CADA_CIRCLE;
+    return NS::Circle;
 }
 
 Shape *Circle::clone()
@@ -65,29 +65,29 @@ Shape *Circle::clone()
     return pClone;
 }
 
-std::vector<Vec2d> Circle::getEndPoints() const
+std::vector<Vec3d> Circle::getEndPoints() const
 {
-    return std::vector<Vec2d>();
+    return std::vector<Vec3d>();
 }
 
-std::vector<Vec2d> Circle::getMiddlePoints() const
+std::vector<Vec3d> Circle::getMiddlePoints() const
 {
-    return std::vector<Vec2d>();
+    return std::vector<Vec3d>();
 }
 
-std::vector<Vec2d> Circle::getCenterPoints() const
+std::vector<Vec3d> Circle::getCenterPoints() const
 {
-    std::vector<Vec2d> ret;
+    std::vector<Vec3d> ret;
     ret.push_back(mCenter);
     return ret;
 }
 
-std::vector<Vec2d> Circle::getArcRefPoints() const
+std::vector<Vec3d> Circle::getArcRefPoints() const
 {
-    std::vector<Vec2d> ret;
-    ret.push_back(mCenter + Vec2d(mRadius, 0));
-    ret.push_back(mCenter + Vec2d(0, mRadius));
-    ret.push_back(mCenter - Vec2d(mRadius, 0));
-    ret.push_back(mCenter - Vec2d(0, mRadius));
+    std::vector<Vec3d> ret;
+    ret.push_back(mCenter + Vec3d(mRadius, 0));
+    ret.push_back(mCenter + Vec3d(0, mRadius));
+    ret.push_back(mCenter - Vec3d(mRadius, 0));
+    ret.push_back(mCenter - Vec3d(0, mRadius));
     return ret;
 }

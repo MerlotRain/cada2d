@@ -21,6 +21,8 @@
  */
 
 #include "cada_math.h"
+#include <cmath>
+#include "cada_ns.h"
 
 using namespace cada;
 
@@ -73,13 +75,13 @@ bool Math::isAngleBetween(double a, double a1, double a2, bool reversed)
         a2 = tmp;
     }
 
-    if (a1 >= a2 - AngleTolerance) {
-        if (a >= a1 - AngleTolerance || a <= a2 + AngleTolerance) {
+    if (a1 >= a2 - NS::AngleTolerance) {
+        if (a >= a1 - NS::AngleTolerance || a <= a2 + NS::AngleTolerance) {
             ret = true;
         }
     }
     else {
-        if (a >= a1 - AngleTolerance && a <= a2 + AngleTolerance) {
+        if (a >= a1 - NS::AngleTolerance && a <= a2 + NS::AngleTolerance) {
             ret = true;
         }
     }
@@ -97,7 +99,7 @@ double Math::getNormalizedAngle(double a)
         a += 2 * M_PI * n;
     }
 
-    if (a > 2 * M_PI - AngleTolerance) {
+    if (a > 2 * M_PI - NS::AngleTolerance) {
         a = 0.0;
     }
 
@@ -108,10 +110,14 @@ double Math::getAngleDifference(double a1, double a2)
 {
     double ret;
 
-    if (a1 >= a2) { a2 += 2 * M_PI; }
+    if (a1 >= a2) {
+        a2 += 2 * M_PI;
+    }
     ret = a2 - a1;
 
-    if (ret >= 2 * M_PI) { ret = 0.0; }
+    if (ret >= 2 * M_PI) {
+        ret = 0.0;
+    }
 
     return ret;
 }
@@ -121,8 +127,12 @@ double Math::getAngleDifference180(double a1, double a2)
     double ret;
 
     ret = a2 - a1;
-    if (ret > M_PI) { ret = -(2 * M_PI - ret); }
-    if (ret < -M_PI) { ret = 2 * M_PI + ret; }
+    if (ret > M_PI) {
+        ret = -(2 * M_PI - ret);
+    }
+    if (ret < -M_PI) {
+        ret = 2 * M_PI + ret;
+    }
 
     return ret;
 }
