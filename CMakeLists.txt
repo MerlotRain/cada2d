@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(cadsa2d LANGUAGES CXX C)
+project(cadsa3d LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 11)
 
 add_library(cada2d STATIC

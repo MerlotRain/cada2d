@@ -26,12 +26,23 @@
 #include "cada_ns.h"
 #include "cada_math.h"
 #include <vector>
+#include <memory>
 
 namespace cada {
 
-class Line;
-class Polyline;
 class BBox;
+
+class Shape;
+class Point;
+class Line;
+class Circle;
+class Arc;
+class Ellipse;
+class Polyline;
+class XLine;
+class Ray;
+class BSpline;
+class Triangle;
 
 class Vec3d {
     double x;
@@ -374,57 +385,57 @@ public:
     virtual bool stretch(const Polyline &area, const Vec3d &offset);
 
     static std::vector<Polyline>
-    getPolylines(const std::vector<QSharedPointer<Shape>> &shapes);
-    static std::vector<QSharedPointer<Shape>>
-    getOrderedShapes(const std::vector<QSharedPointer<Shape>> &shapes);
+    getPolylines(const std::vector<std::shared_ptr<Shape>> &shapes);
+    static std::vector<std::shared_ptr<Shape>>
+    getOrderedShapes(const std::vector<std::shared_ptr<Shape>> &shapes);
     static bool
-    order(std::vector<std::vector<QSharedPointer<Shape>>> &boundary);
+    order(std::vector<std::vector<std::shared_ptr<Shape>>> &boundary);
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
                     const Vec3d &position = Vec3d::invalid);
 
-    static std::vector<QSharedPointer<Shape>>
+    static std::vector<std::shared_ptr<Shape>>
     getOffsetLines(const Shape &shape, double distance, int number,
                    NS::Side side, const Vec3d &position = Vec3d::invalid);
-    static std::vector<QSharedPointer<Shape>>
+    static std::vector<std::shared_ptr<Shape>>
     getOffsetArcs(const Shape &shape, double distance, int number,
                   NS::Side side, const Vec3d &position = Vec3d::invalid);
 
-    static std::vector<QSharedPointer<Shape>>
-    getReversedShapeList(const std::vector<QSharedPointer<Shape>> &shapes);
+    static std::vector<std::shared_ptr<Shape>>
+    getReversedShapeList(const std::vector<std::shared_ptr<Shape>> &shapes);
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     splitAt(const std::vector<Vec3d> &points) const;
 
-    static std::vector<QSharedPointer<Shape>>
+    static std::vector<std::shared_ptr<Shape>>
     trim(const Shape &trimShape, const Vec3d &trimClickPos,
          const Shape &limitingShape, const Vec3d &limitingClickPos,
          bool trimBoth, bool samePolyline);
 
-    static std::vector<QSharedPointer<Shape>>
-    roundCorners(const std::vector<QSharedPointer<Shape>> &shapes,
+    static std::vector<std::shared_ptr<Shape>>
+    roundCorners(const std::vector<std::shared_ptr<Shape>> &shapes,
                  double radius);
 
-    static std::vector<QSharedPointer<Shape>>
-    roundShapes(const QSharedPointer<Shape> shape1, const Vec3d &clickPos1,
-                const QSharedPointer<Shape> shape2, const Vec3d &clickPos2,
+    static std::vector<std::shared_ptr<Shape>>
+    roundShapes(const std::shared_ptr<Shape> shape1, const Vec3d &clickPos1,
+                const std::shared_ptr<Shape> shape2, const Vec3d &clickPos2,
                 bool trim, bool samePolyline, double radius, const Vec3d &pos);
 
-    static QSharedPointer<Shape> xLineToRay(QSharedPointer<Shape> shape);
-    static QSharedPointer<Shape> rayToLine(QSharedPointer<Shape> shape);
+    static std::shared_ptr<Shape> xLineToRay(std::shared_ptr<Shape> shape);
+    static std::shared_ptr<Shape> rayToLine(std::shared_ptr<Shape> shape);
 
-    static QSharedPointer<Shape> scaleArc(const Shape &shape,
-                                          const Vec3d &scaleFactors,
-                                          const Vec3d &center = Vec3d());
+    static std::shared_ptr<Shape> scaleArc(const Shape &shape,
+                                           const Vec3d &scaleFactors,
+                                           const Vec3d &center = Vec3d());
 
-    static QSharedPointer<Shape>
+    static std::shared_ptr<Shape>
     transformArc(const Shape &shape, RShapeTransformation &transformation);
-    static QSharedPointer<Shape>
+    static std::shared_ptr<Shape>
     ellipseToArcCircleEllipse(const Ellipse &ellipse);
 
-    virtual std::vector<QSharedPointer<Shape>>
-    roundAllCorners(const std::vector<QSharedPointer<Shape>> &shapes,
+    virtual std::vector<std::shared_ptr<Shape>>
+    roundAllCorners(const std::vector<std::shared_ptr<Shape>> &shapes,
                     double radius) = 0;
 
 private:
@@ -568,14 +579,14 @@ public:
     }
     virtual double getDistanceFromStart(const Vec3d &p) const;
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
                     const Vec3d &position = Vec3d::invalid)
     {
         return Shape::getOffsetLines(*this, distance, number, side, position);
     }
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     splitAt(const std::vector<Vec3d> &points) const;
 
 public:
@@ -654,14 +665,14 @@ public:
 
     std::vector<Line> getTangents(const Vec3d &point) const;
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
                     const Vec3d &position = Vec3d::invalid)
     {
         return Shape::getOffsetArcs(*this, distance, number, side, position);
     }
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     splitAt(const std::vector<Vec3d> &points) const;
 
 public:
@@ -798,14 +809,14 @@ public:
 
     std::vector<Line> getTangents(const Vec3d &point) const;
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
                     const Vec3d &position = Vec3d::invalid)
     {
         return Shape::getOffsetArcs(*this, distance, number, side, position);
     }
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     splitAt(const std::vector<Vec3d> &points) const;
 
     std::vector<Arc> splitAtQuadrantLines() const;
@@ -989,10 +1000,10 @@ public:
     std::vector<BSpline> approximateWithSplines() const;
     Polyline approximateWithArcs(int segments) const;
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
                     const Vec3d &position = Vec3d::invalid);
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     splitAt(const std::vector<Vec3d> &points) const;
 
 public:
@@ -1035,7 +1046,7 @@ class Polyline : public Shape {
 public:
     Polyline();
     Polyline(const std::vector<Vec3d> &vertices, bool closed);
-    Polyline(const std::vector<QSharedPointer<Shape>> &segments);
+    Polyline(const std::vector<std::shared_ptr<Shape>> &segments);
     virtual ~Polyline();
 
     virtual NS::ShapeType getShapeType() const { return Polyline; }
@@ -1203,7 +1214,7 @@ public:
     virtual bool trimStartPoint(double trimDist);
     virtual bool trimEndPoint(double trimDist);
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     getExploded(int segments = RDEFAULT_MIN1) const;
     std::vector<Polyline> getOutline() const;
     std::vector<QPair<Polyline, Polyline>> getLeftRightOutline() const;
@@ -1227,10 +1238,10 @@ public:
     }
     virtual bool isInterpolated() const { return false; }
     int countSegments() const;
-    QSharedPointer<Shape> getSegmentAt(int i) const;
+    std::shared_ptr<Shape> getSegmentAt(int i) const;
     bool isArcSegmentAt(int i) const;
-    QSharedPointer<Shape> getLastSegment() const;
-    QSharedPointer<Shape> getFirstSegment() const;
+    std::shared_ptr<Shape> getLastSegment() const;
+    std::shared_ptr<Shape> getFirstSegment() const;
 
     static bool isStraight(double bulge);
 
@@ -1387,14 +1398,14 @@ public:
     virtual bool reverse();
     virtual bool stretch(const Polyline &area, const Vec3d &offset);
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
                     const Vec3d &position = Vec3d::invalid)
     {
         return Shape::getOffsetLines(*this, distance, number, side, position);
     }
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     splitAt(const std::vector<Vec3d> &points) const;
 
 public:
@@ -1435,7 +1446,7 @@ public:
 
     virtual bool stretch(const Polyline &area, const Vec3d &offset);
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     splitAt(const std::vector<Vec3d> &points) const;
 };
 
@@ -1582,10 +1593,10 @@ public:
     Polyline approximateWithArcs(double tolerance,
                                  double radiusLimit = RDEFAULT_MIN1) const;
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     getExploded(int segments = RDEFAULT_MIN1) const;
-    std::vector<QSharedPointer<Shape>> getExplodedBezier(int segments) const;
-    std::vector<QSharedPointer<Shape>>
+    std::vector<std::shared_ptr<Shape>> getExplodedBezier(int segments) const;
+    std::vector<std::shared_ptr<Shape>>
     getExplodedWithSegmentLength(double segmentLength) const;
 
     std::vector<BSpline>
@@ -1607,7 +1618,7 @@ public:
     void updateFromFitPoints() const;
     void update() const;
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     splitAt(const std::vector<Vec3d> &points) const;
 
     bool isDirty() const { return dirty; }
@@ -1617,7 +1628,7 @@ public:
 
 protected:
     void appendToExploded(const Line &line) const;
-    // void appendToExploded(std::vector<QSharedPointer<Shape> >& list) const;
+    // void appendToExploded(std::vector<std::shared_ptr<Shape> >& list) const;
     void invalidate() const;
     void updateInternal() const;
     void updateBoundingBox() const;
@@ -1676,7 +1687,7 @@ public:
 
 private:
     mutable BBox boundingBox;
-    mutable std::vector<QSharedPointer<Shape>> exploded;
+    mutable std::vector<std::shared_ptr<Shape>> exploded;
     // cached length:
     mutable double length;
 
@@ -1727,7 +1738,7 @@ public:
 
     double getD() const;
 
-    virtual std::vector<QSharedPointer<Shape>>
+    virtual std::vector<std::shared_ptr<Shape>>
     getExploded(int segments = RDEFAULT_MIN1) const;
 
     virtual bool move(const Vec3d &offset)
