@@ -39,6 +39,10 @@ public:
     static double getNormalizedAngle(double a);
     static double getAngleDifference(double a1, double a2);
     static double getAngleDifference180(double a1, double a2);
+    static bool fuzzyCompare(double v1, double v2,
+                             double tolerance = DBL_EPSILON);
+    static bool fuzzyAngleCompare(double v1, double v2,
+                                  double tolerance = DBL_EPSILON);
 };
 
 } // namespace cada

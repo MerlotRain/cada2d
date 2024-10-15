@@ -136,3 +136,13 @@ double Math::getAngleDifference180(double a1, double a2)
 
     return ret;
 }
+
+bool cada::Math::fuzzyCompare(double v1, double v2, double tolerance)
+{
+    return fabs(v1 - v2) < tolerance;
+}
+
+bool cada::Math::fuzzyAngleCompare(double v1, double v2, double tolerance)
+{
+    return fabs(getAngleDifference180(v1, v2)) < tolerance;
+}

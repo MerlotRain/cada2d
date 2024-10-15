@@ -24,41 +24,126 @@
 
 using namespace cada;
 
-Point::Point(const Vec3d &v) : mp(v)
+Point::Point()
 {
 }
 
-Point::Point(double x, double y) : mp(x, y)
+Point::Point(double x, double y) : position(x, y)
 {
 }
 
-ShapeType Point::shapeType() const
+Point::Point(const Vec3d &position) : position(position)
 {
-    return ShapeType::CADA_POINT;
 }
 
-Shape *Point::clone()
+Point::~Point()
 {
-    return nullptr;
+}
+
+BBox Point::getBoundingBox() const
+{
+    return BBox(position, position);
+}
+
+double Point::getLength() const
+{
+    return 0.0;
 }
 
 std::vector<Vec3d> Point::getEndPoints() const
 {
     std::vector<Vec3d> ret;
-    ret.push_back(mp);
+    ret.push_back(position);
     return ret;
 }
 
 std::vector<Vec3d> Point::getMiddlePoints() const
 {
     std::vector<Vec3d> ret;
-    ret.push_back(mp);
+    ret.push_back(position);
     return ret;
 }
 
 std::vector<Vec3d> Point::getCenterPoints() const
 {
     std::vector<Vec3d> ret;
-    ret.push_back(mp);
+    ret.push_back(position);
     return ret;
+}
+
+std::vector<Vec3d> Point::getPointsWithDistanceToEnd(double distance,
+                                                     int from) const
+{
+    // Q_UNUSED(distance)
+    // Q_UNUSED(from)
+
+    std::vector<Vec3d> ret;
+    return ret;
+}
+
+std::vector<Vec3d> Point::getPointCloud(double segmentLength) const
+{
+    // Q_UNUSED(segmentLength)
+
+    std::vector<Vec3d> ret;
+    ret.push_back(getPosition());
+    return ret;
+}
+
+double Point::getAngleAt(double distance, NS::From from) const
+{
+    // Q_UNUSED(distance)
+    // Q_UNUSED(from)
+    return std::numeric_limits<double>::quiet_NaN();
+}
+
+Vec3d Point::getVectorTo(const Vec3d &point, bool limited,
+                         double strictRange) const
+{
+    // Q_UNUSED(limited)
+    // Q_UNUSED(strictRange)
+
+    return point - position;
+}
+
+bool Point::move(const Vec3d &offset)
+{
+    if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance) {
+        return false;
+    }
+    position += offset;
+    return true;
+}
+
+bool Point::rotate(double rotation, const Vec3d &center)
+{
+    if (fabs(rotation) < NS::AngleTolerance) {
+        return false;
+    }
+    position.rotate(rotation, center);
+    return true;
+}
+
+bool Point::scale(const Vec3d &scaleFactors, const Vec3d &center)
+{
+    position.scale(scaleFactors, center);
+    return true;
+}
+
+bool Point::mirror(const Line &axis)
+{
+    position.mirror(axis);
+    return true;
+}
+
+bool Point::flipHorizontal()
+{
+    position.flipHorizontal();
+    return true;
+}
+
+bool Point::flipVertical()
+{
+    position.flipVertical();
+    return true;
 }

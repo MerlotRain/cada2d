@@ -55,3 +55,4 @@ build
 .cache
 .vscode
 Testing
+builddir

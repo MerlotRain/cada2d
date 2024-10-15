@@ -38,8 +38,8 @@ BBox::BBox(double x1, double y1, double x2, double y2) : c1(x1, y1), c2(x2, y2)
 
 BBox::BBox(const Vec3d &center, double range)
 {
-    c1 = Vec3d(center.getX() - range, center.getY() - range);
-    c2 = Vec3d(center.getX() + range, center.getY() + range);
+    c1 = Vec3d(center.x - range, center.y - range);
+    c2 = Vec3d(center.x + range, center.y + range);
 }
 
 BBox::BBox(const Vec3d &center, double width, double height)
@@ -114,12 +114,12 @@ bool BBox::scaleByReference(const Vec3d &referencePoint,
     Vec3d oriSize = getSize().getAbsolute();
 
     // prevent division by 0:
-    if (Math::fuzzyCompare(oriSize.getX(), 0.0))
-        oriSize.setX(1);
-    if (Math::fuzzyCompare(oriSize.getY(), 0.0))
-        oriSize.setY(1);
-    if (Math::fuzzyCompare(oriSize.getZ(), 0.0))
-        oriSize.setZ(1);
+    if (Math::fuzzyCompare(oriSize.x, 0.0))
+        oriSize.x += 1;
+    if (Math::fuzzyCompare(oriSize.y, 0.0))
+        oriSize.y += 1;
+    if (Math::fuzzyCompare(oriSize.z, 0.0))
+        oriSize.z += 1;
 
     int match = -1;
     if (referencePoint.equalsFuzzy(c1))
@@ -127,8 +127,8 @@ bool BBox::scaleByReference(const Vec3d &referencePoint,
     if (referencePoint.equalsFuzzy(c2))
         match = 2;
 
-    Vec3d c3 = Vec3d(c2.getX(), c1.getY());
-    Vec3d c4 = Vec3d(c1.getX(), c2.getY());
+    Vec3d c3 = Vec3d(c2.x, c1.y);
+    Vec3d c4 = Vec3d(c1.x, c2.y);
     if (referencePoint.equalsFuzzy(c3))
         match = 3;
     if (referencePoint.equalsFuzzy(c4))
@@ -151,33 +151,33 @@ bool BBox::scaleByReference(const Vec3d &referencePoint,
         break;
     case 3:
         vf = (targetPoint - c4);
-        vf.getY() *= -1;
+        vf.y *= -1;
         break;
     case 4:
         vf = (c3 - targetPoint);
-        vf.getY() *= -1;
+        vf.y *= -1;
         break;
     }
     vf = vf.getDividedComponents(oriSize);
 
     if (keepAspectRatio) {
-        if (std::fabs(vf.getX()) > std::fabs(vf.getY())) {
-            if (vf.getX() * vf.getY() >= 0.0) {
-                vf.getY() = vf.getX();
+        if (std::fabs(vf.x) > std::fabs(vf.y)) {
+            if (vf.x * vf.y >= 0.0) {
+                vf.y = vf.x;
             }
             else {
-                vf.getY() = -vf.getX();
+                vf.y = -vf.x;
             }
         }
         else {
-            if (vf.getX() * vf.getY() >= 0.0) {
-                vf.getX() = vf.getY();
+            if (vf.x * vf.y >= 0.0) {
+                vf.x = vf.y;
             }
             else {
-                vf.getX() = -vf.getY();
+                vf.x = -vf.y;
             }
         }
-        // vf.getX() = vf.getY() = qMax(vf.getX(), vf.getY());
+        // vf.x = vf.y = qMax(vf.x, vf.y);
     }
 
     switch (match) {
@@ -196,8 +196,8 @@ bool BBox::scaleByReference(const Vec3d &referencePoint,
     }
 
     if (match == 3 || match == 4) {
-        c1 = Vec3d(c4.getX(), c3.getY());
-        c2 = Vec3d(c3.getX(), c4.getY());
+        c1 = Vec3d(c4.x, c3.y);
+        c2 = Vec3d(c3.x, c4.y);
     }
 
     return true;
@@ -205,12 +205,12 @@ bool BBox::scaleByReference(const Vec3d &referencePoint,
 
 double BBox::getWidth() const
 {
-    return std::fabs(c2.getX() - c1.getX());
+    return std::fabs(c2.x - c1.x);
 }
 
 double BBox::getHeight() const
 {
-    return std::fabs(c2.getY() - c1.getY());
+    return std::fabs(c2.y - c1.y);
 }
 
 Vec3d BBox::getSize() const
@@ -265,12 +265,9 @@ bool BBox::isOutside(const BBox &other) const
     Vec3d otherMaximum = other.getMaximum();
     Vec3d otherMinimum = other.getMinimum();
 
-    return (minimum.getX() > otherMaximum.getX() ||
-            minimum.getY() > otherMaximum.getY() ||
-            minimum.getZ() > otherMaximum.getZ() ||
-            maximum.getX() < otherMinimum.getX() ||
-            maximum.getY() < otherMinimum.getY() ||
-            maximum.getZ() < otherMinimum.getZ());
+    return (minimum.x > otherMaximum.x || minimum.y > otherMaximum.y ||
+            minimum.z > otherMaximum.z || maximum.x < otherMinimum.x ||
+            maximum.y < otherMinimum.y || maximum.z < otherMinimum.z);
 }
 
 bool BBox::isOutsideXY(const BBox &other) const
@@ -280,10 +277,8 @@ bool BBox::isOutsideXY(const BBox &other) const
     Vec3d otherMaximum = other.getMaximum();
     Vec3d otherMinimum = other.getMinimum();
 
-    return (minimum.getX() > otherMaximum.getX() ||
-            minimum.getY() > otherMaximum.getY() ||
-            maximum.getX() < otherMinimum.getX() ||
-            maximum.getY() < otherMinimum.getY());
+    return (minimum.x > otherMaximum.x || minimum.y > otherMaximum.y ||
+            maximum.x < otherMinimum.x || maximum.y < otherMinimum.y);
 }
 
 bool BBox::contains(const BBox &other) const
@@ -303,21 +298,19 @@ bool BBox::intersects(const BBox &other) const
     Vec3d otherMaximum = other.getMaximum();
     Vec3d otherMinimum = other.getMinimum();
 
-    if (minimum.getX() > otherMaximum.getX() ||
-        minimum.getY() > otherMaximum.getY() ||
-        minimum.getZ() > otherMaximum.getZ()) {
+    if (minimum.x > otherMaximum.x || minimum.y > otherMaximum.y ||
+        minimum.z > otherMaximum.z) {
         return false;
     }
-    if (maximum.getX() < otherMinimum.getX() ||
-        maximum.getY() < otherMinimum.getY() ||
-        maximum.getZ() < otherMinimum.getZ()) {
+    if (maximum.x < otherMinimum.x || maximum.y < otherMinimum.y ||
+        maximum.z < otherMinimum.z) {
         return false;
     }
 
     return true;
 }
 
-bool BBox::intersectsWith(const RShape &shape, bool limited) const
+bool BBox::intersectsWith(const Shape &shape, bool limited) const
 {
     if (limited && !intersects(shape.getBoundingBox())) {
         return false;
@@ -377,14 +370,14 @@ std::vector<Vec3d> BBox::getCorners() const
 {
     std::vector<Vec3d> ret;
 
-    ret.push_back(Vec3d(c1.getX(), c1.getY(), c1.getZ()));
-    ret.push_back(Vec3d(c2.getX(), c1.getY(), c1.getZ()));
-    ret.push_back(Vec3d(c2.getX(), c2.getY(), c1.getZ()));
-    ret.push_back(Vec3d(c1.getX(), c2.getY(), c1.getZ()));
-    ret.push_back(Vec3d(c1.getX(), c1.getY(), c2.getZ()));
-    ret.push_back(Vec3d(c2.getX(), c1.getY(), c2.getZ()));
-    ret.push_back(Vec3d(c2.getX(), c2.getY(), c2.getZ()));
-    ret.push_back(Vec3d(c1.getX(), c2.getY(), c2.getZ()));
+    ret.push_back(Vec3d(c1.x, c1.y, c1.z));
+    ret.push_back(Vec3d(c2.x, c1.y, c1.z));
+    ret.push_back(Vec3d(c2.x, c2.y, c1.z));
+    ret.push_back(Vec3d(c1.x, c2.y, c1.z));
+    ret.push_back(Vec3d(c1.x, c1.y, c2.z));
+    ret.push_back(Vec3d(c2.x, c1.y, c2.z));
+    ret.push_back(Vec3d(c2.x, c2.y, c2.z));
+    ret.push_back(Vec3d(c1.x, c2.y, c2.z));
 
     return ret;
 }
@@ -393,10 +386,10 @@ std::vector<Vec3d> BBox::getCorners2d() const
 {
     std::vector<Vec3d> ret;
 
-    ret.push_back(Vec3d(c1.getX(), c1.getY()));
-    ret.push_back(Vec3d(c2.getX(), c1.getY()));
-    ret.push_back(Vec3d(c2.getX(), c2.getY()));
-    ret.push_back(Vec3d(c1.getX(), c2.getY()));
+    ret.push_back(Vec3d(c1.x, c1.y));
+    ret.push_back(Vec3d(c2.x, c1.y));
+    ret.push_back(Vec3d(c2.x, c2.y));
+    ret.push_back(Vec3d(c1.x, c2.y));
 
     return ret;
 }
@@ -405,14 +398,10 @@ std::vector<Line> BBox::getLines2d() const
 {
     std::vector<Line> ret;
 
-    ret.push_back(
-        Line(Vec3d(c1.getX(), c1.getY()), Vec3d(c2.getX(), c1.getY())));
-    ret.push_back(
-        Line(Vec3d(c2.getX(), c1.getY()), Vec3d(c2.getX(), c2.getY())));
-    ret.push_back(
-        Line(Vec3d(c2.getX(), c2.getY()), Vec3d(c1.getX(), c2.getY())));
-    ret.push_back(
-        Line(Vec3d(c1.getX(), c2.getY()), Vec3d(c1.getX(), c1.getY())));
+    ret.push_back(Line(Vec3d(c1.x, c1.y), Vec3d(c2.x, c1.y)));
+    ret.push_back(Line(Vec3d(c2.x, c1.y), Vec3d(c2.x, c2.y)));
+    ret.push_back(Line(Vec3d(c2.x, c2.y), Vec3d(c1.x, c2.y)));
+    ret.push_back(Line(Vec3d(c1.x, c2.y), Vec3d(c1.x, c1.y)));
 
     return ret;
 }
@@ -420,43 +409,11 @@ std::vector<Line> BBox::getLines2d() const
 Polyline BBox::getPolyline2d() const
 {
     Polyline ret;
-    ret.appendVertex(Vec3d(c1.getX(), c1.getY()));
-    ret.appendVertex(Vec3d(c2.getX(), c1.getY()));
-    ret.appendVertex(Vec3d(c2.getX(), c2.getY()));
-    ret.appendVertex(Vec3d(c1.getX(), c2.getY()));
+    ret.appendVertex(Vec3d(c1.x, c1.y));
+    ret.appendVertex(Vec3d(c2.x, c1.y));
+    ret.appendVertex(Vec3d(c2.x, c2.y));
+    ret.appendVertex(Vec3d(c1.x, c2.y));
     ret.setClosed(true);
-    return ret;
-}
-
-std::vector<Triangle> BBox::getTriangles() const
-{
-    std::vector<Triangle> ret;
-    std::vector<Vec3d> corners = getCorners();
-
-    // front:
-    ret.push_back(Triangle(corners[0], corners[1], corners[5]));
-    ret.push_back(Triangle(corners[0], corners[5], corners[4]));
-
-    // right:
-    ret.push_back(Triangle(corners[1], corners[2], corners[6]));
-    ret.push_back(Triangle(corners[1], corners[6], corners[5]));
-
-    // back:
-    ret.push_back(Triangle(corners[2], corners[3], corners[7]));
-    ret.push_back(Triangle(corners[2], corners[7], corners[6]));
-
-    // left
-    ret.push_back(Triangle(corners[3], corners[0], corners[4]));
-    ret.push_back(Triangle(corners[3], corners[4], corners[7]));
-
-    // bottom:
-    ret.push_back(Triangle(corners[0], corners[2], corners[1]));
-    ret.push_back(Triangle(corners[0], corners[3], corners[2]));
-
-    // top:
-    ret.push_back(Triangle(corners[4], corners[5], corners[7]));
-    ret.push_back(Triangle(corners[5], corners[6], corners[7]));
-
     return ret;
 }
 

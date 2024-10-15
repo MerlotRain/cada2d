@@ -1,0 +1,21 @@
+project('2dcad_algorithm', 'cpp',
+  version : '0.1',
+  default_options : ['warning_level=3', 'cpp_std=c++11'])
+
+static_library('2dcad_algorithm',
+           'arc.cc',
+           'pointstobspline.cc',
+           'ellipse.cc',
+           'math.cc',
+           'intcurvecurve.cc',
+           'bbox.cc',
+           'point.cc',
+           'polyline.cc',
+           'triangle.cc',
+           'shape.cc',
+           'line.cc',
+           'circle.cc',
+           'ray.cc',
+           'vec3d.cc',
+           'xline.cc',
+           install : true)

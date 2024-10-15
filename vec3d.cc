@@ -115,36 +115,6 @@ bool Vec3d::isNaN() const
     return Math::isNaN(x) || Math::isNaN(y) || Math::isNaN(z);
 }
 
-void Vec3d::setX(double x)
-{
-    this->x = x;
-}
-
-double Vec3d::getX() const
-{
-    return x;
-}
-
-void Vec3d::setY(double y)
-{
-    this->y = y;
-}
-
-double Vec3d::getY() const
-{
-    return y;
-}
-
-void Vec3d::setZ(double z)
-{
-    this->z = z;
-}
-
-double Vec3d::getZ() const
-{
-    return z;
-}
-
 void Vec3d::setPolar(double radius, double angle)
 {
     x = radius * cos(angle);
@@ -924,8 +894,7 @@ bool RVectorDistanceSort::lessThan(const Vec3d &v1, const Vec3d &v2)
 
 bool RVectorLeftRightTopBottomSort::lessThan(const Vec3d &v1, const Vec3d &v2)
 {
-    return v1.getY() > v2.getY() ||
-           (v1.getY() == v2.getY() && v1.getX() < v2.getX());
+    return v1.y > v2.y || (v1.y == v2.y && v1.x < v2.x);
 }
 
 bool RVectorAngleSort::lessThan(const Vec3d &v1, const Vec3d &v2)
