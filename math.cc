@@ -24,7 +24,7 @@
 #include <cmath>
 #include "cada_ns.h"
 
-using namespace cada;
+namespace cada {
 
 bool Math::isNaN(double v)
 {
@@ -146,3 +146,5 @@ bool cada::Math::fuzzyAngleCompare(double v1, double v2, double tolerance)
 {
     return fabs(getAngleDifference180(v1, v2)) < tolerance;
 }
+
+} // namespace cada

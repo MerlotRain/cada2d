@@ -1,39 +1,29 @@
 /**
- * Copyright (c) 2011-2018 by Andrew Mustun. All rights reserved.
+ * Copyright (c) 2024-present Merlot.Rain
  *
- * This file is part of the QCAD project.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * QCAD is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * QCAD is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with QCAD.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
-#include <cmath>
 
-#include <QMutex>
+#include "cada_shape.h"
 
-#include "Arc.h"
-#include "RDebug.h"
-#include "Line.h"
-#include "BSpline.h"
-#include "RPainterPath.h"
-#include "Polyline.h"
+namespace cada {
 
-// BSpline::UpdateFromFitPointsFunction BSpline::updateFromFitPointsFunction =
-// NULL; BSpline::SplitFunction BSpline::splitFunction = NULL;
-RSplineProxy *BSpline::splineProxy = NULL;
-
-/**
- * Creates a spline object without controlPoints.
- */
 BSpline::BSpline()
     : degree(3), periodic(false), dirty(true), updateInProgress(false),
       length(std::numeric_limits<double>::quiet_NaN())
@@ -45,10 +35,7 @@ BSpline::BSpline(const BSpline &other)
     *this = other;
 }
 
-/**
- * Creates a spline object with the given control points and degree.
- */
-BSpline::BSpline(const std::vector<Vec3d> &controlPoints, int degree)
+BSpline::BSpline(const std::vector<Vec2d> &controlPoints, int degree)
     : controlPoints(controlPoints), degree(degree), periodic(false),
       dirty(true), updateInProgress(false),
       length(std::numeric_limits<double>::quiet_NaN())
@@ -56,10 +43,6 @@ BSpline::BSpline(const std::vector<Vec3d> &controlPoints, int degree)
 
     // updateInternal();
 }
-
-// BSpline::~BSpline() {
-// invalidate();
-//}
 
 BSpline &BSpline::operator=(const BSpline &other)
 {
@@ -109,9 +92,6 @@ void BSpline::copySpline(const BSpline &other)
     }
 }
 
-/**
- *  \return List of splines which approximate the given arc.
- */
 std::vector<BSpline> BSpline::createSplinesFromArc(const Arc &arc)
 {
     Arc a = arc;
@@ -168,16 +148,6 @@ std::vector<BSpline> BSpline::createSplinesFromArc(const Arc &arc)
     return curves;
 }
 
-/**
- *  Cubic bezier approximation of a circular arc centered at the origin,
- *  from (radians) a1 to a2, where a2-a1 < pi/2.  The arc's radius is r.
- *
- *  Returns an spline approximation.
- *
- *  This algorithm is based on the approach described in:
- *  A. Riškus, "Approximation of a Cubic Bezier Curve by Circular Arcs and Vice
- * Versa," Information Technology and Control, 35(4), 2006 pp. 371-378.
- */
 BSpline BSpline::createBezierFromSmallArc(double r, double a1, double a2)
 {
     // Compute all four points for an arc that subtends the same total angle
@@ -211,11 +181,11 @@ BSpline BSpline::createBezierFromSmallArc(double r, double a1, double a2)
     double cos_ar = cos(ar);
     double sin_ar = sin(ar);
 
-    std::vector<Vec3d> ctrlPts;
-    ctrlPts << Vec3d(r * cos(a1), r * sin(a1))
-            << Vec3d(x2 * cos_ar - y2 * sin_ar, x2 * sin_ar + y2 * cos_ar)
-            << Vec3d(x3 * cos_ar - y3 * sin_ar, x3 * sin_ar + y3 * cos_ar)
-            << Vec3d(r * cos(a2), r * sin(a2));
+    std::vector<Vec2d> ctrlPts;
+    ctrlPts << Vec2d(r * cos(a1), r * sin(a1))
+            << Vec2d(x2 * cos_ar - y2 * sin_ar, x2 * sin_ar + y2 * cos_ar)
+            << Vec2d(x3 * cos_ar - y3 * sin_ar, x3 * sin_ar + y3 * cos_ar)
+            << Vec2d(r * cos(a2), r * sin(a2));
 
     //    qDebug() << "ctrlPts: " << ctrlPts[0];
     //    qDebug() << "ctrlPts: " << ctrlPts[1];
@@ -226,55 +196,38 @@ BSpline BSpline::createBezierFromSmallArc(double r, double a1, double a2)
     return BSpline(ctrlPts, 2);
 }
 
-void BSpline::appendControlPoint(const Vec3d &point)
+void BSpline::appendControlPoint(const Vec2d &point)
 {
     controlPoints.push_back(point);
     update();
 }
 
-/**
- * Appends the given control points.
- */
-void BSpline::appendControlPoints(const std::vector<Vec3d> &points)
+void BSpline::appendControlPoints(const std::vector<Vec2d> &points)
 {
     controlPoints.push_back(points);
     update();
 }
 
-/**
- * Removes the last control point.
- *
- * \param upd Update internal spline representation.
- */
 void BSpline::removeLastControlPoint()
 {
     controlPoints.removeLast();
     update();
 }
 
-/**
- * Sets the control points of this spline.
- */
-void BSpline::setControlPoints(const std::vector<Vec3d> &controlPoints)
+void BSpline::setControlPoints(const std::vector<Vec2d> &controlPoints)
 {
     this->controlPoints = controlPoints;
     update();
 }
 
-/**
- * \return Control points.
- */
-std::vector<Vec3d> BSpline::getControlPoints() const
+std::vector<Vec2d> BSpline::getControlPoints() const
 {
     return controlPoints;
 }
 
-/**
- * \return Control points of internal spline representation (may be closed).
- */
-std::vector<Vec3d> BSpline::getControlPointsWrapped() const
+std::vector<Vec2d> BSpline::getControlPointsWrapped() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
     updateInternal();
 
@@ -282,53 +235,41 @@ std::vector<Vec3d> BSpline::getControlPointsWrapped() const
     ON_3dPoint onp;
     for (int i = 0; i < curve.CVCount(); ++i) {
         curve.GetCV(i, onp);
-        ret.push_back(Vec3d(onp.x, onp.y));
+        ret.push_back(Vec2d(onp.x, onp.y));
     }
 #endif
 
     return ret;
 }
 
-/**
- * \return Number of control points.
- */
 int BSpline::countControlPoints() const
 {
     return controlPoints.size();
 }
 
-Vec3d BSpline::getControlPointAt(int i) const
+Vec2d BSpline::getControlPointAt(int i) const
 {
     if (i >= 0 && i < controlPoints.size()) {
         return controlPoints.at(i);
     }
-    return Vec3d::invalid;
+    return Vec2d::invalid;
 }
 
-/**
- * Appends a fit point.
- */
-void BSpline::appendFitPoint(const Vec3d &point)
+void BSpline::appendFitPoint(const Vec2d &point)
 {
     fitPoints.push_back(point);
     update();
 }
 
-/**
- * Prepends a fit point.
- */
-void BSpline::prependFitPoint(const Vec3d &point)
+void BSpline::prependFitPoint(const Vec2d &point)
 {
     fitPoints.prepend(point);
     update();
 }
 
-/**
- * Inserts a fit point at the point on the spline closest to the given position.
- */
-void BSpline::insertFitPointAt(const Vec3d &point)
+void BSpline::insertFitPointAt(const Vec2d &point)
 {
-    Vec3d p = getClosestPointOnShape(point);
+    Vec2d p = getClosestPointOnShape(point);
 
     // find out T at the point closest to point:
     double t = getTAtPoint(p);
@@ -336,7 +277,7 @@ void BSpline::insertFitPointAt(const Vec3d &point)
     insertFitPointAt(t, p);
 }
 
-void BSpline::insertFitPointAt(double t, const Vec3d &p)
+void BSpline::insertFitPointAt(double t, const Vec2d &p)
 {
     // find out index of fit point before t:
     int index = -1;
@@ -372,7 +313,7 @@ void BSpline::insertFitPointAt(double t, const Vec3d &p)
     update();
 }
 
-void BSpline::removeFitPointAt(const Vec3d &point)
+void BSpline::removeFitPointAt(const Vec2d &point)
 {
     double minDist = RMAXDOUBLE;
     int index = -1;
@@ -392,69 +333,47 @@ void BSpline::removeFitPointAt(const Vec3d &point)
     update();
 }
 
-/**
- * Removes the last fit point.
- */
 void BSpline::removeLastFitPoint()
 {
     fitPoints.removeLast();
     update();
 }
 
-/**
- * Removes the first fit point.
- */
 void BSpline::removeFirstFitPoint()
 {
     fitPoints.removeFirst();
     update();
 }
 
-/**
- * Sets the fit points.
- */
-void BSpline::setFitPoints(const std::vector<Vec3d> &fitPoints)
+void BSpline::setFitPoints(const std::vector<Vec2d> &fitPoints)
 {
     this->fitPoints = fitPoints;
     update();
 }
 
-/**
- * \return Fit points.
- */
-std::vector<Vec3d> BSpline::getFitPoints() const
+std::vector<Vec2d> BSpline::getFitPoints() const
 {
     return fitPoints;
 }
 
-/**
- * \return Number of fit points.
- */
 int BSpline::countFitPoints() const
 {
     return fitPoints.size();
 }
 
-/**
- * \return True if this spline has fit points and is therefore defined
- *      by its fit points, false otherwise.
- */
 bool BSpline::hasFitPoints() const
 {
     return !fitPoints.isEmpty();
 }
 
-Vec3d BSpline::getFitPointAt(int i) const
+Vec2d BSpline::getFitPointAt(int i) const
 {
     if (i >= 0 && i < fitPoints.size()) {
         return fitPoints.at(i);
     }
-    return Vec3d::invalid;
+    return Vec2d::invalid;
 }
 
-/**
- * \return Knot vector, internally calculated and updated.
- */
 std::vector<double> BSpline::getKnotVector() const
 {
     return knotVector;
@@ -474,9 +393,6 @@ std::vector<double> BSpline::getActualKnotVector() const
 #endif
 }
 
-/**
- * Sets the knot vector manually. Mainly for importing ready data.
- */
 void BSpline::setKnotVector(const std::vector<double> &knots)
 {
     knotVector = knots;
@@ -489,9 +405,6 @@ void BSpline::appendKnot(double k)
     update();
 }
 
-/**
- * \return Knot weights, internally calculated and updated.
- */
 std::vector<double> BSpline::getWeights() const
 {
     return weights;
@@ -511,27 +424,17 @@ void BSpline::setWeights(std::vector<double> &w)
     weights = w;
 }
 
-/**
- * Sets the degree of this spline (2 or 3 for control point defined spline,
- * 3 for fit point defined spline).
- */
 void BSpline::setDegree(int d)
 {
     degree = d;
     update();
 }
 
-/**
- * \return Degree of this spline.
- */
 int BSpline::getDegree() const
 {
     return degree;
 }
 
-/**
- * \return Order of this spline (=degree+1).
- */
 int BSpline::getOrder() const
 {
     return degree + 1;
@@ -555,10 +458,6 @@ void BSpline::setPeriodic(bool on)
     update();
 }
 
-/**
- * \return True if this spline is closed, i.e. start point and end point
- *      are very close to each other.
- */
 bool BSpline::isClosed() const
 {
     return periodic;
@@ -600,11 +499,6 @@ bool BSpline::isGeometricallyClosed(double tolerance) const
            getStartPoint().getDistanceTo(getEndPoint()) < tolerance;
 }
 
-/**
- * \return True if this spline is periodic, i.e. closed and 'smooth'
- *      where start and end connect. The tangents at the start point and
- *      end point are nearly identical.
- */
 bool BSpline::isPeriodic() const
 {
     return periodic;
@@ -623,11 +517,11 @@ bool BSpline::isPeriodic() const
         for (int i=0; i<degree; i++) {
             ON_3dPoint onp1;
             curve.GetCV(i, onp1);
-            Vec3d p1(onp1.x, onp1.y);
+            Vec2d p1(onp1.x, onp1.y);
 
             ON_3dPoint onp2;
             curve.GetCV(curve.CVCount()-degree+i, onp2);
-            Vec3d p2(onp2.x, onp2.y);
+            Vec2d p2(onp2.x, onp2.y);
             if (p1.getDistanceTo(p2) > NS::PointTolerance) {
                 return false;
             }
@@ -654,9 +548,6 @@ bool BSpline::isPeriodic() const
     */
 }
 
-/**
- * \return Tangent angle of spline at start point.
- */
 double BSpline::getDirection1() const
 {
     if (!isValid()) {
@@ -666,16 +557,13 @@ double BSpline::getDirection1() const
 
 #ifndef R_NO_OPENNURBS
     ON_3dVector ontan = curve.TangentAt(getTMin());
-    Vec3d rtan(ontan.x, ontan.y);
+    Vec2d rtan(ontan.x, ontan.y);
     return rtan.getAngle();
 #else
     return 0.0;
 #endif
 }
 
-/**
- * \return Tangent angle of spline at end point.
- */
 double BSpline::getDirection2() const
 {
     if (!isValid()) {
@@ -685,20 +573,20 @@ double BSpline::getDirection2() const
 
 #ifndef R_NO_OPENNURBS
     ON_3dVector ontan = curve.TangentAt(getTMax());
-    Vec3d rtan(ontan.x, ontan.y);
+    Vec2d rtan(ontan.x, ontan.y);
     return Math::getNormalizedAngle(rtan.getAngle() + M_PI);
 #else
     return 0.0;
 #endif
 }
 
-NS::Side BSpline::getSideOfPoint(const Vec3d &point) const
+NS::Side BSpline::getSideOfPoint(const Vec2d &point) const
 {
     Polyline pl = toPolyline(16);
     return pl.getSideOfPoint(point);
 }
 
-Vec3d BSpline::getStartPoint() const
+Vec2d BSpline::getStartPoint() const
 {
     //    if (!isClosed()) {
     //        if (hasFitPoints()) {
@@ -711,14 +599,14 @@ Vec3d BSpline::getStartPoint() const
     return getPointAt(getTMin());
 }
 
-void BSpline::setStartPoint(const Vec3d &v)
+void BSpline::setStartPoint(const Vec2d &v)
 {
     // TODO: handle fit points
     controlPoints[0] = v;
     update();
 }
 
-Vec3d BSpline::getEndPoint() const
+Vec2d BSpline::getEndPoint() const
 {
     //    if (!isClosed()) {
     //        if (hasFitPoints()) {
@@ -731,87 +619,57 @@ Vec3d BSpline::getEndPoint() const
     return getPointAt(getTMax());
 }
 
-void BSpline::setEndPoint(const Vec3d &v)
+void BSpline::setEndPoint(const Vec2d &v)
 {
     // TODO: handle fit points
     controlPoints[controlPoints.size() - 1] = v;
     update();
 }
 
-/**
- * Sets the start and end tangents.
- */
-void BSpline::setTangents(const Vec3d &start, const Vec3d &end)
+void BSpline::setTangents(const Vec2d &start, const Vec2d &end)
 {
     tangentStart = start;
     tangentEnd = end;
     update();
 }
 
-/**
- * Sets the start tangent.
- */
-void BSpline::setTangentAtStart(const Vec3d &t)
+void BSpline::setTangentAtStart(const Vec2d &t)
 {
     tangentStart = t;
     update();
 }
 
-/**
- * \return The start tangent.
- */
-Vec3d BSpline::getTangentAtStart() const
+Vec2d BSpline::getTangentAtStart() const
 {
     return tangentStart;
 }
 
-/**
- * Sets the end tangent.
- */
-void BSpline::setTangentAtEnd(const Vec3d &t)
+void BSpline::setTangentAtEnd(const Vec2d &t)
 {
     tangentEnd = t;
     update();
 }
 
-/**
- * \return The end tangent.
- */
-Vec3d BSpline::getTangentAtEnd() const
+Vec2d BSpline::getTangentAtEnd() const
 {
     return tangentEnd;
 }
 
-/**
- * Clears the valud of the start tangent. The start tangent is calculated
- *      and updated internally if not set manually.
- */
 void BSpline::unsetTangentAtStart()
 {
-    setTangentAtStart(Vec3d::invalid);
+    setTangentAtStart(Vec2d::invalid);
 }
 
-/**
- * Clears the valud of the end tangent. The end tangent is calculated
- *      and updated internally if not set manually.
- */
 void BSpline::unsetTangentAtEnd()
 {
-    setTangentAtEnd(Vec3d::invalid);
+    setTangentAtEnd(Vec2d::invalid);
 }
 
-/**
- * Clears the valud of the start and end tangents. The tangents are calculated
- *      and updated internally if not set manually.
- */
 void BSpline::unsetTangents()
 {
-    setTangents(Vec3d::invalid, Vec3d::invalid);
+    setTangents(Vec2d::invalid, Vec2d::invalid);
 }
 
-/**
- * Updates the tangents at the start and end to make the spline periodic.
- */
 void BSpline::updateTangentsPeriodic()
 {
     if (!isValid() || !isClosed()) {
@@ -820,20 +678,20 @@ void BSpline::updateTangentsPeriodic()
     }
 
     // TODO: tangent support:
-    //    Vec3d lStartTangent = tangentStart;
-    //    Vec3d lEndTangent = tangentEnd;
+    //    Vec2d lStartTangent = tangentStart;
+    //    Vec2d lEndTangent = tangentEnd;
 
     unsetTangents();
 
     double tangent1 = getDirection1();
     double tangent2 = Math::getNormalizedAngle(getDirection2() + M_PI);
-    Vec3d v1 = Vec3d::createPolar(1.0, tangent1);
-    Vec3d v2 = Vec3d::createPolar(1.0, tangent2);
-    Vec3d t = (v1 + v2).getNormalized();
+    Vec2d v1 = Vec2d::createPolar(1.0, tangent1);
+    Vec2d v2 = Vec2d::createPolar(1.0, tangent2);
+    Vec2d t = (v1 + v2).getNormalized();
 
     // TODO: tangent support:
-    //    Vec3d t1 = t;
-    //    Vec3d t2 = t;
+    //    Vec2d t1 = t;
+    //    Vec2d t2 = t;
     //    t1.valid = lStartTangent.valid;
     //    t2.valid = lEndTangent.valid;
 
@@ -885,9 +743,6 @@ Polyline BSpline::toPolyline(int segments) const
     return ret;
 }
 
-/**
- * \return List of RLines describing this spline.
- */
 std::vector<std::shared_ptr<Shape>> BSpline::getExploded(int segments) const
 {
     if (!exploded.isEmpty() && segments == -1) {
@@ -917,8 +772,8 @@ std::vector<std::shared_ptr<Shape>> BSpline::getExploded(int segments) const
 
     double step = getTDelta() / (controlPoints.size() * segments);
 
-    Vec3d p1;
-    Vec3d prev = Vec3d::invalid;
+    Vec2d p1;
+    Vec2d prev = Vec2d::invalid;
     for (double t = tMin; t < tMax + (step / 2.0); t += step) {
         double tc = qMin(t, tMax);
         p1 = getPointAt(tc);
@@ -952,10 +807,6 @@ std::vector<std::shared_ptr<Shape>> BSpline::getExploded(int segments) const
     return exploded;
 }
 
-/**
- * \return exploded spline, treated as one spline segment, typically only
- * used for bezier spline segments (degree+1 control points).
- */
 std::vector<std::shared_ptr<Shape>>
 BSpline::getExplodedBezier(int segments) const
 {
@@ -1029,8 +880,8 @@ BBox BSpline::getBoundingBox() const
     // ON_BoundingBox bb;
     // curve.GetTightBoundingBox(bb);
 
-    // return BBox(Vec3d(bb.Min().x, bb.Min().y), Vec3d(bb.Max().x,
-    // bb.Max().y)); return BBox(Vec3d(min[0], min[1]), Vec3d(max[0],
+    // return BBox(Vec2d(bb.Min().x, bb.Min().y), Vec2d(bb.Max().x,
+    // bb.Max().y)); return BBox(Vec2d(min[0], min[1]), Vec2d(max[0],
     // max[1]));
 }
 
@@ -1061,24 +912,21 @@ double BSpline::getLength() const
     // OpenNURBS: curve.GetLength(&length);
 }
 
-/**
- * \return Point on spline at given position t (0..1).
- */
-Vec3d BSpline::getPointAt(double t) const
+Vec2d BSpline::getPointAt(double t) const
 {
     updateInternal();
 #ifndef R_NO_OPENNURBS
     ON_3dPoint p = curve.PointAt(t);
     if (p.IsUnsetPoint()) {
-        return Vec3d::invalid;
+        return Vec2d::invalid;
     }
-    return Vec3d(p.x, p.y);
+    return Vec2d(p.x, p.y);
 #else
-    return Vec3d::invalid;
+    return Vec2d::invalid;
 #endif
 }
 
-Vec3d BSpline::getPointAtDistance(double distance) const
+Vec2d BSpline::getPointAtDistance(double distance) const
 {
     double t = getTAtDistance(distance);
     return getPointAt(t);
@@ -1086,18 +934,18 @@ Vec3d BSpline::getPointAtDistance(double distance) const
 
 double BSpline::getAngleAt(double distance, NS::From from) const
 {
-    std::vector<Vec3d> points = getPointsWithDistanceToEnd(distance, from);
+    std::vector<Vec2d> points = getPointsWithDistanceToEnd(distance, from);
     if (points.size() != 1) {
         return std::numeric_limits<double>::quiet_NaN();
     }
     double t = getTAtPoint(points[0]);
     ON_3dVector v = curve.DerivativeAt(t);
-    return Vec3d(v.x, v.y).getAngle();
+    return Vec2d(v.x, v.y).getAngle();
 }
 
-std::vector<Vec3d> BSpline::getEndPoints() const
+std::vector<Vec2d> BSpline::getEndPoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
     ret.push_back(getStartPoint());
     ret.push_back(getEndPoint());
@@ -1105,29 +953,29 @@ std::vector<Vec3d> BSpline::getEndPoints() const
     return ret;
 }
 
-Vec3d BSpline::getMiddlePoint() const
+Vec2d BSpline::getMiddlePoint() const
 {
     return getPointAt(getTMin() + (getTDelta() / 2.0));
 }
 
-std::vector<Vec3d> BSpline::getMiddlePoints() const
+std::vector<Vec2d> BSpline::getMiddlePoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
     ret.push_back(getMiddlePoint());
 
     return ret;
 }
 
-std::vector<Vec3d> BSpline::getCenterPoints() const
+std::vector<Vec2d> BSpline::getCenterPoints() const
 {
-    return std::vector<Vec3d>();
+    return std::vector<Vec2d>();
 }
 
-std::vector<Vec3d> BSpline::getPointsWithDistanceToEnd(double distance,
+std::vector<Vec2d> BSpline::getPointsWithDistanceToEnd(double distance,
                                                        int from) const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
     if (hasProxy()) {
         double t;
@@ -1148,12 +996,12 @@ std::vector<Vec3d> BSpline::getPointsWithDistanceToEnd(double distance,
         }
 
         if (from & NS::FromStart) {
-            Vec3d p = getPointAt(getTMin() + (distance / length * getTDelta()));
+            Vec2d p = getPointAt(getTMin() + (distance / length * getTDelta()));
             ret.push_back(p);
         }
 
         if (from & NS::FromEnd) {
-            Vec3d p = getPointAt(getTMin() +
+            Vec2d p = getPointAt(getTMin() +
                                  ((length - distance) / length * getTDelta()));
             ret.push_back(p);
         }
@@ -1162,25 +1010,25 @@ std::vector<Vec3d> BSpline::getPointsWithDistanceToEnd(double distance,
     return ret;
 }
 
-std::vector<Vec3d> BSpline::getPointCloud(double segmentLength) const
+std::vector<Vec2d> BSpline::getPointCloud(double segmentLength) const
 {
     Polyline pl = approximateWithArcs(0.01);
     return pl.getPointCloud(segmentLength);
 }
 
-Vec3d BSpline::getVectorTo(const Vec3d &point, bool limited,
+Vec2d BSpline::getVectorTo(const Vec2d &point, bool limited,
                            double strictRange) const
 {
     if (hasProxy()) {
         return splineProxy->getVectorTo(*this, point, limited, strictRange);
     }
     else {
-        Vec3d ret = Vec3d::invalid;
+        Vec2d ret = Vec2d::invalid;
 
         std::vector<std::shared_ptr<Shape>> sub = getExploded();
         std::vector<std::shared_ptr<Shape>>::iterator it;
         for (it = sub.begin(); it != sub.end(); ++it) {
-            Vec3d v = (*it)->getVectorTo(point, limited, strictRange);
+            Vec2d v = (*it)->getVectorTo(point, limited, strictRange);
             if (v.isValid() &&
                 (!ret.isValid() || v.getMagnitude() < ret.getMagnitude())) {
                 ret = v;
@@ -1191,12 +1039,12 @@ Vec3d BSpline::getVectorTo(const Vec3d &point, bool limited,
     }
 }
 
-bool BSpline::isOnShape(const Vec3d &point, bool limited,
+bool BSpline::isOnShape(const Vec2d &point, bool limited,
                         double tolerance) const
 {
     if (hasProxy()) {
         double t = getTAtPoint(point);
-        Vec3d p = getPointAt(t);
+        Vec2d p = getPointAt(t);
         return point.getDistanceTo(p) < tolerance;
     }
     else {
@@ -1204,7 +1052,7 @@ bool BSpline::isOnShape(const Vec3d &point, bool limited,
     }
 }
 
-bool BSpline::move(const Vec3d &offset)
+bool BSpline::move(const Vec2d &offset)
 {
     for (int i = 0; i < controlPoints.size(); i++) {
         controlPoints[i].move(offset);
@@ -1216,7 +1064,7 @@ bool BSpline::move(const Vec3d &offset)
     return true;
 }
 
-bool BSpline::rotate(double rotation, const Vec3d &center)
+bool BSpline::rotate(double rotation, const Vec2d &center)
 {
     if (fabs(rotation) < NS::AngleTolerance) {
         return false;
@@ -1233,7 +1081,7 @@ bool BSpline::rotate(double rotation, const Vec3d &center)
     return true;
 }
 
-bool BSpline::scale(const Vec3d &scaleFactors, const Vec3d &center)
+bool BSpline::scale(const Vec2d &scaleFactors, const Vec2d &center)
 {
     for (int i = 0; i < controlPoints.size(); i++) {
         controlPoints[i].scale(scaleFactors, center);
@@ -1247,8 +1095,8 @@ bool BSpline::scale(const Vec3d &scaleFactors, const Vec3d &center)
 
 bool BSpline::mirror(const Line &axis)
 {
-    Vec3d sp = getStartPoint();
-    Vec3d ep = getEndPoint();
+    Vec2d sp = getStartPoint();
+    Vec2d ep = getEndPoint();
 
     for (int i = 0; i < controlPoints.size(); i++) {
         controlPoints[i].mirror(axis);
@@ -1257,7 +1105,7 @@ bool BSpline::mirror(const Line &axis)
         fitPoints[i].mirror(axis);
     }
 
-    Vec3d absTan = sp + tangentStart;
+    Vec2d absTan = sp + tangentStart;
     absTan.mirror(axis);
     sp.mirror(axis);
     tangentStart = absTan - sp;
@@ -1325,7 +1173,7 @@ bool BSpline::reverse()
             knotVector[i] = -knotVector[j];
             knotVector[j] = -t;
         }
-        Vec3d ts = tangentStart;
+        Vec2d ts = tangentStart;
         tangentStart = tangentEnd.getNegated();
         tangentEnd = ts.getNegated();
     }
@@ -1356,7 +1204,7 @@ bool BSpline::reverse()
     return true;
 }
 
-bool BSpline::stretch(const Polyline &area, const Vec3d &offset)
+bool BSpline::stretch(const Polyline &area, const Vec2d &offset)
 {
     if (!fitPoints.isEmpty()) {
         for (int i = 0; i < fitPoints.size(); i++) {
@@ -1449,7 +1297,7 @@ double BSpline::getTMax() const
     return 0.0;
 }
 
-double BSpline::getTAtPoint(const Vec3d &point) const
+double BSpline::getTAtPoint(const Vec2d &point) const
 {
     if (hasProxy()) {
         // TODO: fails for splines with clamped control points in the middle
@@ -1477,16 +1325,16 @@ double BSpline::getDistanceAtT(double t) const
 }
 
 std::vector<BSpline>
-BSpline::getSegments(const std::vector<Vec3d> &points) const
+BSpline::getSegments(const std::vector<Vec2d> &points) const
 {
     return splitAtPoints(points);
 }
 
-std::vector<Vec3d> BSpline::getDiscontinuities() const
+std::vector<Vec2d> BSpline::getDiscontinuities() const
 {
     updateInternal();
 
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
 #ifndef R_NO_OPENNURBS
     if (isValid()) {
@@ -1580,7 +1428,7 @@ void BSpline::updateFromControlPoints() const
     if (periodic && !hasFitPoints()) {
         ON_3dPoint *points = new ON_3dPoint[controlPoints.size()];
         for (int i = 0; i < controlPoints.size(); ++i) {
-            Vec3d cp = controlPoints.at(i);
+            Vec2d cp = controlPoints.at(i);
             points[i] = ON_3dPoint(cp.x, cp.y, cp.z);
         }
         curve.CreatePeriodicUniformNurbs(3, getOrder(), controlPoints.size(),
@@ -1595,7 +1443,7 @@ void BSpline::updateFromControlPoints() const
 
         // setting control points:
         for (int i = 0; i < controlPoints.size(); ++i) {
-            Vec3d cp = controlPoints.at(i);
+            Vec2d cp = controlPoints.at(i);
             ON_3dPoint onp(cp.x, cp.y, cp.z);
             // ON_4dPoint onp(cp.x, cp.y, cp.z, weights.size()>i ?
             // weights.at(i) : 1.0);
@@ -1668,9 +1516,6 @@ void BSpline::updateFromControlPoints() const
 #endif
 }
 
-/**
- * Closes this spline and makes it periodic if it isn't already.
- */
 /*void BSpline::close() {
     if (hasFitPoints()) {
         if (!isValid()) {
@@ -1681,14 +1526,14 @@ void BSpline::updateFromControlPoints() const
             return;
         }
 
-        Vec3d fp0 = getFitPoints().at(0);
+        Vec2d fp0 = getFitPoints().at(0);
         appendFitPoint(fp0);
         updateTangentsPeriodic();
     }
     else {
         ON_3dPoint* points = new ON_3dPoint[controlPoints.size()];
         for (int i=0; i<controlPoints.size(); ++i) {
-            Vec3d cp = controlPoints.at(i);
+            Vec2d cp = controlPoints.at(i);
             points[i] = ON_3dPoint(cp.x, cp.y, cp.z);
         }
         curve.CreatePeriodicUniformNurbs(3, getOrder(), controlPoints.size(),
@@ -1723,7 +1568,7 @@ points); delete[] points;
         Vector_HPoint2Dd::iterator it;
         for (it=ctrlPts.begin(); it!=ctrlPts.end(); ++it) {
             PLib::HPoint2Dd p = *it;
-            controlPoints.push_back(Vec3d(p.x(), p.y()));
+            controlPoints.push_back(Vec2d(p.x(), p.y()));
         }
 
         knotVector.clear();
@@ -1740,10 +1585,6 @@ points); delete[] points;
 }
 */
 
-/**
- * Updates the internal spline data from \c fitPoints.
- * Degree is always corrected to 3rd degree.
- */
 void BSpline::updateFromFitPoints() const
 {
     // spline with two fit points is line:
@@ -1773,9 +1614,6 @@ void BSpline::updateFromFitPoints() const
     }
 }
 
-/**
- * Updates the internal bounding box.
- */
 void BSpline::updateBoundingBox() const
 {
     // getExploded();
@@ -1784,9 +1622,6 @@ void BSpline::updateBoundingBox() const
     boundingBox = pp.getBoundingBox();
 }
 
-/**
- * \return List of bezier spline segments which together represent this curve.
- */
 std::vector<BSpline> BSpline::getBezierSegments(const BBox &queryBox) const
 {
     int ctrlCount = countControlPoints();
@@ -1814,11 +1649,11 @@ std::vector<BSpline> BSpline::getBezierSegments(const BBox &queryBox) const
                 continue;
             }
 
-            std::vector<Vec3d> ctrlPts;
+            std::vector<Vec2d> ctrlPts;
             for (int cpi = 0; cpi < bc.CVCount(); cpi++) {
                 ON_3dPoint onp;
                 bc.GetCV(cpi, onp);
-                ctrlPts.push_back(Vec3d(onp.x, onp.y, onp.z));
+                ctrlPts.push_back(Vec2d(onp.x, onp.y, onp.z));
             }
             BSpline bezierSegment(ctrlPts, degree);
 
@@ -1834,7 +1669,7 @@ std::vector<BSpline> BSpline::getBezierSegments(const BBox &queryBox) const
     return ret;
 }
 
-NS::Ending BSpline::getTrimEnd(const Vec3d &trimPoint, const Vec3d &clickPoint)
+NS::Ending BSpline::getTrimEnd(const Vec2d &trimPoint, const Vec2d &clickPoint)
 {
     double tAtClickPoint = getTAtPoint(clickPoint);
     double tAtTrimPoint = getTAtPoint(trimPoint);
@@ -1847,11 +1682,9 @@ NS::Ending BSpline::getTrimEnd(const Vec3d &trimPoint, const Vec3d &clickPoint)
     }
 }
 
-bool BSpline::trimStartPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
+bool BSpline::trimStartPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
                              bool extend)
 {
-    // Q_UNUSED(clickPoint)
-    // Q_UNUSED(extend)
     if (!isValid()) {
         return false;
     }
@@ -1864,7 +1697,7 @@ bool BSpline::trimStartPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
     }
 
     std::vector<BSpline> splines =
-        splitAtPoints(std::vector<Vec3d>() << trimPoint);
+        splitAtPoints(std::vector<Vec2d>() << trimPoint);
     if (splines.size() > 1) {
         copySpline(splines[1]);
     }
@@ -1872,11 +1705,9 @@ bool BSpline::trimStartPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
     return true;
 }
 
-bool BSpline::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
+bool BSpline::trimEndPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
                            bool extend)
 {
-    // Q_UNUSED(clickPoint)
-    // Q_UNUSED(extend)
     if (!isValid()) {
         return false;
     }
@@ -1889,7 +1720,7 @@ bool BSpline::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
     }
 
     std::vector<BSpline> splines =
-        splitAtPoints(std::vector<Vec3d>() << trimPoint);
+        splitAtPoints(std::vector<Vec2d>() << trimPoint);
     if (splines.size() > 0) {
         copySpline(splines[0]);
     }
@@ -1897,14 +1728,14 @@ bool BSpline::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
     return true;
 }
 
-double BSpline::getDistanceFromStart(const Vec3d &p) const
+double BSpline::getDistanceFromStart(const Vec2d &p) const
 {
     double t = getTAtPoint(p);
     return getDistanceAtT(t);
 }
 
 std::vector<BSpline>
-BSpline::splitAtPoints(const std::vector<Vec3d> &points) const
+BSpline::splitAtPoints(const std::vector<Vec2d> &points) const
 {
     std::vector<double> params;
     for (int i = 0; i < points.size(); i++) {
@@ -1929,10 +1760,6 @@ void BSpline::update() const
     exploded.clear();
 }
 
-/**
- * \return New spline that covers this spline from d1 to d2, where
- *      d1 and d2 are distances from the start point of this spline.
- */
 // BSpline BSpline::getSubSpline(double d1, double d2) const {
 /*
 double u1 = d1 / getLength() * getTMax();
@@ -1950,18 +1777,16 @@ return BSpline::createFrom(curve3);
 // return BSpline();
 //}
 
-/**
- * \internal
- */
+
 /*
 BSpline BSpline::createFrom(PLib::NurbsCurve_2Dd& sp) {
-    std::vector<Vec3d> ctrlPts;
+    std::vector<Vec2d> ctrlPts;
 
     Vector_HPoint2Dd cps = sp.ctrlPnts();
     Vector_HPoint2Dd::iterator it;
     for (it=cps.begin(); it!=cps.end(); it++) {
         PLib::HPoint2Dd p = *it;
-        ctrlPts.push_back(Vec3d(p.x(), p.y()));
+        ctrlPts.push_back(Vec2d(p.x(), p.y()));
     }
 
     return BSpline(ctrlPts, sp.degree());
@@ -1969,7 +1794,7 @@ BSpline BSpline::createFrom(PLib::NurbsCurve_2Dd& sp) {
 */
 
 std::vector<std::shared_ptr<Shape>>
-BSpline::splitAt(const std::vector<Vec3d> &points) const
+BSpline::splitAt(const std::vector<Vec2d> &points) const
 {
     if (points.size() == 0 || !BSpline::hasProxy()) {
         return Shape::splitAt(points);
@@ -1977,7 +1802,7 @@ BSpline::splitAt(const std::vector<Vec3d> &points) const
 
     std::vector<std::shared_ptr<Shape>> ret;
 
-    QMultiMap<double, Vec3d> sortable;
+    QMultiMap<double, Vec2d> sortable;
     for (int i = 0; i < points.size(); i++) {
         double t = getTAtPoint(points[i]);
         sortable.insert(t, points[i]);
@@ -1990,9 +1815,9 @@ BSpline::splitAt(const std::vector<Vec3d> &points) const
     qSort(keys);
 #endif
 
-    std::vector<Vec3d> sortedPoints;
+    std::vector<Vec2d> sortedPoints;
     for (int i = 0; i < keys.size(); i++) {
-        std::vector<Vec3d> values = sortable.values(keys[i]);
+        std::vector<Vec2d> values = sortable.values(keys[i]);
         for (int k = 0; k < values.size(); k++) {
             sortedPoints.push_back(values[k]);
         }
@@ -2005,14 +1830,9 @@ BSpline::splitAt(const std::vector<Vec3d> &points) const
     return ret;
 }
 
-/**
- * Finds _some_ self intersection points of splines. Used for snapping to those
- * intersections. Note that this does not find all intersections and might also
- * return non-intersections. Most notably, self-intersections of bezier segments
- * are not detected. This is not suitable to reliably detect the existence of
- * self intersections.
- */
-std::vector<Vec3d> BSpline::getSelfIntersectionPoints(double tolerance) const
+std::vector<Vec2d> BSpline::getSelfIntersectionPoints(double tolerance) const
 {
     return getIntersectionPointsSS(*this, *this, true, true, tolerance);
 }
+
+} // namespace cada

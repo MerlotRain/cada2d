@@ -22,10 +22,9 @@
 
 #include "cada_shape.h"
 
-using namespace cada;
-/**
- * Creates a ray object with invalid start and end points.
- */
+namespace cada {
+
+
 Ray::Ray() : XLine()
 {
 }
@@ -34,15 +33,12 @@ Ray::Ray(const Line &line) : XLine(line)
 {
 }
 
-/**
- * Creates a ray object with the given base point and direction.
- */
-Ray::Ray(const Vec3d &basePoint, const Vec3d &directionVector)
+Ray::Ray(const Vec2d &basePoint, const Vec2d &directionVector)
     : XLine(basePoint, directionVector)
 {
 }
 
-Ray::Ray(const Vec3d &basePoint, double angle, double distance)
+Ray::Ray(const Vec2d &basePoint, double angle, double distance)
     : XLine(basePoint, angle, distance)
 {
 }
@@ -51,19 +47,19 @@ Ray::~Ray()
 {
 }
 
-Vec3d Ray::getVectorTo(const Vec3d &point, bool limited,
+Vec2d Ray::getVectorTo(const Vec2d &point, bool limited,
                        double strictRange) const
 {
     if (!limited) {
         return XLine::getVectorTo(point, false, strictRange);
     }
     else {
-        Vec3d p = XLine::getClosestPointOnShape(point, false);
+        Vec2d p = XLine::getClosestPointOnShape(point, false);
         if (fabs(Math::getAngleDifference180(
                 getDirection1(), getStartPoint().getAngleTo(p))) < 0.1) {
             return point - p;
         }
-        return Vec3d::invalid;
+        return Vec2d::invalid;
     }
 }
 
@@ -89,12 +85,10 @@ Line Ray::getClippedLine(const BBox &box) const
     return ret;
 }
 
-bool Ray::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
+bool Ray::trimEndPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
                        bool extend)
 {
-    // Q_UNUSED(clickPoint)
-    // Q_UNUSED(extend)
-    Vec3d tp = getClosestPointOnShape(trimPoint, false);
+    Vec2d tp = getClosestPointOnShape(trimPoint, false);
     if (!tp.isValid()) {
         return false;
     }
@@ -102,13 +96,13 @@ bool Ray::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
     return true;
 }
 
-std::vector<Vec3d> Ray::getPointsWithDistanceToEnd(double distance,
+std::vector<Vec2d> Ray::getPointsWithDistanceToEnd(double distance,
                                                    int from) const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     double a1 = getAngle();
 
-    Vec3d dv;
+    Vec2d dv;
     dv.setPolar(distance, a1);
 
     if (from & NS::FromStart) {
@@ -118,7 +112,7 @@ std::vector<Vec3d> Ray::getPointsWithDistanceToEnd(double distance,
     return ret;
 }
 
-bool Ray::stretch(const Polyline &area, const Vec3d &offset)
+bool Ray::stretch(const Polyline &area, const Vec2d &offset)
 {
     bool ret = false;
 
@@ -131,7 +125,7 @@ bool Ray::stretch(const Polyline &area, const Vec3d &offset)
 }
 
 std::vector<std::shared_ptr<Shape>>
-Ray::splitAt(const std::vector<Vec3d> &points) const
+Ray::splitAt(const std::vector<Vec2d> &points) const
 {
     if (points.size() == 0) {
         return Shape::splitAt(points);
@@ -139,8 +133,8 @@ Ray::splitAt(const std::vector<Vec3d> &points) const
 
     std::vector<std::shared_ptr<Shape>> ret;
 
-    std::vector<Vec3d> sortedPoints =
-        Vec3d::getSortedByDistance(points, basePoint);
+    std::vector<Vec2d> sortedPoints =
+        Vec2d::getSortedByDistance(points, basePoint);
 
     if (!basePoint.equalsFuzzy(sortedPoints[0])) {
         sortedPoints.prepend(basePoint);

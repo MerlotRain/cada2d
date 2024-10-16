@@ -22,7 +22,7 @@
 
 #include "cada_shape.h"
 
-using namespace cada;
+namespace cada {
 
 Point::Point()
 {
@@ -32,7 +32,7 @@ Point::Point(double x, double y) : position(x, y)
 {
 }
 
-Point::Point(const Vec3d &position) : position(position)
+Point::Point(const Vec2d &position) : position(position)
 {
 }
 
@@ -50,63 +50,53 @@ double Point::getLength() const
     return 0.0;
 }
 
-std::vector<Vec3d> Point::getEndPoints() const
+std::vector<Vec2d> Point::getEndPoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     ret.push_back(position);
     return ret;
 }
 
-std::vector<Vec3d> Point::getMiddlePoints() const
+std::vector<Vec2d> Point::getMiddlePoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     ret.push_back(position);
     return ret;
 }
 
-std::vector<Vec3d> Point::getCenterPoints() const
+std::vector<Vec2d> Point::getCenterPoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     ret.push_back(position);
     return ret;
 }
 
-std::vector<Vec3d> Point::getPointsWithDistanceToEnd(double distance,
+std::vector<Vec2d> Point::getPointsWithDistanceToEnd(double distance,
                                                      int from) const
 {
-    // Q_UNUSED(distance)
-    // Q_UNUSED(from)
-
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     return ret;
 }
 
-std::vector<Vec3d> Point::getPointCloud(double segmentLength) const
+std::vector<Vec2d> Point::getPointCloud(double segmentLength) const
 {
-    // Q_UNUSED(segmentLength)
-
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     ret.push_back(getPosition());
     return ret;
 }
 
 double Point::getAngleAt(double distance, NS::From from) const
 {
-    // Q_UNUSED(distance)
-    // Q_UNUSED(from)
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-Vec3d Point::getVectorTo(const Vec3d &point, bool limited,
+Vec2d Point::getVectorTo(const Vec2d &point, bool limited,
                          double strictRange) const
 {
-    // Q_UNUSED(limited)
-    // Q_UNUSED(strictRange)
-
     return point - position;
 }
 
-bool Point::move(const Vec3d &offset)
+bool Point::move(const Vec2d &offset)
 {
     if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance) {
         return false;
@@ -115,7 +105,7 @@ bool Point::move(const Vec3d &offset)
     return true;
 }
 
-bool Point::rotate(double rotation, const Vec3d &center)
+bool Point::rotate(double rotation, const Vec2d &center)
 {
     if (fabs(rotation) < NS::AngleTolerance) {
         return false;
@@ -124,7 +114,7 @@ bool Point::rotate(double rotation, const Vec3d &center)
     return true;
 }
 
-bool Point::scale(const Vec3d &scaleFactors, const Vec3d &center)
+bool Point::scale(const Vec2d &scaleFactors, const Vec2d &center)
 {
     position.scale(scaleFactors, center);
     return true;

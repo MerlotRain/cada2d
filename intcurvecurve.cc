@@ -32,7 +32,7 @@ IntCurveCurve::IntCurveCurve(Shape *shp1, Shape *shp2)
             "The input shape paramaters can not be nullptr_t.");
 }
 
-std::vector<Vec3d> IntCurveCurve::intersectPoints(bool limited, bool same,
+std::vector<Vec2d> IntCurveCurve::intersectPoints(bool limited, bool same,
                                                   bool force) const
 {
     bool gotInfiniteShape = false;
@@ -46,7 +46,7 @@ std::vector<Vec3d> IntCurveCurve::intersectPoints(bool limited, bool same,
         BBox bb1 = mShape1->getBoundingBox().growXY(1e-2);
         BBox bb2 = mShape2->getBoundingBox().growXY(1e-2);
         if (!bb1.intersects(bb2))
-            return std::vector<Vec3d>();
+            return std::vector<Vec2d>();
     }
 
     // case shape1 is line
@@ -54,7 +54,7 @@ std::vector<Vec3d> IntCurveCurve::intersectPoints(bool limited, bool same,
         const Line *line1 = dynamic_cast<const Line *>(mShape1);
         if (!line1) {
             if (same) {
-                return std::vector<Vec3d>();
+                return std::vector<Vec2d>();
             }
 
             const Line *line2 = dynamic_cast<const Line *>(mShape2);

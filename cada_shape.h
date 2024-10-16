@@ -27,6 +27,7 @@
 #include "cada_math.h"
 #include <vector>
 #include <memory>
+#include <array>
 
 namespace cada {
 
@@ -44,20 +45,20 @@ class Ray;
 class BSpline;
 class Triangle;
 
-struct Vec3d {
+struct Vec2d {
     double x;
     double y;
     double z;
     bool valid;
 
-    Vec3d();
-    Vec3d(double vx, double vy, double vz = 0.0, bool valid_in = true);
-    Vec3d(const std::vector<double> &tuples);
-    ~Vec3d();
+    Vec2d();
+    Vec2d(double vx, double vy, double vz = 0.0, bool valid_in = true);
+    Vec2d(const std::vector<double> &tuples);
+    ~Vec2d();
 
     void set(double vx, double vy, double vz = 0.0);
     void setPolar(double radius, double angle);
-    Vec3d get2D() const;
+    Vec2d get2D() const;
 
     bool isValid() const;
     bool isZero() const;
@@ -66,181 +67,152 @@ struct Vec3d {
 
     bool isInside(const BBox &b) const;
 
-    bool equalsFuzzy(const Vec3d &v, double tol = NS::PointTolerance) const;
-    bool equalsFuzzy2D(const Vec3d &v, double tol = NS::PointTolerance) const;
-    double getDistanceTo(const Vec3d &v) const;
-    double getDistanceTo2D(const Vec3d &v) const;
+    bool equalsFuzzy(const Vec2d &v, double tol = DBL_EPSILON) const;
+    bool equalsFuzzy2D(const Vec2d &v, double tol = DBL_EPSILON) const;
+    double getDistanceTo(const Vec2d &v) const;
+    double getDistanceTo2D(const Vec2d &v) const;
     void setAngle(double a);
     double getAngle() const;
     double getAngleToPlaneXY() const;
-    double getAngleTo(const Vec3d &v) const;
+    double getAngleTo(const Vec2d &v) const;
     void setMagnitude2D(double m);
     double getMagnitude() const;
     double getSquaredMagnitude() const;
     double getMagnitude2D() const;
-    Vec3d getLerp(const Vec3d &v, double t) const;
-    Vec3d getUnitVector() const;
+    Vec2d getLerp(const Vec2d &v, double t) const;
+    Vec2d getUnitVector() const;
 
-    bool isInWindow(const Vec3d &firstCorner, const Vec3d &secondCorner);
+    Vec2d move(const Vec2d &offset);
 
-    Vec3d move(const Vec3d &offset);
-    static void moveList(std::vector<Vec3d> &list, const Vec3d &offset);
+    Vec2d rotate(double rotation);
+    Vec2d rotate(double rotation, const Vec2d &center);
+    Vec2d getRotated(double rotation, const Vec2d &center) const;
 
-    Vec3d rotate(double rotation);
-    Vec3d rotate(double rotation, const Vec3d &center);
-    Vec3d getRotated(double rotation, const Vec3d &center) const;
-    static void rotateList(std::vector<Vec3d> &list, double rotation);
-    static void rotateList(std::vector<Vec3d> &list, double rotation,
-                           const Vec3d &center);
+    Vec2d scale(double factor, const Vec2d &center = nullVector);
+    Vec2d scale(const Vec2d &factors, const Vec2d &center = nullVector);
+    Vec2d getScaled(const Vec2d &factors, const Vec2d &center) const;
 
-    Vec3d scale(double factor, const Vec3d &center = nullVector);
-    Vec3d scale(const Vec3d &factors, const Vec3d &center = nullVector);
-    Vec3d getScaled(const Vec3d &factors, const Vec3d &center) const;
-    static void scaleList(std::vector<Vec3d> &list, double factor,
-                          const Vec3d &center = nullVector);
-    static void scaleList(std::vector<Vec3d> &list, const Vec3d &factors,
-                          const Vec3d &center = nullVector);
+    Vec2d mirror(const Line &axis);
+    Vec2d getMirrored(const Line &axis) const;
+    Vec2d mirror(const Vec2d &axis1, const Vec2d &axis2);
+    Vec2d flipHorizontal();
+    Vec2d flipVertical();
+    Vec2d stretch(const Polyline &area, const Vec2d &offset);
 
-    Vec3d mirror(const Line &axis);
-    Vec3d getMirrored(const Line &axis) const;
-    Vec3d mirror(const Vec3d &axis1, const Vec3d &axis2);
-    Vec3d flipHorizontal();
-    Vec3d flipVertical();
-    Vec3d stretch(const Polyline &area, const Vec3d &offset);
+    Vec2d getDividedComponents(const Vec2d &v) const;
+    Vec2d getMultipliedComponents(const Vec2d &v) const;
 
-    Vec3d getDividedComponents(const Vec3d &v) const;
-    Vec3d getMultipliedComponents(const Vec3d &v) const;
-
-    Vec3d getClosest(const std::vector<Vec3d> &list) const;
-    Vec3d getClosest2D(const std::vector<Vec3d> &list) const;
-    double getClosestDistance(const std::vector<Vec3d> &list, int counts);
-    int getClosestIndex(const std::vector<Vec3d> &list,
+    Vec2d getClosest(const std::vector<Vec2d> &list) const;
+    Vec2d getClosest2D(const std::vector<Vec2d> &list) const;
+    double getClosestDistance(const std::vector<Vec2d> &list, int counts);
+    int getClosestIndex(const std::vector<Vec2d> &list,
                         bool ignoreZ = false) const;
-    int getClosestIndex2D(const std::vector<Vec3d> &list) const;
+    int getClosestIndex2D(const std::vector<Vec2d> &list) const;
 
-    Vec3d operator+(const Vec3d &v) const;
-    Vec3d operator-(const Vec3d &v) const;
-    Vec3d operator*(double s) const;
-    Vec3d operator/(double s) const;
-    Vec3d operator-() const;
-    Vec3d getNegated() const;
-    Vec3d getAbsolute() const;
+    Vec2d operator+(const Vec2d &v) const;
+    Vec2d operator-(const Vec2d &v) const;
+    Vec2d operator*(double s) const;
+    Vec2d operator/(double s) const;
+    Vec2d operator-() const;
+    Vec2d getNegated() const;
+    Vec2d getAbsolute() const;
 
-    void operator+=(const Vec3d &v);
-    void operator-=(const Vec3d &v);
+    void operator+=(const Vec2d &v);
+    void operator-=(const Vec2d &v);
     void operator*=(double s);
     void operator/=(double s);
 
-    bool operator==(const Vec3d &v) const;
-    bool operator!=(const Vec3d &v) const { return !operator==(v); }
+    bool operator==(const Vec2d &v) const;
+    bool operator!=(const Vec2d &v) const { return !operator==(v); }
 
-    double dot(const Vec3d &other) const;
-    Vec3d normalize();
-    Vec3d getNormalized() const;
+    double dot(const Vec2d &other) const;
+    Vec2d normalize();
+    Vec2d getNormalized() const;
 
-    Vec3d getFloor() const;
-    Vec3d getCeil() const;
+    static bool containsFuzzy(const std::vector<Vec2d> &vectors, const Vec2d &v,
+                              double tol = DBL_EPSILON);
+    static int findFirstFuzzy(const std::vector<Vec2d> &vectors, const Vec2d &v,
+                              double tol = DBL_EPSILON);
 
-    bool lteXY(const Vec3d &v) const;
-    bool gteXY(const Vec3d &v) const;
+    static Vec2d getMinimum(const std::vector<Vec2d> &vectors);
+    static Vec2d getMaximum(const std::vector<Vec2d> &vectors);
 
-    static bool containsFuzzy(const std::vector<Vec3d> &vectors, const Vec3d &v,
-                              double tol = NS::PointTolerance);
-    static int findFirstFuzzy(const std::vector<Vec3d> &vectors, const Vec3d &v,
-                              double tol = NS::PointTolerance);
+    static Vec2d getMinimum(const Vec2d &v1, const Vec2d &v2);
+    static Vec2d getMaximum(const Vec2d &v1, const Vec2d &v2);
 
-    static Vec3d getMinimum(const std::vector<Vec3d> &vectors);
-    static Vec3d getMaximum(const std::vector<Vec3d> &vectors);
+    static Vec2d getAverage(const Vec2d &v1, const Vec2d &v2);
+    static Vec2d getAverage(const std::vector<Vec2d> &vectors);
 
-    static Vec3d getMinimumX(const std::vector<Vec3d> &vectors);
-    static Vec3d getMaximumX(const std::vector<Vec3d> &vectors);
-    static Vec3d getMinimumY(const std::vector<Vec3d> &vectors);
-    static Vec3d getMaximumY(const std::vector<Vec3d> &vectors);
+    static Vec2d getCrossProduct(const Vec2d &v1, const Vec2d &v2);
+    static double getDotProduct(const Vec2d &v1, const Vec2d &v2);
+    static Vec2d createPolar(double radius, double angle);
 
-    static Vec3d getMinimum(const Vec3d &v1, const Vec3d &v2);
-    static Vec3d getMaximum(const Vec3d &v1, const Vec3d &v2);
 
-    static Vec3d getAverage(const Vec3d &v1, const Vec3d &v2);
-    static Vec3d getAverage(const std::vector<Vec3d> &vectors);
-
-    static std::vector<Vec3d> getUnion(const std::vector<Vec3d> &vectorsA,
-                                       const std::vector<Vec3d> &vectorsB,
-                                       double tol = NS::PointTolerance);
-    static std::vector<Vec3d> getUnique(const std::vector<Vec3d> &vectors,
-                                        double tol = NS::PointTolerance);
-
-    static std::vector<double> getXList(const std::vector<Vec3d> &vectors);
-    static std::vector<double> getYList(const std::vector<Vec3d> &vectors);
-    static std::vector<double> getZList(const std::vector<Vec3d> &vectors);
-
-    static Vec3d getCrossProduct(const Vec3d &v1, const Vec3d &v2);
-    static double getDotProduct(const Vec3d &v1, const Vec3d &v2);
-    static Vec3d createPolar(double radius, double angle);
-
-    static bool lessThanX(const Vec3d &v1, const Vec3d &v2);
-    static bool greaterThanX(const Vec3d &v1, const Vec3d &v2);
-    static bool lessThanY(const Vec3d &v1, const Vec3d &v2);
-    static bool greaterThanY(const Vec3d &v1, const Vec3d &v2);
-    static bool lessThanEqualXY(const Vec3d &v1, const Vec3d &v2);
-    static bool greaterThanEqualXY(const Vec3d &v1, const Vec3d &v2);
-
-    static std::vector<Vec3d>
-    getSortedByDistance(const std::vector<Vec3d> &list, const Vec3d &v);
-    static std::vector<Vec3d>
-    getSortedLeftRightTopBottom(const std::vector<Vec3d> &list);
-    static std::vector<Vec3d> getSortedByAngle(const std::vector<Vec3d> &list,
-                                               const Vec3d &center,
+    static std::vector<Vec2d>
+    getSortedByDistance(const std::vector<Vec2d> &list, const Vec2d &v);
+    static std::vector<Vec2d> getSortedByAngle(const std::vector<Vec2d> &list,
+                                               const Vec2d &center,
                                                double angle);
 
-    static const Vec3d invalid;
-    static const Vec3d nullVector;
-    static const Vec3d nanVector;
+    static const Vec2d invalid;
+    static const Vec2d nullVector;
+    static const Vec2d nanVector;
+};
+
+
+struct Vec3d {
+    double x, y, z;
+
+    Vec3d(double x, double y, double z);
+    Vec3d operator-(const Vec3d &rhs) const;
+    Vec3d operator*(double s) const;
+    Vec3d operator+(const Vec3d &rhs) const;
 };
 
 struct BBox {
-    Vec3d c1;
-    Vec3d c2;
+    Vec2d c1;
+    Vec2d c2;
 
     BBox();
     BBox(double x1, double y1, double x2, double y2);
-    BBox(const Vec3d &c1, const Vec3d &c2);
-    BBox(const Vec3d &center, double range);
-    BBox(const Vec3d &center, double width, double height);
+    BBox(const Vec2d &c1, const Vec2d &c2);
+    BBox(const Vec2d &center, double range);
+    BBox(const Vec2d &center, double width, double height);
 
     bool isValid() const;
     bool isSane() const;
 
-    bool equalsFuzzy(const BBox &b, double tol = NS::PointTolerance) const;
-    bool equalsFuzzy2D(const BBox &b, double tol = NS::PointTolerance) const;
+    bool equalsFuzzy(const BBox &b, double tol = DBL_EPSILON) const;
+    bool equalsFuzzy2D(const BBox &b, double tol = DBL_EPSILON) const;
 
-    BBox get2D() const { return BBox(c1.get2D(), c2.get2D()); }
+    BBox get2D() const;
 
     double getWidth() const;
     double getHeight() const;
-    Vec3d getSize() const;
+    Vec2d getSize() const;
     double getArea() const;
-    Vec3d getCenter() const;
-    Vec3d getMinimum() const;
-    Vec3d getMaximum() const;
+    Vec2d getCenter() const;
+    Vec2d getMinimum() const;
+    Vec2d getMaximum() const;
     bool isOutside(const BBox &other) const;
     bool isOutsideXY(const BBox &other) const;
     bool contains(const BBox &other) const;
-    bool contains(const Vec3d &v) const;
+    bool contains(const Vec2d &v) const;
     bool intersects(const BBox &other) const;
     bool intersectsWith(const Shape &shape, bool limited = true) const;
 
     void growToInclude(const BBox &other);
     void growToIncludeBoxes(const std::vector<BBox> &others);
 
-    void growToInclude(const Vec3d &v);
+    void growToInclude(const Vec2d &v);
 
-    Vec3d getCorner1() const;
-    void setCorner1(const Vec3d &v);
-    Vec3d getCorner2() const;
-    void setCorner2(const Vec3d &v);
+    Vec2d getCorner1() const;
+    void setCorner1(const Vec2d &v);
+    Vec2d getCorner2() const;
+    void setCorner2(const Vec2d &v);
 
-    std::vector<Vec3d> getCorners() const;
-    std::vector<Vec3d> getCorners2d() const;
+    std::vector<Vec2d> getCorners() const;
+    std::vector<Vec2d> getCorners2d() const;
     std::vector<Line> getLines2d() const;
     Polyline getPolyline2d() const;
 
@@ -248,13 +220,36 @@ struct BBox {
     BBox &growXY(double offset);
     BBox &growXY(double offsetX, double offsetY);
 
-    void move(const Vec3d &offset);
-    bool scaleByReference(const Vec3d &referencePoint, const Vec3d &targetPoint,
+    void move(const Vec2d &offset);
+    bool scaleByReference(const Vec2d &referencePoint, const Vec2d &targetPoint,
                           bool keepAspectRatio = false,
                           bool fromCenter = false);
 
     bool operator==(const BBox &other) const;
     bool operator!=(const BBox &other) const { return !operator==(other); }
+};
+
+class Plane
+{
+    std::array<double, 4> mRep;
+
+public:
+    Plane(const Vec3d& p1, const Vec3d &p2, const Vec3d& p3);
+    Plane(const double& a, const double& b, const double& c, const double& d);
+
+    double a() const;
+    double b() const;
+    double c() const;
+    double d() const;
+
+    Vec3d point() const;
+    Vec3d base1() const;
+    Vec3d base2() const;
+    Vec3d orthogonalVector() const;
+    bool on(const Vec3d& p) const;
+    Vec3d projection(const Vec3d &p) const;
+    Vec2d to2d(const Vec3d& p) const;
+    Vec3d to3d(const Vec3d& p) const;
 };
 
 class Object {
@@ -272,102 +267,101 @@ public:
     Shape() {}
     virtual ~Shape() {}
 
-    virtual bool isValid() const { return true; }
-    virtual NS::ShapeType getShapeType() const { return NS::Unkonwn; }
+    virtual bool isValid() const;
+    virtual NS::ShapeType getShapeType() const;
     virtual Shape *clone() const = 0;
-    virtual bool isInterpolated() const { return false; }
-
-    virtual Vec3d getClosestPointOnShape(const Vec3d &p, bool limited = true,
-                                         double strictRange = DBL_MAX) const;
-
+    virtual bool isInterpolated() const;
     virtual BBox getBoundingBox() const = 0;
-
     virtual double getLength() const = 0;
-    virtual bool equals(const Shape &other,
-                        double tolerance = NS::PointTolerance) const;
-    virtual Vec3d getVectorTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
                               double strictRange = DBL_MAX) const = 0;
 
-    virtual double getDistanceTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getClosestPointOnShape(const Vec2d &p, bool limited = true,
+                                         double strictRange = DBL_MAX) const;
+
+    virtual bool equals(const Shape &other,
+                        double tolerance = DBL_EPSILON) const;
+    virtual double getDistanceTo(const Vec2d &point, bool limited = true,
                                  double strictRange = DBL_MAX) const;
-    virtual double getMaxDistanceTo(const std::vector<Vec3d> &points,
+    virtual double getMaxDistanceTo(const std::vector<Vec2d> &points,
                                     bool limited = true,
                                     double strictRange = DBL_MAX) const;
-    virtual bool isOnShape(const Vec3d &point, bool limited = true,
+    virtual bool isOnShape(const Vec2d &point, bool limited = true,
                            double tolerance = DBL_EPSILON) const;
-    virtual std::vector<Vec3d>
-    filterOnShape(const std::vector<Vec3d> &pointList, bool limited = true,
+    virtual std::vector<Vec2d>
+    filterOnShape(const std::vector<Vec2d> &pointList, bool limited = true,
                   double tolerance = DBL_EPSILON) const;
-    virtual Vec3d getVectorFromEndpointTo(const Vec3d &point) const;
-    virtual std::vector<Vec3d> getEndPoints() const = 0;
-    virtual std::vector<Vec3d> getMiddlePoints() const = 0;
-    virtual std::vector<Vec3d> getCenterPoints() const = 0;
-    virtual std::vector<Vec3d> getArcReferencePoints() const;
-    virtual Vec3d getPointOnShape() const;
-    virtual std::vector<Vec3d> getPointCloud(double segmentLength) const = 0;
-    virtual std::vector<Vec3d>
+    virtual Vec2d getVectorFromEndpointTo(const Vec2d &point) const;
+    virtual std::vector<Vec2d> getEndPoints() const = 0;
+    virtual std::vector<Vec2d> getMiddlePoints() const = 0;
+    virtual std::vector<Vec2d> getCenterPoints() const = 0;
+    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const = 0;
+    virtual std::vector<Vec2d>
     getPointsWithDistanceToEnd(double distance,
                                int from = NS::FromAny) const = 0;
 
-    virtual Vec3d getPointWithDistanceToStart(double distance) const;
-    virtual Vec3d getPointWithDistanceToEnd(double distance) const;
+    virtual std::vector<Vec2d> getArcRefPoints() const;
+    virtual Vec2d getPointOnShape() const;
+
+    virtual Vec2d getPointWithDistanceToStart(double distance) const;
+    virtual Vec2d getPointWithDistanceToEnd(double distance) const;
     virtual double getAngleAt(double distance,
                               NS::From from = NS::FromStart) const;
-    virtual double getAngleAtPoint(const Vec3d &pos) const;
+    virtual double getAngleAtPoint(const Vec2d &pos) const;
 
-    virtual Vec3d getPointAtPercent(double p) const;
+    virtual Vec2d getPointAtPercent(double p) const;
     virtual double getAngleAtPercent(double p) const;
 
     virtual bool intersectsWith(const Shape &other, bool limited = true) const;
 
-    std::vector<Vec3d> getIntersectionPoints(const Shape &other,
+    std::vector<Vec2d> getIntersectionPoints(const Shape &other,
                                              bool limited = true,
                                              bool same = false,
                                              bool force = false) const;
 
-    virtual std::vector<Vec3d>
-    getSelfIntersectionPoints(double tolerance = NS::PointTolerance) const;
+    virtual std::vector<Vec2d>
+    getSelfIntersectionPoints(double tolerance = DBL_EPSILON) const;
 
     virtual bool isDirected() const;
     virtual double getDirection1() const;
     virtual double getDirection2() const;
 
-    virtual NS::Side getSideOfPoint(const Vec3d &point) const;
-    virtual Vec3d getStartPoint() const { return Vec3d::invalid; }
-    virtual Vec3d getEndPoint() const { return Vec3d::invalid; }
-    virtual Vec3d getMiddlePoint() const { return Vec3d::invalid; }
+    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
+    virtual Vec2d getStartPoint() const;
+    virtual Vec2d getEndPoint() const;
+    virtual Vec2d getMiddlePoint() const;
 
-    virtual bool reverse() { return false; }
+    virtual bool reverse();
 
-    virtual bool trimStartPoint(const Vec3d &trimPoint,
-                                const Vec3d &clickPoint = Vec3d::invalid,
+    virtual bool trimStartPoint(const Vec2d &trimPoint,
+                                const Vec2d &clickPoint = Vec2d::invalid,
                                 bool extend = false);
     virtual bool trimStartPoint(double trimDist);
-    virtual bool trimEndPoint(const Vec3d &trimPoint,
-                              const Vec3d &clickPoint = Vec3d::invalid,
+    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                              const Vec2d &clickPoint = Vec2d::invalid,
                               bool extend = false);
 
     virtual bool trimEndPoint(double trimDist);
-    virtual NS::Ending getTrimEnd(const Vec3d &trimPoint,
-                                  const Vec3d &clickPoint);
-    virtual double getDistanceFromStart(const Vec3d &p) const;
-    virtual std::vector<double> getDistancesFromStart(const Vec3d &p) const;
-    static std::vector<Vec3d> getIntersectionPoints(const Shape &shape1,
+    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint);
+    virtual double getDistanceFromStart(const Vec2d &p) const;
+    virtual std::vector<double> getDistancesFromStart(const Vec2d &p) const;
+    static std::vector<Vec2d> getIntersectionPoints(const Shape &shape1,
                                                     const Shape &shape2,
                                                     bool limited = true,
                                                     bool same = false,
                                                     bool force = false);
 
-    virtual bool move(const Vec3d &offset) = 0;
-    virtual bool rotate(double rotation, const Vec3d &center = Vec3d()) = 0;
-    virtual bool scale(double scaleFactor, const Vec3d &center = Vec3d());
-    virtual bool scale(const Vec3d &scaleFactors,
-                       const Vec3d &center = Vec3d()) = 0;
+    virtual bool move(const Vec2d &offset) = 0;
+    virtual bool rotate(double rotation, const Vec2d &center = Vec2d()) = 0;
+    virtual bool scale(double scaleFactor, const Vec2d &center = Vec2d());
+    virtual bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d()) = 0;
     virtual bool mirror(const Line &axis) = 0;
     virtual bool flipHorizontal();
     virtual bool flipVertical();
-    virtual bool stretch(const BBox &area, const Vec3d &offset);
-    virtual bool stretch(const Polyline &area, const Vec3d &offset);
+    virtual bool stretch(const BBox &area, const Vec2d &offset);
+    virtual bool stretch(const Polyline &area, const Vec2d &offset);
 
     static std::vector<Polyline>
     getPolylines(const std::vector<std::shared_ptr<Shape>> &shapes);
@@ -378,24 +372,24 @@ public:
 
     virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec3d &position = Vec3d::invalid);
+                    const Vec2d &position = Vec2d::invalid);
 
     static std::vector<std::shared_ptr<Shape>>
     getOffsetLines(const Shape &shape, double distance, int number,
-                   NS::Side side, const Vec3d &position = Vec3d::invalid);
+                   NS::Side side, const Vec2d &position = Vec2d::invalid);
     static std::vector<std::shared_ptr<Shape>>
     getOffsetArcs(const Shape &shape, double distance, int number,
-                  NS::Side side, const Vec3d &position = Vec3d::invalid);
+                  NS::Side side, const Vec2d &position = Vec2d::invalid);
 
     static std::vector<std::shared_ptr<Shape>>
     getReversedShapeList(const std::vector<std::shared_ptr<Shape>> &shapes);
 
     virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec3d> &points) const;
+    splitAt(const std::vector<Vec2d> &points) const;
 
     static std::vector<std::shared_ptr<Shape>>
-    trim(const Shape &trimShape, const Vec3d &trimClickPos,
-         const Shape &limitingShape, const Vec3d &limitingClickPos,
+    trim(const Shape &trimShape, const Vec2d &trimClickPos,
+         const Shape &limitingShape, const Vec2d &limitingClickPos,
          bool trimBoth, bool samePolyline);
 
     static std::vector<std::shared_ptr<Shape>>
@@ -403,16 +397,16 @@ public:
                  double radius);
 
     static std::vector<std::shared_ptr<Shape>>
-    roundShapes(const std::shared_ptr<Shape> shape1, const Vec3d &clickPos1,
-                const std::shared_ptr<Shape> shape2, const Vec3d &clickPos2,
-                bool trim, bool samePolyline, double radius, const Vec3d &pos);
+    roundShapes(const std::shared_ptr<Shape> shape1, const Vec2d &clickPos1,
+                const std::shared_ptr<Shape> shape2, const Vec2d &clickPos2,
+                bool trim, bool samePolyline, double radius, const Vec2d &pos);
 
     static std::shared_ptr<Shape> xLineToRay(std::shared_ptr<Shape> shape);
     static std::shared_ptr<Shape> rayToLine(std::shared_ptr<Shape> shape);
 
     static std::shared_ptr<Shape> scaleArc(const Shape &shape,
-                                           const Vec3d &scaleFactors,
-                                           const Vec3d &center = Vec3d());
+                                           const Vec2d &scaleFactors,
+                                           const Vec2d &center = Vec2d());
 
     static std::shared_ptr<Shape>
     ellipseToArcCircleEllipse(const Ellipse &ellipse);
@@ -430,49 +424,49 @@ class Point : public Shape {
 public:
     Point();
     Point(double x, double y);
-    Point(const Vec3d &position);
+    Point(const Vec2d &position);
     virtual ~Point();
 
     virtual NS::ShapeType getShapeType() const;
     virtual Point *clone() const;
 
-    Vec3d getPosition() const;
-    void setPosition(const Vec3d &p);
+    Vec2d getPosition() const;
+    void setPosition(const Vec2d &p);
 
     virtual BBox getBoundingBox() const;
     virtual double getLength() const;
 
-    virtual std::vector<Vec3d> getEndPoints() const;
-    virtual std::vector<Vec3d> getMiddlePoints() const;
-    virtual std::vector<Vec3d> getCenterPoints() const;
-    virtual std::vector<Vec3d>
+    virtual std::vector<Vec2d> getEndPoints() const;
+    virtual std::vector<Vec2d> getMiddlePoints() const;
+    virtual std::vector<Vec2d> getCenterPoints() const;
+    virtual std::vector<Vec2d>
     getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec3d> getPointCloud(double segmentLength) const;
+    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
 
     virtual double getAngleAt(double distance,
                               NS::From from = NS::FromStart) const;
 
-    virtual Vec3d getVectorTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
                               double strictRange = DBL_MAX) const;
 
-    virtual bool move(const Vec3d &offset);
-    virtual bool rotate(double rotation, const Vec3d &center = Vec3d());
-    virtual bool scale(const Vec3d &scaleFactors,
-                       const Vec3d &center = Vec3d());
+    virtual bool move(const Vec2d &offset);
+    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
+    virtual bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d());
     virtual bool mirror(const Line &axis);
     virtual bool flipHorizontal();
     virtual bool flipVertical();
 
 private:
-    Vec3d position;
+    Vec2d position;
 };
 
 class Line : public Shape {
 public:
     Line();
     Line(double x1, double y1, double x2, double y2);
-    Line(const Vec3d &startPoint, const Vec3d &endPoint);
-    Line(const Vec3d &startPoint, double angle, double distance);
+    Line(const Vec2d &startPoint, const Vec2d &endPoint);
+    Line(const Vec2d &startPoint, double angle, double distance);
 
     virtual NS::ShapeType getShapeType() const;
     virtual Line *clone() const;
@@ -483,25 +477,25 @@ public:
 
     virtual BBox getBoundingBox() const;
 
-    virtual std::vector<Vec3d> getEndPoints() const;
-    virtual std::vector<Vec3d> getMiddlePoints() const;
-    virtual std::vector<Vec3d> getCenterPoints() const;
-    virtual std::vector<Vec3d>
+    virtual std::vector<Vec2d> getEndPoints() const;
+    virtual std::vector<Vec2d> getMiddlePoints() const;
+    virtual std::vector<Vec2d> getCenterPoints() const;
+    virtual std::vector<Vec2d>
     getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec3d> getPointCloud(double segmentLength) const;
+    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
 
     virtual double getAngleAt(double distance,
                               NS::From from = NS::FromStart) const;
 
-    virtual Vec3d getVectorTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
                               double strictRange = DBL_MAX) const;
 
-    virtual Vec3d getStartPoint() const;
-    void setStartPoint(const Vec3d &vector);
-    virtual Vec3d getEndPoint() const;
-    void setEndPoint(const Vec3d &vector);
+    virtual Vec2d getStartPoint() const;
+    void setStartPoint(const Vec2d &vector);
+    virtual Vec2d getEndPoint() const;
+    void setEndPoint(const Vec2d &vector);
 
-    virtual Vec3d getMiddlePoint() const;
+    virtual Vec2d getMiddlePoint() const;
 
     double getLength() const;
     double getAngle() const;
@@ -511,69 +505,69 @@ public:
 
     bool isParallel(const Line &line) const;
 
-    bool isVertical(double tolerance = NS::PointTolerance) const;
-    bool isHorizontal(double tolerance = NS::PointTolerance) const;
+    bool isVertical(double tolerance = DBL_EPSILON) const;
+    bool isHorizontal(double tolerance = DBL_EPSILON) const;
 
     virtual double getDirection1() const;
     virtual double getDirection2() const;
 
-    virtual NS::Side getSideOfPoint(const Vec3d &point) const;
+    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
 
     void clipToXY(const BBox &box);
 
-    virtual bool move(const Vec3d &offset);
-    virtual bool rotate(double rotation, const Vec3d &center = Vec3d());
-    virtual bool scale(const Vec3d &scaleFactors,
-                       const Vec3d &center = Vec3d());
+    virtual bool move(const Vec2d &offset);
+    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
+    virtual bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d());
     virtual bool mirror(const Line &axis);
     virtual bool flipHorizontal();
     virtual bool flipVertical();
     virtual bool reverse();
-    virtual bool stretch(const Polyline &area, const Vec3d &offset);
+    virtual bool stretch(const Polyline &area, const Vec2d &offset);
 
-    virtual bool moveTo(const Vec3d &dest);
+    virtual bool moveTo(const Vec2d &dest);
 
-    virtual NS::Ending getTrimEnd(const Vec3d &trimPoint,
-                                  const Vec3d &clickPoint);
-    virtual bool trimStartPoint(const Vec3d &trimPoint,
-                                const Vec3d &clickPoint = Vec3d::invalid,
+    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint);
+    virtual bool trimStartPoint(const Vec2d &trimPoint,
+                                const Vec2d &clickPoint = Vec2d::invalid,
                                 bool extend = false);
-    virtual bool trimEndPoint(const Vec3d &trimPoint,
-                              const Vec3d &clickPoint = Vec3d::invalid,
+    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                              const Vec2d &clickPoint = Vec2d::invalid,
                               bool extend = false);
     virtual bool trimStartPoint(double trimDist);
     virtual bool trimEndPoint(double trimDist);
-    virtual double getDistanceFromStart(const Vec3d &p) const;
+    virtual double getDistanceFromStart(const Vec2d &p) const;
 
     virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec3d &position = Vec3d::invalid);
+                    const Vec2d &position = Vec2d::invalid);
 
     virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec3d> &points) const;
+    splitAt(const std::vector<Vec2d> &points) const;
 
 private:
-    Vec3d startPoint;
-    Vec3d endPoint;
+    Vec2d startPoint;
+    Vec2d endPoint;
 };
 
 class Circle : public Shape {
 public:
     Circle();
     Circle(double cx, double cy, const double radius);
-    Circle(const Vec3d &center, const double radius);
+    Circle(const Vec2d &center, const double radius);
     virtual ~Circle();
 
-    static Circle createFrom2Points(const Vec3d &p1, const Vec3d &p2);
-    static Circle createFrom3Points(const Vec3d &p1, const Vec3d &p2,
-                                    const Vec3d &p3);
+    static Circle createFrom2Points(const Vec2d &p1, const Vec2d &p2);
+    static Circle createFrom3Points(const Vec2d &p1, const Vec2d &p2,
+                                    const Vec2d &p3);
 
     virtual NS::ShapeType getShapeType() const;
     virtual Circle *clone() const;
 
-    static Circle createFrom2Points(const Vec3d &p1, const Vec3d &p2);
-    static Circle createFrom3Points(const Vec3d &p1, const Vec3d &p2,
-                                    const Vec3d &p3);
+    static Circle createFrom2Points(const Vec2d &p1, const Vec2d &p2);
+    static Circle createFrom3Points(const Vec2d &p1, const Vec2d &p2,
+                                    const Vec2d &p3);
 
     Arc toArc(double startAngle = 0.0) const;
 
@@ -582,23 +576,23 @@ public:
     virtual BBox getBoundingBox() const;
     virtual double getLength() const;
 
-    virtual std::vector<Vec3d> getEndPoints() const;
-    virtual std::vector<Vec3d> getMiddlePoints() const;
-    virtual std::vector<Vec3d> getCenterPoints() const;
-    virtual std::vector<Vec3d> getArcReferencePoints() const;
-    virtual std::vector<Vec3d>
+    virtual std::vector<Vec2d> getEndPoints() const;
+    virtual std::vector<Vec2d> getMiddlePoints() const;
+    virtual std::vector<Vec2d> getCenterPoints() const;
+    virtual std::vector<Vec2d> getArcRefPoints() const;
+    virtual std::vector<Vec2d>
     getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec3d> getPointCloud(double segmentLength) const;
+    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
 
     virtual double getAngleAt(double distance,
                               NS::From from = NS::FromStart) const;
-    Vec3d getPointAtAngle(double a) const;
+    Vec2d getPointAtAngle(double a) const;
 
-    virtual Vec3d getVectorTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
                               double strictRange = DBL_MAX) const;
 
-    Vec3d getCenter() const;
-    void setCenter(const Vec3d &vector);
+    Vec2d getCenter() const;
+    void setCenter(const Vec2d &vector);
     double getRadius() const;
     void setRadius(double radius);
 
@@ -609,27 +603,27 @@ public:
     double getArea() const;
     void setArea(double a);
 
-    bool contains(const Vec3d &p) const;
+    bool contains(const Vec2d &p) const;
 
-    virtual bool move(const Vec3d &offset);
-    virtual bool rotate(double rotation, const Vec3d &center = Vec3d());
-    virtual bool scale(const Vec3d &scaleFactors,
-                       const Vec3d &center = Vec3d());
+    virtual bool move(const Vec2d &offset);
+    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
+    virtual bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d());
     virtual bool mirror(const Line &axis);
     virtual bool flipHorizontal();
     virtual bool flipVertical();
 
-    std::vector<Line> getTangents(const Vec3d &point) const;
+    std::vector<Line> getTangents(const Vec2d &point) const;
 
     virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec3d &position = Vec3d::invalid);
+                    const Vec2d &position = Vec2d::invalid);
 
     virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec3d> &points) const;
+    splitAt(const std::vector<Vec2d> &points) const;
 
 private:
-    Vec3d center;
+    Vec2d center;
     double radius;
 };
 
@@ -638,7 +632,7 @@ public:
     Arc();
     Arc(double cx, double cy, double radius, double startAngle, double endAngle,
         bool reversed = false);
-    Arc(const Vec3d &center, double radius, double startAngle, double endAngle,
+    Arc(const Vec2d &center, double radius, double startAngle, double endAngle,
         bool reversed = false);
 
     virtual NS::ShapeType getShapeType() const;
@@ -649,33 +643,33 @@ public:
     virtual bool isValid() const;
     bool isFullCircle(double tolerance = NS::AngleTolerance) const;
 
-    static Arc createFrom3Points(const Vec3d &startPoint, const Vec3d &point,
-                                 const Vec3d &endPoint);
-    static Arc createFrom2PBulge(const Vec3d &startPoint, const Vec3d &endPoint,
+    static Arc createFrom3Points(const Vec2d &startPoint, const Vec2d &point,
+                                 const Vec2d &endPoint);
+    static Arc createFrom2PBulge(const Vec2d &startPoint, const Vec2d &endPoint,
                                  double bulge);
-    static Arc createTangential(const Vec3d &startPoint, const Vec3d &pos,
+    static Arc createTangential(const Vec2d &startPoint, const Vec2d &pos,
                                 double direction, double radius);
-    static std::vector<Arc> createBiarc(const Vec3d &startPoint,
+    static std::vector<Arc> createBiarc(const Vec2d &startPoint,
                                         double startDirection,
-                                        const Vec3d &endPoint,
+                                        const Vec2d &endPoint,
                                         double endDirection,
                                         bool secondTry = false);
 
     virtual BBox getBoundingBox() const;
 
-    virtual std::vector<Vec3d> getEndPoints() const;
-    virtual std::vector<Vec3d> getMiddlePoints() const;
-    virtual std::vector<Vec3d> getCenterPoints() const;
-    virtual std::vector<Vec3d> getArcReferencePoints() const;
-    virtual std::vector<Vec3d>
+    virtual std::vector<Vec2d> getEndPoints() const;
+    virtual std::vector<Vec2d> getMiddlePoints() const;
+    virtual std::vector<Vec2d> getCenterPoints() const;
+    virtual std::vector<Vec2d> getArcRefPoints() const;
+    virtual std::vector<Vec2d>
     getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec3d> getPointCloud(double segmentLength) const;
+    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
 
-    virtual Vec3d getVectorTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
                               double strictRange = DBL_MAX) const;
 
-    Vec3d getCenter() const;
-    void setCenter(const Vec3d &vector);
+    Vec2d getCenter() const;
+    void setCenter(const Vec2d &vector);
     double getRadius() const;
     void setRadius(double radius);
     double getStartAngle() const;
@@ -697,62 +691,62 @@ public:
     virtual double getDirection1() const;
     virtual double getDirection2() const;
 
-    virtual NS::Side getSideOfPoint(const Vec3d &point) const;
+    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
 
     double getSweep() const;
     void setSweep(double s);
     double getLength() const;
 
-    virtual Vec3d getStartPoint() const;
-    virtual Vec3d getEndPoint() const;
-    Vec3d getPointAtAngle(double a) const;
+    virtual Vec2d getStartPoint() const;
+    virtual Vec2d getEndPoint() const;
+    Vec2d getPointAtAngle(double a) const;
     virtual double getAngleAt(double distance,
                               NS::From from = NS::FromStart) const;
-    virtual Vec3d getMiddlePoint() const;
+    virtual Vec2d getMiddlePoint() const;
 
-    void moveStartPoint(const Vec3d &pos, bool keepRadius = true);
-    void moveEndPoint(const Vec3d &pos, bool keepRadius = true);
-    void moveMiddlePoint(const Vec3d &pos);
+    void moveStartPoint(const Vec2d &pos, bool keepRadius = true);
+    void moveEndPoint(const Vec2d &pos, bool keepRadius = true);
+    void moveMiddlePoint(const Vec2d &pos);
     double getBulge() const;
 
-    virtual bool move(const Vec3d &offset);
-    virtual bool rotate(double rotation, const Vec3d &center = Vec3d());
-    virtual bool scale(const Vec3d &scaleFactors,
-                       const Vec3d &center = Vec3d());
+    virtual bool move(const Vec2d &offset);
+    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
+    virtual bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d());
     virtual bool mirror(const Line &axis);
     virtual bool reverse();
-    virtual bool stretch(const Polyline &area, const Vec3d &offset);
+    virtual bool stretch(const Polyline &area, const Vec2d &offset);
 
-    virtual NS::Ending getTrimEnd(const Vec3d &trimPoint,
-                                  const Vec3d &clickPoint);
-    virtual bool trimStartPoint(const Vec3d &trimPoint,
-                                const Vec3d &clickPoint = Vec3d::invalid,
+    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint);
+    virtual bool trimStartPoint(const Vec2d &trimPoint,
+                                const Vec2d &clickPoint = Vec2d::invalid,
                                 bool extend = false);
-    virtual bool trimEndPoint(const Vec3d &trimPoint,
-                              const Vec3d &clickPoint = Vec3d::invalid,
+    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                              const Vec2d &clickPoint = Vec2d::invalid,
                               bool extend = false);
     virtual bool trimStartPoint(double trimDist);
     virtual bool trimEndPoint(double trimDist);
-    virtual double getDistanceFromStart(const Vec3d &p) const;
+    virtual double getDistanceFromStart(const Vec2d &p) const;
 
     Polyline approximateWithLines(double segmentLength,
                                   double angle = 0.0) const;
     Polyline approximateWithLinesTan(double segmentLength,
                                      double angle = 0.0) const;
 
-    std::vector<Line> getTangents(const Vec3d &point) const;
+    std::vector<Line> getTangents(const Vec2d &point) const;
 
     virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec3d &position = Vec3d::invalid);
+                    const Vec2d &position = Vec2d::invalid);
 
     virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec3d> &points) const;
+    splitAt(const std::vector<Vec2d> &points) const;
 
     std::vector<Arc> splitAtQuadrantLines() const;
 
 private:
-    Vec3d center;
+    Vec2d center;
     double radius;
     double startAngle;
     double endAngle;
@@ -762,15 +756,15 @@ private:
 class Ellipse : public Shape {
 public:
     Ellipse();
-    Ellipse(const Vec3d &center, const Vec3d &majorPoint, double ratio,
+    Ellipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
             double startParam, double endParam, bool reversed);
     virtual ~Ellipse();
 
-    static Ellipse createInscribed(const Vec3d &p1, const Vec3d &p2,
-                                   const Vec3d &p3, const Vec3d &p4,
-                                   const Vec3d &centerHint = Vec3d::invalid);
-    static Ellipse createFrom4Points(const Vec3d &p1, const Vec3d &p2,
-                                     const Vec3d &p3, const Vec3d &p4);
+    static Ellipse createInscribed(const Vec2d &p1, const Vec2d &p2,
+                                   const Vec2d &p3, const Vec2d &p4,
+                                   const Vec2d &centerHint = Vec2d::invalid);
+    static Ellipse createFrom4Points(const Vec2d &p1, const Vec2d &p2,
+                                     const Vec2d &p3, const Vec2d &p4);
 
     virtual NS::ShapeType getShapeType() const;
     virtual Ellipse *clone() const;
@@ -780,27 +774,27 @@ public:
 
     virtual BBox getBoundingBox() const;
 
-    virtual std::vector<Vec3d> getEndPoints() const;
-    virtual std::vector<Vec3d> getMiddlePoints() const;
-    virtual std::vector<Vec3d> getCenterPoints() const;
-    virtual std::vector<Vec3d>
+    virtual std::vector<Vec2d> getEndPoints() const;
+    virtual std::vector<Vec2d> getMiddlePoints() const;
+    virtual std::vector<Vec2d> getCenterPoints() const;
+    virtual std::vector<Vec2d>
     getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec3d> getPointCloud(double segmentLength) const;
+    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
 
-    virtual Vec3d getVectorTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
                               double strictRange = DBL_MAX) const;
 
-    void moveStartPoint(const Vec3d &pos, bool changeAngleOnly = false);
-    void moveEndPoint(const Vec3d &pos, bool changeAngleOnly = false);
+    void moveStartPoint(const Vec2d &pos, bool changeAngleOnly = false);
+    void moveEndPoint(const Vec2d &pos, bool changeAngleOnly = false);
 
-    std::vector<Vec3d> getFoci() const;
+    std::vector<Vec2d> getFoci() const;
 
-    Vec3d getCenter() const;
-    void setCenter(const Vec3d &vector);
-    Vec3d getMajorPoint() const;
-    Vec3d getMinorPoint() const;
-    void setMajorPoint(const Vec3d &vector);
-    void setMinorPoint(const Vec3d &p);
+    Vec2d getCenter() const;
+    void setCenter(const Vec2d &vector);
+    Vec2d getMajorPoint() const;
+    Vec2d getMinorPoint() const;
+    void setMajorPoint(const Vec2d &vector);
+    void setMinorPoint(const Vec2d &p);
     bool switchMajorMinor();
     double getRatio() const;
     void setRatio(double radius);
@@ -830,10 +824,10 @@ public:
     virtual double getDirection1() const;
     virtual double getDirection2() const;
 
-    virtual NS::Side getSideOfPoint(const Vec3d &point) const;
+    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
 
-    virtual Vec3d getStartPoint() const;
-    virtual Vec3d getEndPoint() const;
+    virtual Vec2d getStartPoint() const;
+    virtual Vec2d getEndPoint() const;
     double getMajorRadius() const;
     double getMinorRadius() const;
     double getAngle() const;
@@ -843,34 +837,34 @@ public:
     double getLength() const;
     double getSimpsonLength(double f1, double f2) const;
 
-    bool contains(const Vec3d &p) const;
+    bool contains(const Vec2d &p) const;
 
     virtual double getAngleAt(double distance,
                               NS::From from = NS::FromStart) const;
 
-    double getAngleAtPoint(const Vec3d &pos) const;
-    double getParamTo(const Vec3d &pos) const;
+    double getAngleAtPoint(const Vec2d &pos) const;
+    double getParamTo(const Vec2d &pos) const;
     double getRadiusAt(double param) const;
-    Vec3d getPointAt(double param) const;
-    Vec3d getMiddlePoint() const;
+    Vec2d getPointAt(double param) const;
+    Vec2d getMiddlePoint() const;
 
-    virtual Vec3d getPointOnShape() const;
+    virtual Vec2d getPointOnShape() const;
 
-    virtual bool move(const Vec3d &offset);
-    virtual bool rotate(double rotation, const Vec3d &center = Vec3d());
-    virtual bool scale(const Vec3d &scaleFactors,
-                       const Vec3d &center = Vec3d());
+    virtual bool move(const Vec2d &offset);
+    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
+    virtual bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d());
     virtual bool mirror(const Line &axis);
 
     virtual bool reverse();
 
-    virtual NS::Ending getTrimEnd(const Vec3d &trimPoint,
-                                  const Vec3d &clickPoint);
-    virtual bool trimStartPoint(const Vec3d &trimPoint,
-                                const Vec3d &clickPoint = Vec3d::invalid,
+    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint);
+    virtual bool trimStartPoint(const Vec2d &trimPoint,
+                                const Vec2d &clickPoint = Vec2d::invalid,
                                 bool extend = false);
-    virtual bool trimEndPoint(const Vec3d &trimPoint,
-                              const Vec3d &clickPoint = Vec3d::invalid,
+    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                              const Vec2d &clickPoint = Vec2d::invalid,
                               bool extend = false);
     virtual bool trimStartPoint(double trimDist);
     virtual bool trimEndPoint(double trimDist);
@@ -878,23 +872,23 @@ public:
     void correctMajorMinor();
     double getSweep() const;
 
-    std::vector<Vec3d> getBoxCorners();
+    std::vector<Vec2d> getBoxCorners();
 
-    std::vector<Line> getTangents(const Vec3d &point) const;
-    Vec3d getTangentPoint(const Line &line) const;
+    std::vector<Line> getTangents(const Vec2d &point) const;
+    Vec2d getTangentPoint(const Line &line) const;
 
     std::vector<BSpline> approximateWithSplines() const;
     Polyline approximateWithArcs(int segments) const;
 
     virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec3d &position = Vec3d::invalid);
+                    const Vec2d &position = Vec2d::invalid);
     virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec3d> &points) const;
+    splitAt(const std::vector<Vec2d> &points) const;
 
 private:
-    Vec3d center;
-    Vec3d majorPoint;
+    Vec2d center;
+    Vec2d majorPoint;
     double ratio;
     double startParam;
     double endParam;
@@ -904,7 +898,7 @@ private:
 class Polyline : public Shape {
 public:
     Polyline();
-    Polyline(const std::vector<Vec3d> &vertices, bool closed);
+    Polyline(const std::vector<Vec2d> &vertices, bool closed);
     Polyline(const std::vector<std::shared_ptr<Shape>> &segments);
     virtual ~Polyline();
 
@@ -916,7 +910,7 @@ public:
     bool isFlat() const;
 
     void clear();
-    void normalize(double tolerance = NS::PointTolerance);
+    void normalize(double tolerance = DBL_EPSILON);
 
     bool prependShape(const Shape &shape);
     bool appendShape(const Shape &shape, bool prepend = false);
@@ -924,16 +918,16 @@ public:
     bool appendShapeTrim(const Shape &shape);
     bool closeTrim();
 
-    void appendVertex(const Vec3d &vertex, double bulge = 0.0, double w1 = 0.0,
+    void appendVertex(const Vec2d &vertex, double bulge = 0.0, double w1 = 0.0,
                       double w2 = 0.0);
     void appendVertex(double x, double y, double bulge = 0.0, double w1 = 0.0,
                       double w2 = 0.0);
-    void prependVertex(const Vec3d &vertex, double bulge = 0.0, double w1 = 0.0,
+    void prependVertex(const Vec2d &vertex, double bulge = 0.0, double w1 = 0.0,
                        double w2 = 0.0);
-    void insertVertex(int index, const Vec3d &vertex, double bulgeBefore = 0.0,
+    void insertVertex(int index, const Vec2d &vertex, double bulgeBefore = 0.0,
                       double bulgeAfter = 0.0);
-    void insertVertexAt(const Vec3d &point);
-    Vec3d insertVertexAtDistance(double dist);
+    void insertVertexAt(const Vec2d &point);
+    Vec2d insertVertexAtDistance(double dist);
     void removeFirstVertex();
     void removeLastVertex();
     void removeVertex(int index);
@@ -942,14 +936,14 @@ public:
 
     bool isEmpty() const;
 
-    void setVertices(const std::vector<Vec3d> &vertices);
-    std::vector<Vec3d> getVertices() const;
-    void setVertexAt(int i, const Vec3d &v);
-    void moveVertexAt(int i, const Vec3d &offset);
-    Vec3d getVertexAt(int i) const;
-    int getVertexIndex(const Vec3d &v,
-                       double tolerance = NS::PointTolerance) const;
-    Vec3d getLastVertex() const;
+    void setVertices(const std::vector<Vec2d> &vertices);
+    std::vector<Vec2d> getVertices() const;
+    void setVertexAt(int i, const Vec2d &v);
+    void moveVertexAt(int i, const Vec2d &offset);
+    Vec2d getVertexAt(int i) const;
+    int getVertexIndex(const Vec2d &v,
+                       double tolerance = DBL_EPSILON) const;
+    Vec2d getLastVertex() const;
     int countVertices() const;
 
     void setBulges(const std::vector<double> &b);
@@ -976,13 +970,13 @@ public:
 
     void setClosed(bool on);
     bool isClosed() const;
-    bool isGeometricallyClosed(double tolerance = NS::PointTolerance) const;
-    bool autoClose(double tolerance = NS::PointTolerance);
-    bool toLogicallyClosed(double tolerance = NS::PointTolerance);
+    bool isGeometricallyClosed(double tolerance = DBL_EPSILON) const;
+    bool autoClose(double tolerance = DBL_EPSILON);
+    bool toLogicallyClosed(double tolerance = DBL_EPSILON);
     bool toLogicallyOpen();
 
-    std::vector<Vec3d>
-    getSelfIntersectionPoints(double tolerance = NS::PointTolerance) const;
+    std::vector<Vec2d>
+    getSelfIntersectionPoints(double tolerance = DBL_EPSILON) const;
 
     NS::Orientation getOrientation(bool implicitelyClosed = false) const;
     bool setOrientation(NS::Orientation orientation);
@@ -990,25 +984,25 @@ public:
     Polyline convertArcToLineSegments(int segments) const;
     Polyline convertArcToLineSegmentsLength(double segmentLength) const;
 
-    virtual bool contains(const Vec3d &point, bool borderIsInside = false,
-                          double tolerance = NS::PointTolerance) const;
+    virtual bool contains(const Vec2d &point, bool borderIsInside = false,
+                          double tolerance = DBL_EPSILON) const;
     bool containsShape(const Shape &shape) const;
 
-    Vec3d getPointInside() const;
+    Vec2d getPointInside() const;
 
-    virtual Vec3d getStartPoint() const;
-    virtual Vec3d getEndPoint() const;
-    virtual Vec3d getMiddlePoint() const;
+    virtual Vec2d getStartPoint() const;
+    virtual Vec2d getEndPoint() const;
+    virtual Vec2d getMiddlePoint() const;
 
-    void moveStartPoint(const Vec3d &pos);
-    void moveEndPoint(const Vec3d &pos);
+    void moveStartPoint(const Vec2d &pos);
+    void moveEndPoint(const Vec2d &pos);
 
-    void moveSegmentAt(int i, const Vec3d &offset);
+    void moveSegmentAt(int i, const Vec2d &offset);
 
     virtual double getDirection1() const;
     virtual double getDirection2() const;
 
-    virtual NS::Side getSideOfPoint(const Vec3d &point) const;
+    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
 
     virtual BBox getBoundingBox() const;
 
@@ -1016,46 +1010,46 @@ public:
 
     virtual double getLength() const;
 
-    virtual double getDistanceFromStart(const Vec3d &p) const;
-    virtual std::vector<double> getDistancesFromStart(const Vec3d &p) const;
-    double getLengthTo(const Vec3d &p, bool limited = true) const;
+    virtual double getDistanceFromStart(const Vec2d &p) const;
+    virtual std::vector<double> getDistancesFromStart(const Vec2d &p) const;
+    double getLengthTo(const Vec2d &p, bool limited = true) const;
     double getSegmentsLength(int fromIndex, int toIndex) const;
 
-    virtual std::vector<Vec3d> getEndPoints() const;
-    virtual std::vector<Vec3d> getMiddlePoints() const;
-    virtual std::vector<Vec3d> getCenterPoints() const;
-    virtual Vec3d getPointAtPercent(double p) const;
-    virtual std::vector<Vec3d>
+    virtual std::vector<Vec2d> getEndPoints() const;
+    virtual std::vector<Vec2d> getMiddlePoints() const;
+    virtual std::vector<Vec2d> getCenterPoints() const;
+    virtual Vec2d getPointAtPercent(double p) const;
+    virtual std::vector<Vec2d>
     getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec3d> getPointCloud(double segmentLength) const;
+    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
 
     virtual double getAngleAt(double distance,
                               NS::From from = NS::FromStart) const;
 
-    virtual Vec3d getVectorTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
                               double strictRange = DBL_MAX) const;
-    virtual double getDistanceTo(const Vec3d &point, bool limited = true,
+    virtual double getDistanceTo(const Vec2d &point, bool limited = true,
                                  double strictRange = DBL_MAX) const;
 
-    int getClosestSegment(const Vec3d &point) const;
-    int getClosestVertex(const Vec3d &point) const;
-    virtual bool move(const Vec3d &offset);
-    virtual bool rotate(double rotation, const Vec3d &center = Vec3d());
-    virtual bool scale(double scaleFactor, const Vec3d &center = Vec3d());
-    virtual bool scale(const Vec3d &scaleFactors,
-                       const Vec3d &center = Vec3d());
+    int getClosestSegment(const Vec2d &point) const;
+    int getClosestVertex(const Vec2d &point) const;
+    virtual bool move(const Vec2d &offset);
+    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
+    virtual bool scale(double scaleFactor, const Vec2d &center = Vec2d());
+    virtual bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d());
     virtual bool mirror(const Line &axis);
     virtual bool reverse();
     virtual Polyline getReversed() const;
-    virtual bool stretch(const Polyline &area, const Vec3d &offset);
+    virtual bool stretch(const Polyline &area, const Vec2d &offset);
 
-    virtual NS::Ending getTrimEnd(const Vec3d &trimPoint,
-                                  const Vec3d &clickPoint);
-    virtual bool trimStartPoint(const Vec3d &trimPoint,
-                                const Vec3d &clickPoint = Vec3d::invalid,
+    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint);
+    virtual bool trimStartPoint(const Vec2d &trimPoint,
+                                const Vec2d &clickPoint = Vec2d::invalid,
                                 bool extend = false);
-    virtual bool trimEndPoint(const Vec3d &trimPoint,
-                              const Vec3d &clickPoint = Vec3d::invalid,
+    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                              const Vec2d &clickPoint = Vec2d::invalid,
                               bool extend = false);
     virtual bool trimStartPoint(double trimDist);
     virtual bool trimEndPoint(double trimDist);
@@ -1075,15 +1069,15 @@ public:
 
     bool isStraight(double bulge) const;
 
-    bool simplify(double tolerance = NS::PointTolerance);
-    std::vector<Vec3d> verifyTangency(double toleranceMin = NS::AngleTolerance,
+    bool simplify(double tolerance = DBL_EPSILON);
+    std::vector<Vec2d> verifyTangency(double toleranceMin = NS::AngleTolerance,
                                       double toleranceMax = M_PI_4);
 
     void stripWidths();
     void setMinimumWidth(double w);
 
     int getSegmentAtDist(double dist);
-    bool relocateStartPoint(const Vec3d &p);
+    bool relocateStartPoint(const Vec2d &p);
     bool relocateStartPoint(double dist);
     bool convertToClosed();
     bool convertToOpen();
@@ -1095,10 +1089,10 @@ public:
                                   const Shape *cornerShape = NULL) const;
 
     bool isConcave() const;
-    std::vector<Vec3d> getConvexVertices(bool convex = true) const;
-    std::vector<Vec3d> getConcaveVertices() const;
+    std::vector<Vec2d> getConvexVertices(bool convex = true) const;
+    std::vector<Vec2d> getConcaveVertices() const;
 
-    Vec3d getCentroid() const;
+    Vec2d getCentroid() const;
 
     std::vector<Polyline> splitAtDiscontinuities(double tolerance) const;
     std::vector<Polyline> splitAtSegmentTypeChange() const;
@@ -1122,7 +1116,7 @@ protected:
     bool isLineSegment(int i) const;
 
 protected:
-    std::vector<Vec3d> vertices;
+    std::vector<Vec2d> vertices;
     std::vector<double> bulges;
     std::vector<double> endWidths;
     std::vector<double> startWidths;
@@ -1133,39 +1127,39 @@ class XLine : public Shape {
 public:
     XLine();
     XLine(const Line &line);
-    XLine(const Vec3d &basePoint, const Vec3d &directionVector);
-    XLine(const Vec3d &basePoint, double angle, double distance);
+    XLine(const Vec2d &basePoint, const Vec2d &directionVector);
+    XLine(const Vec2d &basePoint, double angle, double distance);
     virtual ~XLine();
 
     virtual NS::ShapeType getShapeType() const;
 
     Line getLineShape() const;
     virtual XLine *clone() const;
-    virtual bool isDirected() const { return true; }
+    virtual bool isDirected() const;
 
     BBox getBoundingBox() const;
 
-    virtual std::vector<Vec3d> getEndPoints() const;
-    virtual std::vector<Vec3d> getMiddlePoints() const;
-    virtual std::vector<Vec3d> getCenterPoints() const;
-    virtual std::vector<Vec3d>
+    virtual std::vector<Vec2d> getEndPoints() const;
+    virtual std::vector<Vec2d> getMiddlePoints() const;
+    virtual std::vector<Vec2d> getCenterPoints() const;
+    virtual std::vector<Vec2d>
     getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec3d> getPointCloud(double segmentLength) const;
+    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
 
     virtual double getAngleAt(double distance,
                               NS::From from = NS::FromStart) const;
 
-    virtual Vec3d getVectorTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
                               double strictRange = DBL_MAX) const;
 
-    Vec3d getBasePoint() const;
-    void setBasePoint(const Vec3d &vector);
-    Vec3d getSecondPoint() const;
-    void setSecondPoint(const Vec3d &vector);
-    Vec3d getDirectionVector() const;
-    void setDirectionVector(const Vec3d &vector);
+    Vec2d getBasePoint() const;
+    void setBasePoint(const Vec2d &vector);
+    Vec2d getSecondPoint() const;
+    void setSecondPoint(const Vec2d &vector);
+    Vec2d getDirectionVector() const;
+    void setDirectionVector(const Vec2d &vector);
 
-    virtual Vec3d getMiddlePoint() const;
+    virtual Vec2d getMiddlePoint() const;
 
     double getLength() const;
     void setLength(double l);
@@ -1175,78 +1169,78 @@ public:
     virtual double getDirection1() const;
     virtual double getDirection2() const;
 
-    virtual NS::Side getSideOfPoint(const Vec3d &point) const;
+    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
 
-    virtual Vec3d getStartPoint() const;
-    virtual Vec3d getEndPoint() const;
+    virtual Vec2d getStartPoint() const;
+    virtual Vec2d getEndPoint() const;
 
-    virtual bool trimStartPoint(const Vec3d &trimPoint,
-                                const Vec3d &clickPoint = Vec3d::invalid,
+    virtual bool trimStartPoint(const Vec2d &trimPoint,
+                                const Vec2d &clickPoint = Vec2d::invalid,
                                 bool extend = false);
-    virtual bool trimEndPoint(const Vec3d &trimPoint,
-                              const Vec3d &clickPoint = Vec3d::invalid,
+    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                              const Vec2d &clickPoint = Vec2d::invalid,
                               bool extend = false);
     virtual bool trimStartPoint(double trimDist);
     virtual bool trimEndPoint(double trimDist);
-    virtual NS::Ending getTrimEnd(const Vec3d &trimPoint,
-                                  const Vec3d &clickPoint);
-    virtual double getDistanceFromStart(const Vec3d &p) const;
+    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint);
+    virtual double getDistanceFromStart(const Vec2d &p) const;
 
     virtual Line getClippedLine(const BBox &box) const;
 
-    virtual bool move(const Vec3d &offset);
-    virtual bool rotate(double rotation, const Vec3d &center = Vec3d());
-    virtual bool scale(const Vec3d &scaleFactors,
-                       const Vec3d &center = Vec3d());
+    virtual bool move(const Vec2d &offset);
+    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
+    virtual bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d());
     virtual bool mirror(const Line &axis);
     virtual bool reverse();
-    virtual bool stretch(const Polyline &area, const Vec3d &offset);
+    virtual bool stretch(const Polyline &area, const Vec2d &offset);
 
     virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec3d &position = Vec3d::invalid);
+                    const Vec2d &position = Vec2d::invalid);
 
     virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec3d> &points) const;
+    splitAt(const std::vector<Vec2d> &points) const;
 
 private:
-    Vec3d basePoint;
-    Vec3d directionVector;
+    Vec2d basePoint;
+    Vec2d directionVector;
 };
 
 class Ray : public XLine {
 public:
     Ray();
     Ray(const Line &line);
-    Ray(const Vec3d &basePoint, const Vec3d &directionVector);
-    Ray(const Vec3d &basePoint, double angle, double distance);
+    Ray(const Vec2d &basePoint, const Vec2d &directionVector);
+    Ray(const Vec2d &basePoint, double angle, double distance);
     virtual ~Ray();
 
     virtual NS::ShapeType getShapeType() const;
 
     virtual Ray *clone() const;
 
-    virtual bool trimEndPoint(const Vec3d &trimPoint,
-                              const Vec3d &clickPoint = Vec3d::invalid,
+    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                              const Vec2d &clickPoint = Vec2d::invalid,
                               bool extend = false);
-    virtual std::vector<Vec3d> getPointsWithDistanceToEnd(double distance,
+    virtual std::vector<Vec2d> getPointsWithDistanceToEnd(double distance,
                                                           int from) const;
     virtual bool reverse();
     virtual Line getClippedLine(const BBox &box) const;
-    virtual Vec3d getVectorTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
                               double strictRange = DBL_MAX) const;
 
-    virtual bool stretch(const Polyline &area, const Vec3d &offset);
+    virtual bool stretch(const Polyline &area, const Vec2d &offset);
 
     virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec3d> &points) const;
+    splitAt(const std::vector<Vec2d> &points) const;
 };
 
 class BSpline : public Shape {
 public:
     BSpline();
     BSpline(const BSpline &other);
-    BSpline(const std::vector<Vec3d> &controlPoints, int degree);
+    BSpline(const std::vector<Vec2d> &controlPoints, int degree);
 
     BSpline &operator=(const BSpline &other);
 
@@ -1263,27 +1257,27 @@ public:
 
     virtual bool isInterpolated() const;
 
-    void appendControlPoint(const Vec3d &point);
-    void appendControlPoints(const std::vector<Vec3d> &points);
+    void appendControlPoint(const Vec2d &point);
+    void appendControlPoints(const std::vector<Vec2d> &points);
     void removeLastControlPoint();
-    void setControlPoints(const std::vector<Vec3d> &points);
-    std::vector<Vec3d> getControlPoints() const;
-    std::vector<Vec3d> getControlPointsWrapped() const;
+    void setControlPoints(const std::vector<Vec2d> &points);
+    std::vector<Vec2d> getControlPoints() const;
+    std::vector<Vec2d> getControlPointsWrapped() const;
     int countControlPoints() const;
-    Vec3d getControlPointAt(int i) const;
+    Vec2d getControlPointAt(int i) const;
 
-    void appendFitPoint(const Vec3d &point);
-    void prependFitPoint(const Vec3d &point);
-    void insertFitPointAt(const Vec3d &point);
-    void insertFitPointAt(double t, const Vec3d &point);
-    void removeFitPointAt(const Vec3d &point);
+    void appendFitPoint(const Vec2d &point);
+    void prependFitPoint(const Vec2d &point);
+    void insertFitPointAt(const Vec2d &point);
+    void insertFitPointAt(double t, const Vec2d &point);
+    void removeFitPointAt(const Vec2d &point);
     void removeFirstFitPoint();
     void removeLastFitPoint();
-    void setFitPoints(const std::vector<Vec3d> &points);
-    std::vector<Vec3d> getFitPoints() const;
+    void setFitPoints(const std::vector<Vec2d> &points);
+    std::vector<Vec2d> getFitPoints() const;
     int countFitPoints() const;
     bool hasFitPoints() const;
-    Vec3d getFitPointAt(int i) const;
+    Vec2d getFitPointAt(int i) const;
 
     std::vector<double> getKnotVector() const;
     std::vector<double> getActualKnotVector() const;
@@ -1301,28 +1295,28 @@ public:
     // bool isClosedPeriodic() const;
 
     bool isClosed() const;
-    bool isGeometricallyClosed(double tolerance = NS::PointTolerance) const;
+    bool isGeometricallyClosed(double tolerance = DBL_EPSILON) const;
     bool isPeriodic() const;
 
     virtual double getDirection1() const;
     virtual double getDirection2() const;
 
-    virtual NS::Side getSideOfPoint(const Vec3d &point) const;
+    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
 
-    virtual Vec3d getStartPoint() const;
-    virtual Vec3d getEndPoint() const;
+    virtual Vec2d getStartPoint() const;
+    virtual Vec2d getEndPoint() const;
 
-    void setStartPoint(const Vec3d &v);
-    void setEndPoint(const Vec3d &v);
+    void setStartPoint(const Vec2d &v);
+    void setEndPoint(const Vec2d &v);
 
-    void setTangents(const Vec3d &start, const Vec3d &end);
+    void setTangents(const Vec2d &start, const Vec2d &end);
     void unsetTangents();
 
-    void setTangentAtStart(const Vec3d &t);
-    Vec3d getTangentAtStart() const;
+    void setTangentAtStart(const Vec2d &t);
+    Vec2d getTangentAtStart() const;
     void unsetTangentAtStart();
-    void setTangentAtEnd(const Vec3d &t);
-    Vec3d getTangentAtEnd() const;
+    void setTangentAtEnd(const Vec2d &t);
+    Vec2d getTangentAtEnd() const;
     void unsetTangentAtEnd();
 
     void updateTangentsPeriodic();
@@ -1330,47 +1324,47 @@ public:
     virtual BBox getBoundingBox() const;
 
     virtual double getLength() const;
-    Vec3d getPointAt(double t) const;
-    Vec3d getPointAtDistance(double distance) const;
+    Vec2d getPointAt(double t) const;
+    Vec2d getPointAtDistance(double distance) const;
     virtual double getAngleAt(double distance,
                               NS::From from = NS::FromStart) const;
 
-    virtual std::vector<Vec3d> getEndPoints() const;
-    virtual Vec3d getMiddlePoint() const;
-    virtual std::vector<Vec3d> getMiddlePoints() const;
-    virtual std::vector<Vec3d> getCenterPoints() const;
-    virtual std::vector<Vec3d>
+    virtual std::vector<Vec2d> getEndPoints() const;
+    virtual Vec2d getMiddlePoint() const;
+    virtual std::vector<Vec2d> getMiddlePoints() const;
+    virtual std::vector<Vec2d> getCenterPoints() const;
+    virtual std::vector<Vec2d>
     getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec3d> getPointCloud(double segmentLength) const;
+    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
 
-    virtual Vec3d getVectorTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
                               double strictRange = DBL_MAX) const;
-    virtual bool isOnShape(const Vec3d &point, bool limited = true,
+    virtual bool isOnShape(const Vec2d &point, bool limited = true,
                            double tolerance = DBL_EPSILON) const;
 
-    virtual bool move(const Vec3d &offset);
-    virtual bool rotate(double rotation, const Vec3d &center = Vec3d());
-    virtual bool scale(const Vec3d &scaleFactors,
-                       const Vec3d &center = Vec3d());
+    virtual bool move(const Vec2d &offset);
+    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
+    virtual bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d());
     virtual bool mirror(const Line &axis);
     virtual bool flipHorizontal();
     virtual bool flipVertical();
     virtual bool reverse();
-    virtual bool stretch(const Polyline &area, const Vec3d &offset);
+    virtual bool stretch(const Polyline &area, const Vec2d &offset);
 
-    virtual NS::Ending getTrimEnd(const Vec3d &trimPoint,
-                                  const Vec3d &clickPoint);
-    virtual bool trimStartPoint(const Vec3d &trimPoint,
-                                const Vec3d &clickPoint = Vec3d::invalid,
+    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint);
+    virtual bool trimStartPoint(const Vec2d &trimPoint,
+                                const Vec2d &clickPoint = Vec2d::invalid,
                                 bool extend = false);
-    virtual bool trimEndPoint(const Vec3d &trimPoint,
-                              const Vec3d &clickPoint = Vec3d::invalid,
+    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                              const Vec2d &clickPoint = Vec2d::invalid,
                               bool extend = false);
     virtual bool trimStartPoint(double trimDist);
     virtual bool trimEndPoint(double trimDist);
-    virtual double getDistanceFromStart(const Vec3d &p) const;
+    virtual double getDistanceFromStart(const Vec2d &p) const;
 
-    std::vector<BSpline> splitAtPoints(const std::vector<Vec3d> &points) const;
+    std::vector<BSpline> splitAtPoints(const std::vector<Vec2d> &points) const;
     std::vector<BSpline> splitAtParams(const std::vector<double> &params) const;
 
     Polyline toPolyline(int segments) const;
@@ -1389,12 +1383,12 @@ public:
     double getTDelta() const;
     double getTMin() const;
     double getTMax() const;
-    double getTAtPoint(const Vec3d &point) const;
+    double getTAtPoint(const Vec2d &point) const;
     double getTAtDistance(double distance) const;
     double getDistanceAtT(double t) const;
-    std::vector<BSpline> getSegments(const std::vector<Vec3d> &points) const;
+    std::vector<BSpline> getSegments(const std::vector<Vec2d> &points) const;
 
-    std::vector<Vec3d> getDiscontinuities() const;
+    std::vector<Vec2d> getDiscontinuities() const;
     BSpline simplify(double tolerance);
 
     void updateFromControlPoints() const;
@@ -1402,12 +1396,12 @@ public:
     void update() const;
 
     virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec3d> &points) const;
+    splitAt(const std::vector<Vec2d> &points) const;
 
     bool isDirty() const;
 
-    std::vector<Vec3d>
-    getSelfIntersectionPoints(double tolerance = NS::PointTolerance) const;
+    std::vector<Vec2d>
+    getSelfIntersectionPoints(double tolerance = DBL_EPSILON) const;
 
 protected:
     void appendToExploded(const Line &line) const;
@@ -1416,14 +1410,14 @@ protected:
     void updateBoundingBox() const;
 
 private:
-    mutable std::vector<Vec3d> controlPoints;
+    mutable std::vector<Vec2d> controlPoints;
     mutable std::vector<double> knotVector;
     mutable std::vector<double> weights;
-    std::vector<Vec3d> fitPoints;
+    std::vector<Vec2d> fitPoints;
     mutable int degree;
 
-    mutable Vec3d tangentStart;
-    mutable Vec3d tangentEnd;
+    mutable Vec2d tangentStart;
+    mutable Vec2d tangentEnd;
     mutable bool periodic;
 
     mutable bool dirty;
@@ -1439,7 +1433,7 @@ private:
 class Triangle : public Shape {
 public:
     Triangle();
-    Triangle(const Vec3d &p1, const Vec3d &p2, const Vec3d &p3);
+    Triangle(const Vec2d &p1, const Vec2d &p2, const Vec2d &p3);
     virtual ~Triangle();
 
     virtual NS::ShapeType getShapeType() const;
@@ -1450,47 +1444,47 @@ public:
     NS::Orientation getOrientation() const;
     virtual bool reverse();
 
-    static Triangle createArrow(const Vec3d &position, double direction,
+    static Triangle createArrow(const Vec2d &position, double direction,
                                 double size);
 
     virtual BBox getBoundingBox() const;
     virtual double getLength() const;
     double getArea() const;
-    Vec3d getCorner(int i) const;
-    void setCorner(int i, const Vec3d &p);
-    void setCorners(const Vec3d &c1, const Vec3d &c2, const Vec3d &c3);
+    Vec2d getCorner(int i) const;
+    void setCorner(int i, const Vec2d &p);
+    void setCorners(const Vec2d &c1, const Vec2d &c2, const Vec2d &c3);
 
-    virtual std::vector<Vec3d> getEndPoints() const;
-    virtual std::vector<Vec3d> getMiddlePoints() const;
-    virtual std::vector<Vec3d> getCenterPoints() const;
-    virtual std::vector<Vec3d>
+    virtual std::vector<Vec2d> getEndPoints() const;
+    virtual std::vector<Vec2d> getMiddlePoints() const;
+    virtual std::vector<Vec2d> getCenterPoints() const;
+    virtual std::vector<Vec2d>
     getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec3d> getPointCloud(double segmentLength) const;
+    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
 
-    virtual double getDistanceTo(const Vec3d &point, bool limited = true,
+    virtual double getDistanceTo(const Vec2d &point, bool limited = true,
                                  double strictRange = DBL_MAX) const;
-    virtual Vec3d getVectorTo(const Vec3d &point, bool limited = true,
+    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
                               double strictRange = DBL_MAX) const;
-    virtual Vec3d getNormal() const;
+    virtual Vec2d getNormal() const;
 
-    bool isPointInTriangle(const Vec3d &p, bool treatAsQuadrant = false) const;
-    bool isPointInQuadrant(const Vec3d &p) const;
+    bool isPointInTriangle(const Vec2d &p, bool treatAsQuadrant = false) const;
+    bool isPointInQuadrant(const Vec2d &p) const;
 
     double getD() const;
 
     virtual std::vector<std::shared_ptr<Shape>>
     getExploded(int segments = -1) const;
 
-    virtual bool move(const Vec3d &offset);
-    virtual bool rotate(double rotation, const Vec3d &center = Vec3d());
-    virtual bool scale(const Vec3d &scaleFactors,
-                       const Vec3d &center = Vec3d());
+    virtual bool move(const Vec2d &offset);
+    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
+    virtual bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d());
     virtual bool mirror(const Line &axis);
     virtual bool flipHorizontal();
     virtual bool flipVertical();
 
 public:
-    Vec3d corner[3];
+    Vec2d corner[3];
 };
 
 } // namespace cada

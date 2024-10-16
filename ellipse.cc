@@ -22,20 +22,17 @@
 
 #include "cada_shape.h"
 
-using namespace cada;
+namespace cada {
 
 REllipseProxy *Ellipse::ellipseProxy = NULL;
 
-/**
- * Creates an ellipse shape with invalid
- */
 Ellipse::Ellipse()
-    : center(Vec3d::invalid), majorPoint(Vec3d::invalid), ratio(0.0),
+    : center(Vec2d::invalid), majorPoint(Vec2d::invalid), ratio(0.0),
       startParam(0.0), endParam(0.0), reversed(false)
 {
 }
 
-Ellipse::Ellipse(const Vec3d &center, const Vec3d &majorPoint, double ratio,
+Ellipse::Ellipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
                  double startParam, double endParam, bool reversed)
     : center(center), majorPoint(majorPoint), ratio(ratio),
       startParam(startParam), endParam(endParam), reversed(reversed)
@@ -48,17 +45,9 @@ Ellipse::~Ellipse()
 {
 }
 
-/**
- * Produces an ellipse inscribed in the quadrilateral defined by the four given
- * ordered vertices (Vec3d).
- *
- * \param centerHint Hint for the position of the center (e.g. mouse cursor for
- * interactive tools) or invalid for maximum area solution.
- * \return List of ellipse [0] and center line [1].
- */
-Ellipse Ellipse::createInscribed(const Vec3d &p1, const Vec3d &p2,
-                                 const Vec3d &p3, const Vec3d &p4,
-                                 const Vec3d &centerHint)
+Ellipse Ellipse::createInscribed(const Vec2d &p1, const Vec2d &p2,
+                                 const Vec2d &p3, const Vec2d &p4,
+                                 const Vec2d &centerHint)
 {
     Ellipse ret;
 
@@ -70,8 +59,8 @@ Ellipse Ellipse::createInscribed(const Vec3d &p1, const Vec3d &p2,
     return ret;
 }
 
-Ellipse Ellipse::createFrom4Points(const Vec3d &p1, const Vec3d &p2,
-                                   const Vec3d &p3, const Vec3d &p4)
+Ellipse Ellipse::createFrom4Points(const Vec2d &p1, const Vec2d &p2,
+                                   const Vec2d &p3, const Vec2d &p4)
 {
     Ellipse ret;
 
@@ -88,19 +77,19 @@ bool Ellipse::isValid() const
            !Math::isNaN(startParam) && !Math::isNaN(endParam);
 }
 
-std::vector<Vec3d> Ellipse::getFoci() const
+std::vector<Vec2d> Ellipse::getFoci() const
 {
-    Vec3d vp(getMajorPoint() * sqrt(1.0 - getRatio() * getRatio()));
-    return std::vector<Vec3d>() << getCenter() + vp << getCenter() - vp;
+    Vec2d vp(getMajorPoint() * sqrt(1.0 - getRatio() * getRatio()));
+    return std::vector<Vec2d>() << getCenter() + vp << getCenter() - vp;
 }
 
-void Ellipse::moveStartPoint(const Vec3d &pos, bool changeAngleOnly)
+void Ellipse::moveStartPoint(const Vec2d &pos, bool changeAngleOnly)
 {
     if (changeAngleOnly) {
         startParam = getParamTo(pos);
     }
     else {
-        Vec3d ep = getEndPoint();
+        Vec2d ep = getEndPoint();
         double distOri = ep.getDistanceTo(getStartPoint());
         double angleOri = ep.getAngleTo(getStartPoint());
         if (distOri < NS::PointTolerance) {
@@ -122,13 +111,13 @@ void Ellipse::moveStartPoint(const Vec3d &pos, bool changeAngleOnly)
     }
 }
 
-void Ellipse::moveEndPoint(const Vec3d &pos, bool changeAngleOnly)
+void Ellipse::moveEndPoint(const Vec2d &pos, bool changeAngleOnly)
 {
     if (changeAngleOnly) {
         endParam = getParamTo(pos);
     }
     else {
-        Vec3d sp = getStartPoint();
+        Vec2d sp = getStartPoint();
         double distOri = sp.getDistanceTo(getEndPoint());
         double angleOri = sp.getAngleTo(getEndPoint());
         if (distOri < NS::PointTolerance) {
@@ -152,11 +141,8 @@ void Ellipse::moveEndPoint(const Vec3d &pos, bool changeAngleOnly)
 
 double Ellipse::getAngleAt(double distance, NS::From from) const
 {
-    // Q_UNUSED(distance)
-    // Q_UNUSED(from)
-
     // TODO: getPointWithDistanceToStart not implemented for ellipses:
-    //    Vec3d pos;
+    //    Vec2d pos;
     //    if (from==NS::FromStart) {
     //        pos = getPointWithDistanceToStart(distance);
     //    }
@@ -169,9 +155,9 @@ double Ellipse::getAngleAt(double distance, NS::From from) const
     return 0.0;
 }
 
-double Ellipse::getAngleAtPoint(const Vec3d &pos) const
+double Ellipse::getAngleAtPoint(const Vec2d &pos) const
 {
-    Vec3d posNormalized = pos;
+    Vec2d posNormalized = pos;
     posNormalized.move(-getCenter());
     posNormalized.rotate(-getAngle());
 
@@ -204,43 +190,37 @@ double Ellipse::getAngleAtPoint(const Vec3d &pos) const
 }
 
 // previously: getEllipseAngle
-double Ellipse::getParamTo(const Vec3d &pos) const
+double Ellipse::getParamTo(const Vec2d &pos) const
 {
-    Vec3d m = pos;
+    Vec2d m = pos;
     m.rotate(-majorPoint.getAngle(), center);
-    Vec3d v = m - center;
-    v.scale(Vec3d(1.0, 1.0 / ratio));
+    Vec2d v = m - center;
+    v.scale(Vec2d(1.0, 1.0 / ratio));
     return v.getAngle();
 }
 
-/**
- * \return Radius of ellipse at given ellipse angle.
- */
 double Ellipse::getRadiusAt(double param) const
 {
-    Vec3d v(cos(param) * getMajorRadius(), sin(param) * getMinorRadius());
+    Vec2d v(cos(param) * getMajorRadius(), sin(param) * getMinorRadius());
     return v.getMagnitude();
 }
 
-/**
- * \return Point on ellipse at given ellipse angle.
- */
-Vec3d Ellipse::getPointAt(double param) const
+Vec2d Ellipse::getPointAt(double param) const
 {
-    Vec3d v(cos(param) * getMajorRadius(), sin(param) * getMinorRadius());
+    Vec2d v(cos(param) * getMajorRadius(), sin(param) * getMinorRadius());
     v.rotate(getAngle());
     v.move(center);
     return v;
 }
 
-Vec3d Ellipse::getMiddlePoint() const
+Vec2d Ellipse::getMiddlePoint() const
 {
     double a;
     a = getStartParam() + getSweep() / 2.0;
     return getPointAt(a);
 }
 
-Vec3d Ellipse::getPointOnShape() const
+Vec2d Ellipse::getPointOnShape() const
 {
     double sp = startParam;
     double ep = endParam;
@@ -258,48 +238,36 @@ Vec3d Ellipse::getPointOnShape() const
     return getPointAt(mp);
 }
 
-Vec3d Ellipse::getCenter() const
+Vec2d Ellipse::getCenter() const
 {
     return center;
 }
 
-void Ellipse::setCenter(const Vec3d &vector)
+void Ellipse::setCenter(const Vec2d &vector)
 {
     center = vector;
 }
 
-/**
- * \return Major point relative to the center point.
- */
-Vec3d Ellipse::getMajorPoint() const
+Vec2d Ellipse::getMajorPoint() const
 {
     return majorPoint;
 }
 
-/**
- * Sets the major point relative to the center point.
- */
-void Ellipse::setMajorPoint(const Vec3d &p)
+void Ellipse::setMajorPoint(const Vec2d &p)
 {
     majorPoint = p;
     correctMajorMinor();
 }
 
-/**
- * \return Minor point relative to the center point.
- */
-Vec3d Ellipse::getMinorPoint() const
+Vec2d Ellipse::getMinorPoint() const
 {
     double angle = Math::getNormalizedAngle(getAngle() + M_PI / 2.0);
-    Vec3d ret;
+    Vec2d ret;
     ret.setPolar(getMinorRadius(), angle);
     return ret;
 }
 
-/**
- * Sets the minor point relative to the center point.
- */
-void Ellipse::setMinorPoint(const Vec3d &p)
+void Ellipse::setMinorPoint(const Vec2d &p)
 {
     double angle = Math::getNormalizedAngle(p.getAngle() - M_PI / 2.0);
     majorPoint.setPolar(getMajorRadius(), angle);
@@ -311,10 +279,10 @@ bool Ellipse::switchMajorMinor()
     if (fabs(ratio) < NS::PointTolerance) {
         return false;
     }
-    Vec3d vp_start = getStartPoint();
-    Vec3d vp_end = getStartPoint();
-    Vec3d vp = getMajorPoint();
-    setMajorPoint(Vec3d(-ratio * vp.y, ratio * vp.x));
+    Vec2d vp_start = getStartPoint();
+    Vec2d vp_end = getStartPoint();
+    Vec2d vp = getMajorPoint();
+    setMajorPoint(Vec2d(-ratio * vp.y, ratio * vp.x));
     setRatio(1.0 / ratio);
     setStartParam(getParamTo(vp_start));
     setEndParam(getParamTo(vp_end));
@@ -352,10 +320,6 @@ void Ellipse::setEndParam(double a)
     endParam = a;
 }
 
-/**
- * \return Start angle: the angle from the ellipse
- * arc center to the ellipse arc start point.
- */
 double Ellipse::getStartAngle() const
 {
     return Math::getNormalizedAngle(center.getAngleTo(getStartPoint()) -
@@ -371,10 +335,6 @@ void Ellipse::setStartAngle(double a)
     startParam = p;
 }
 
-/**
- * \return End angle: the angle from the ellipse
- * arc center to the ellipse arc end point.
- */
 double Ellipse::getEndAngle() const
 {
     return Math::getNormalizedAngle(center.getAngleTo(getEndPoint()) -
@@ -406,8 +366,8 @@ double Ellipse::angleToParam(double a) const
         normEllipse.setStartParam(0.0);
         normEllipse.setEndParam(2 * M_PI);
 
-        Line line(Vec3d(0, 0), Vec3d::createPolar(getMajorRadius() * 2, a));
-        std::vector<Vec3d> r =
+        Line line(Vec2d(0, 0), Vec2d::createPolar(getMajorRadius() * 2, a));
+        std::vector<Vec2d> r =
             Shape::getIntersectionPoints(line, normEllipse, true);
         if (r.size() != 1) {
             return std::numeric_limits<double>::quiet_NaN();
@@ -423,9 +383,6 @@ double Ellipse::angleToParam(double a) const
     return p;
 }
 
-/**
- * \return Angle length in rad.
- */
 double Ellipse::getAngleLength(bool allowForZeroLength) const
 {
     double ret = 0.0;
@@ -462,52 +419,40 @@ double Ellipse::getAngleLength(bool allowForZeroLength) const
     return ret;
 }
 
-Vec3d Ellipse::getStartPoint() const
+Vec2d Ellipse::getStartPoint() const
 {
-    Vec3d p(center.x + cos(startParam) * getMajorRadius(),
+    Vec2d p(center.x + cos(startParam) * getMajorRadius(),
             center.y + sin(startParam) * getMinorRadius());
     p.rotate(getAngle(), center);
     return p;
 }
 
-Vec3d Ellipse::getEndPoint() const
+Vec2d Ellipse::getEndPoint() const
 {
-    Vec3d p(center.x + cos(endParam) * getMajorRadius(),
+    Vec2d p(center.x + cos(endParam) * getMajorRadius(),
             center.y + sin(endParam) * getMinorRadius());
     p.rotate(getAngle(), center);
     return p;
 }
 
-/**
- * \return The major radius of this ellipse.
- */
 double Ellipse::getMajorRadius() const
 {
     return majorPoint.getMagnitude();
 }
 
-/**
- * \return The minor radius of this ellipse.
- */
 double Ellipse::getMinorRadius() const
 {
     return majorPoint.getMagnitude() * ratio;
 }
 
-/**
- * \return The rotation angle of this ellipse.
- */
 double Ellipse::getAngle() const
 {
     return majorPoint.getAngle();
 }
 
-/**
- * Sets the rotation angle of this ellipse without changing the major radius.
- */
 void Ellipse::setAngle(double a)
 {
-    majorPoint = Vec3d::createPolar(majorPoint.getMagnitude(), a);
+    majorPoint = Vec2d::createPolar(majorPoint.getMagnitude(), a);
 }
 
 bool Ellipse::isFullEllipse() const
@@ -518,17 +463,11 @@ bool Ellipse::isFullEllipse() const
            (fabs(a1 - a2) < NS::AngleTolerance);
 }
 
-/**
- * \return True if minor radius and major radius are equal, i.e. ratio is 1.0.
- */
 bool Ellipse::isCircular() const
 {
     return getRatio() > (1.0 - 0.001);
 }
 
-/**
- * \return Approximation for ellipse arc length.
- */
 double Ellipse::getLength() const
 {
     double a1, a2;
@@ -595,9 +534,6 @@ double Ellipse::getLength() const
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-/**
- * \return Length of the ellipse segment from angle a1 to angle a2.
- */
 double Ellipse::getSimpsonLength(double a1, double a2) const
 {
     int interval = 20;
@@ -629,9 +565,9 @@ double Ellipse::getSimpsonLength(double a1, double a2) const
     return (df / 3.0) * sum;
 }
 
-bool Ellipse::contains(const Vec3d &p) const
+bool Ellipse::contains(const Vec2d &p) const
 {
-    Vec3d pt = p;
+    Vec2d pt = p;
     pt.move(-center);
     pt.rotate(-getAngle());
     double rx = getMajorRadius();
@@ -644,12 +580,12 @@ bool Ellipse::contains(const Vec3d &p) const
 //    Ellipse normal = *this;
 //    normal.rotate(-getAngle());
 
-//    std::vector<Vec3d> points = normal.getPointsWithDistanceToEnd(distance,
+//    std::vector<Vec2d> points = normal.getPointsWithDistanceToEnd(distance,
 //    from); if (points.size()!=1) {
 //        return std::numeric_limits<double>::quiet_NaN();
 //    }
 
-//    Vec3d p = points[0];
+//    Vec2d p = points[0];
 
 //    double minR = normal.getMinorRadius();
 //    double majR = normal.getMajorRadius();
@@ -693,7 +629,7 @@ double Ellipse::getDirection2() const
     //    }
 }
 
-NS::Side Ellipse::getSideOfPoint(const Vec3d &point) const
+NS::Side Ellipse::getSideOfPoint(const Vec2d &point) const
 {
     if (contains(point)) {
         if (!reversed) {
@@ -720,8 +656,8 @@ BBox Ellipse::getBoundingBox() const
     double angle = getAngle();
     double a1 = ((!isReversed()) ? startParam : endParam);
     double a2 = ((!isReversed()) ? endParam : startParam);
-    Vec3d startPoint = getStartPoint();
-    Vec3d endPoint = getEndPoint();
+    Vec2d startPoint = getStartPoint();
+    Vec2d endPoint = getEndPoint();
 
     double minX = qMin(startPoint.x, endPoint.x);
     double minY = qMin(startPoint.y, endPoint.y);
@@ -729,7 +665,7 @@ BBox Ellipse::getBoundingBox() const
     double maxY = qMax(startPoint.y, endPoint.y);
 
     // kind of a brute force. TODO: exact calculation
-    Vec3d vp;
+    Vec2d vp;
     double a = a1;
     do {
         vp.set(center.x + radius1 * cos(a), center.y + radius2 * sin(a));
@@ -743,76 +679,65 @@ BBox Ellipse::getBoundingBox() const
         a += 0.03;
     } while (Math::isAngleBetween(a, a1, a2, false) && a < 4 * M_PI);
 
-    return BBox(Vec3d(minX, minY), Vec3d(maxX, maxY));
+    return BBox(Vec2d(minX, minY), Vec2d(maxX, maxY));
 }
 
-std::vector<Vec3d> Ellipse::getEndPoints() const
+std::vector<Vec2d> Ellipse::getEndPoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     ret.push_back(getStartPoint());
     ret.push_back(getEndPoint());
     return ret;
 }
 
-/**
- * \todo implement
- */
-std::vector<Vec3d> Ellipse::getMiddlePoints() const
+std::vector<Vec2d> Ellipse::getMiddlePoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     // ret.push_back(getMiddlePoint());
     return ret;
 }
 
-std::vector<Vec3d> Ellipse::getCenterPoints() const
+std::vector<Vec2d> Ellipse::getCenterPoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     ret.push_back(getCenter());
     return ret;
 }
 
-/**
- * \todo implement
- */
-std::vector<Vec3d> Ellipse::getPointsWithDistanceToEnd(double distance,
+std::vector<Vec2d> Ellipse::getPointsWithDistanceToEnd(double distance,
                                                        int from) const
 {
-    // Q_UNUSED(distance)
-    // Q_UNUSED(from)
-
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     return ret;
 }
 
-std::vector<Vec3d> Ellipse::getPointCloud(double segmentLength) const
+std::vector<Vec2d> Ellipse::getPointCloud(double segmentLength) const
 {
     Polyline pl = approximateWithArcs(64);
     return pl.getPointCloud(segmentLength);
 }
 
-Vec3d Ellipse::getVectorTo(const Vec3d &point, bool limited,
+Vec2d Ellipse::getVectorTo(const Vec2d &point, bool limited,
                            double strictRange) const
 {
-    // Q_UNUSED(strictRange)
-
-    Vec3d ret = Vec3d::invalid;
+    Vec2d ret = Vec2d::invalid;
 
     double ang = getAngle();
     // double dDistance = RMAXDOUBLE;
     bool swap = false;
     bool majorSwap = false;
 
-    Vec3d normalized = (point - center).get2D().rotate(-ang);
+    Vec2d normalized = (point - center).get2D().rotate(-ang);
 
     // special case: point in line with major axis:
     if (fabs(normalized.getAngle()) < NS::AngleTolerance ||
         fabs(normalized.getAngle()) > 2 * M_PI - NS::AngleTolerance) {
-        ret = Vec3d(getMajorRadius(), 0.0);
+        ret = Vec2d(getMajorRadius(), 0.0);
         // dDistance = ret.distanceTo(normalized);
     }
 
     else if (fabs(normalized.getAngle() - M_PI) < NS::AngleTolerance) {
-        ret = Vec3d(-getMajorRadius(), 0.0);
+        ret = Vec2d(-getMajorRadius(), 0.0);
         // dDistance = ret.distanceTo(normalized);
     }
     else {
@@ -879,13 +804,13 @@ Vec3d Ellipse::getVectorTo(const Vec3d &point, bool limited,
         if (i == iMax) {
             // failed to converge:
             // dDistance = RMAXDOUBLE;
-            ret = Vec3d::invalid;
+            ret = Vec2d::invalid;
         }
         else {
             // double dDelta0 = rdX - dU;
             // double dDelta1 = rdY - dV;
             // dDistance = sqrt(dDelta0*dDelta0 + dDelta1*dDelta1);
-            ret = Vec3d(rdX, rdY);
+            ret = Vec2d(rdX, rdY);
         }
     }
 
@@ -905,7 +830,7 @@ Vec3d Ellipse::getVectorTo(const Vec3d &point, bool limited,
             double a2 = center.getAngleTo(getEndPoint());
             double a = center.getAngleTo(ret);
             if (!Math::isAngleBetween(a, a1, a2, reversed)) {
-                ret = Vec3d::invalid;
+                ret = Vec2d::invalid;
             }
         }
     }
@@ -932,7 +857,7 @@ Vec3d Ellipse::getVectorTo(const Vec3d &point, bool limited,
     return point - ret;
 }
 
-bool Ellipse::move(const Vec3d &offset)
+bool Ellipse::move(const Vec2d &offset)
 {
     if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance) {
         return false;
@@ -941,7 +866,7 @@ bool Ellipse::move(const Vec3d &offset)
     return true;
 }
 
-bool Ellipse::rotate(double rotation, const Vec3d &c)
+bool Ellipse::rotate(double rotation, const Vec2d &c)
 {
     if (fabs(rotation) < NS::AngleTolerance) {
         return false;
@@ -953,11 +878,11 @@ bool Ellipse::rotate(double rotation, const Vec3d &c)
     return true;
 }
 
-std::vector<Vec3d> Ellipse::getBoxCorners()
+std::vector<Vec2d> Ellipse::getBoxCorners()
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
-    Vec3d minorPoint = getMinorPoint();
+    Vec2d minorPoint = getMinorPoint();
     ret.push_back(center + majorPoint + minorPoint);
     ret.push_back(center + majorPoint - minorPoint);
     ret.push_back(center - majorPoint - minorPoint);
@@ -966,7 +891,7 @@ std::vector<Vec3d> Ellipse::getBoxCorners()
     return ret;
 }
 
-bool Ellipse::scale(const Vec3d &scaleFactors, const Vec3d &c)
+bool Ellipse::scale(const Vec2d &scaleFactors, const Vec2d &c)
 {
     if (fabs(fabs(scaleFactors.x) - fabs(scaleFactors.y)) >
         NS::PointTolerance) {
@@ -975,22 +900,22 @@ bool Ellipse::scale(const Vec3d &scaleFactors, const Vec3d &c)
         return false;
     }
 
-    // Vec3d oldMinorPoint = getMinorPoint();
+    // Vec2d oldMinorPoint = getMinorPoint();
 
     // negative scaling: mirroring and scaling
     if (scaleFactors.x < 0.0) {
-        mirror(Line(center, center + Vec3d(0.0, 1.0)));
+        mirror(Line(center, center + Vec2d(0.0, 1.0)));
     }
     if (scaleFactors.y < 0.0) {
-        mirror(Line(center, center + Vec3d(1.0, 0.0)));
+        mirror(Line(center, center + Vec2d(1.0, 0.0)));
     }
 
     center.scale(scaleFactors, c);
 
     // oldMinorPoint.scale(scaleFactors);
 
-    Vec3d f =
-        Vec3d(fabs(scaleFactors.x), fabs(scaleFactors.y), fabs(scaleFactors.z));
+    Vec2d f =
+        Vec2d(fabs(scaleFactors.x), fabs(scaleFactors.y), fabs(scaleFactors.z));
     majorPoint.scale(f);
 
     //    if (fabs(majorPoint.getMagnitude()) > 1.0e-4) {
@@ -999,8 +924,8 @@ bool Ellipse::scale(const Vec3d &scaleFactors, const Vec3d &c)
 
     return true;
 
-    //    std::vector<Vec3d> box = getBoxCorners();
-    //    Vec3d::scaleList(box, scaleFactors, c);
+    //    std::vector<Vec2d> box = getBoxCorners();
+    //    Vec2d::scaleList(box, scaleFactors, c);
     //    // TODO:
     //    Ellipse e = Ellipse::createInscribed(box);
     //    //*this = e;
@@ -1010,9 +935,9 @@ bool Ellipse::scale(const Vec3d &scaleFactors, const Vec3d &c)
 
 bool Ellipse::mirror(const Line &axis)
 {
-    Vec3d mp = center + majorPoint;
-    Vec3d sp = getStartPoint();
-    Vec3d ep = getEndPoint();
+    Vec2d mp = center + majorPoint;
+    Vec2d sp = getStartPoint();
+    Vec2d ep = getEndPoint();
 
     center.mirror(axis);
     mp.mirror(axis);
@@ -1041,7 +966,7 @@ bool Ellipse::reverse()
     return true;
 }
 
-NS::Ending Ellipse::getTrimEnd(const Vec3d &trimPoint, const Vec3d &clickPoint)
+NS::Ending Ellipse::getTrimEnd(const Vec2d &trimPoint, const Vec2d &clickPoint)
 {
     double paramToClickPoint = getParamTo(clickPoint);
     double paramToTrimPoint = getParamTo(trimPoint);
@@ -1054,20 +979,16 @@ NS::Ending Ellipse::getTrimEnd(const Vec3d &trimPoint, const Vec3d &clickPoint)
     }
 }
 
-bool Ellipse::trimStartPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
+bool Ellipse::trimStartPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
                              bool extend)
 {
-    // Q_UNUSED(clickPoint)
-    // Q_UNUSED(extend)
     setStartParam(getParamTo(trimPoint));
     return true;
 }
 
-bool Ellipse::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
+bool Ellipse::trimEndPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
                            bool extend)
 {
-    // Q_UNUSED(clickPoint)
-    // Q_UNUSED(extend)
     setEndParam(getParamTo(trimPoint));
     return true;
 }
@@ -1075,7 +996,7 @@ bool Ellipse::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
 void Ellipse::correctMajorMinor()
 {
     if (ratio > 1.0) {
-        Vec3d mp = getMinorPoint();
+        Vec2d mp = getMinorPoint();
         ratio = 1.0 / ratio;
         setMajorPoint(mp);
         startParam = Math::getNormalizedAngle(startParam - M_PI / 2.0);
@@ -1083,10 +1004,6 @@ void Ellipse::correctMajorMinor()
     }
 }
 
-/**
- * \return Arc sweep in rad. The sweep is the angle covered by this arc.
- * Positive for ccw, negative for cw.
- */
 double Ellipse::getSweep() const
 {
     double ret = 0.0;
@@ -1111,7 +1028,7 @@ double Ellipse::getSweep() const
     return ret;
 }
 
-std::vector<Line> Ellipse::getTangents(const Vec3d &point) const
+std::vector<Line> Ellipse::getTangents(const Vec2d &point) const
 {
     std::vector<Line> ret;
 
@@ -1142,7 +1059,7 @@ std::vector<Line> Ellipse::getTangents(const Vec3d &point) const
     double b = getMinorRadius(); // the length of the minor axis / 2
 
     // rotate and move point:
-    Vec3d point2 = point;
+    Vec2d point2 = point;
     point2.move(-getCenter());
     point2.rotate(-getAngle());
 
@@ -1171,11 +1088,11 @@ std::vector<Line> Ellipse::getTangents(const Vec3d &point) const
     yt2 = (-t - bf) / (af * 2.0);
     xt2 = e - d * yt2;
 
-    Vec3d s1(xt1, yt1);
+    Vec2d s1(xt1, yt1);
     s1.rotate(getAngle());
     s1.move(getCenter());
 
-    Vec3d s2(xt2, yt2);
+    Vec2d s2(xt2, yt2);
     s2.rotate(getAngle());
     s2.move(getCenter());
 
@@ -1190,11 +1107,7 @@ std::vector<Line> Ellipse::getTangents(const Vec3d &point) const
     return ret;
 }
 
-/**
- * \return Tangent point of the given line to this tangent or an invalid vector
- * if the line is not a tangent
- */
-Vec3d Ellipse::getTangentPoint(const Line &line) const
+Vec2d Ellipse::getTangentPoint(const Line &line) const
 {
     Line lineNeutral = line;
 
@@ -1216,7 +1129,7 @@ Vec3d Ellipse::getTangentPoint(const Line &line) const
             return getCenter() - getMajorPoint();
         }
 
-        return Vec3d::invalid;
+        return Vec2d::invalid;
     }
 
     double m = (lineNeutral.getEndPoint().y - lineNeutral.getStartPoint().y) /
@@ -1240,13 +1153,13 @@ Vec3d Ellipse::getTangentPoint(const Line &line) const
         double x = -B / (2 * A);
         double y = m * x + c;
 
-        Vec3d ret = Vec3d(x, y);
+        Vec2d ret = Vec2d(x, y);
         ret.rotate(getAngle());
         ret.move(getCenter());
         return ret;
     }
 
-    return Vec3d::invalid;
+    return Vec2d::invalid;
 }
 
 std::vector<BSpline> Ellipse::approximateWithSplines() const
@@ -1265,13 +1178,9 @@ Polyline Ellipse::approximateWithArcs(int segments) const
     return Polyline();
 }
 
-/**
- * \return Array of spline shapes representing the parallel curves to this
- * ellipse shape.
- */
 std::vector<std::shared_ptr<Shape>>
 Ellipse::getOffsetShapes(double distance, int number, NS::Side side,
-                         const Vec3d &position)
+                         const Vec2d &position)
 {
     errorCode = 0;
     std::vector<std::shared_ptr<Shape>> ret;
@@ -1280,7 +1189,7 @@ Ellipse::getOffsetShapes(double distance, int number, NS::Side side,
         return ret;
     }
 
-    Vec3d center = ellipse->getCenter();
+    Vec2d center = ellipse->getCenter();
 
     if (ellipse->isReversed()) {
         ellipse->reverse();
@@ -1290,7 +1199,7 @@ Ellipse::getOffsetShapes(double distance, int number, NS::Side side,
     if (position.isValid()) {
         double ang = center.getAngleTo(position) - ellipse->getAngle();
         double t = ellipse->angleToParam(ang);
-        Vec3d p = ellipse->getPointAt(t);
+        Vec2d p = ellipse->getPointAt(t);
         insides.push_back(center.getDistanceTo(position) <
                           center.getDistanceTo(p));
     }
@@ -1355,7 +1264,7 @@ Ellipse::getOffsetShapes(double distance, int number, NS::Side side,
                     sqrt(a * a * pow(sin(t), 2) + b * b * pow(cos(t), 2));
                 double x = (a + (b * k) / root) * cos(t);
                 double y = (b + (a * k) / root) * sin(t);
-                Vec3d v(x, y);
+                Vec2d v(x, y);
                 v.rotate(ellipse->getAngle());
                 v.move(center);
                 if (spl != NULL) {
@@ -1389,7 +1298,7 @@ Ellipse::getOffsetShapes(double distance, int number, NS::Side side,
 }
 
 std::vector<std::shared_ptr<Shape>>
-Ellipse::splitAt(const std::vector<Vec3d> &points) const
+Ellipse::splitAt(const std::vector<Vec2d> &points) const
 {
     if (points.size() == 0) {
         return Shape::splitAt(points);
@@ -1404,11 +1313,11 @@ Ellipse::splitAt(const std::vector<Vec3d> &points) const
         return Shape::getReversedShapeList(ret);
     }
 
-    Vec3d startPoint = getStartPoint();
-    Vec3d endPoint = getEndPoint();
+    Vec2d startPoint = getStartPoint();
+    Vec2d endPoint = getEndPoint();
 
-    std::vector<Vec3d> sortedPoints =
-        Vec3d::getSortedByAngle(points, center, center.getAngleTo(startPoint));
+    std::vector<Vec2d> sortedPoints =
+        Vec2d::getSortedByAngle(points, center, center.getAngleTo(startPoint));
 
     if (!startPoint.equalsFuzzy(sortedPoints[0])) {
         sortedPoints.prepend(startPoint);
@@ -1429,3 +1338,5 @@ Ellipse::splitAt(const std::vector<Vec3d> &points) const
 
     return ret;
 }
+
+} // namespace cada

@@ -31,8 +31,8 @@ namespace cada {
 
 class TextData {
     std::string mText;
-    Vec3d mPosition;
-    Vec3d mAlignmentPoint;
+    Vec2d mPosition;
+    Vec2d mAlignmentPoint;
     double mTextHeight;
     double mTextWidth;
     NS::VAlign mVerticalAlignment;
@@ -74,9 +74,9 @@ struct DimensionStyle {
 };
 
 class Dimension {
-    mutable Vec3d mDefinitionPoint;
-    mutable Vec3d mTextPositionCenter;
-    mutable Vec3d textPositionSide;
+    mutable Vec2d mDefinitionPoint;
+    mutable Vec2d mTextPositionCenter;
+    mutable Vec2d textPositionSide;
 
     NS::VAlign mValign;
     NS::HAlign mHalign;
@@ -106,8 +106,8 @@ class Dimension {
     mutable BBox mBoundingBox;
 
     mutable double mDimLineLength;
-    mutable Vec3d mArrow1Pos;
-    mutable Vec3d mArrow2Pos;
+    mutable Vec2d mArrow1Pos;
+    mutable Vec2d mArrow2Pos;
 
     mutable bool mAutoTextPos;
     mutable std::vector<Shape *> mShapes;
@@ -117,30 +117,30 @@ class DimAngular : public Dimension {};
 
 class DimAngular2L : public DimAngular {
     /** Start point of first extension line. */
-    Vec3d mExtensionLine1Start;
+    Vec2d mExtensionLine1Start;
     /** End point of first extension line. */
-    Vec3d mExtensionLine1End;
+    Vec2d mExtensionLine1End;
     /** Start point of second extension line. End is definition point. */
-    Vec3d mExtensionLine2Start;
+    Vec2d mExtensionLine2Start;
     /** Arc position */
-    Vec3d mDimArcPosition;
+    Vec2d mDimArcPosition;
 };
 
 class DimAngular3P : public DimAngular {
-    Vec3d mCenter;
+    Vec2d mCenter;
     /** End point of first extension line. */
-    Vec3d mExtensionLine1End;
+    Vec2d mExtensionLine1End;
     /** End point of second extension line. */
-    Vec3d mExtensionLine2End;
+    Vec2d mExtensionLine2End;
 };
 
 class DimArcLength : public DimAngular {
     /** Start point of first extension line. */
-    Vec3d mCenter;
+    Vec2d mCenter;
     /** End point of first extension line. */
-    Vec3d mExtensionLine1End;
+    Vec2d mExtensionLine1End;
     /** End point of second extension line. */
-    Vec3d mExtensionLine2End;
+    Vec2d mExtensionLine2End;
     /** Arc position is definitionPoint */
 
     /** Arc symbol type 0: before, 1: above, 2: off */
@@ -148,12 +148,12 @@ class DimArcLength : public DimAngular {
 };
 
 class DimDiametric : public Dimension {
-    Vec3d mChordPoint;
+    Vec2d mChordPoint;
 };
 
 class DimLinear : public Dimension {
-    Vec3d mExtensionPoint1;
-    Vec3d mExtensionPoint2;
+    Vec2d mExtensionPoint1;
+    Vec2d mExtensionPoint2;
 };
 
 class DimAligned : public DimLinear {};
@@ -161,13 +161,13 @@ class DimAligned : public DimLinear {};
 class DimRotated : public DimLinear {};
 
 class DimOrdinate : public Dimension {
-    Vec3d mDefiningPoint;
-    Vec3d mLeaderEndPoint;
+    Vec2d mDefiningPoint;
+    Vec2d mLeaderEndPoint;
     bool mXType;
 };
 
 class DimRadial : public Dimension {
-    Vec3d mChordPoint;
+    Vec2d mChordPoint;
 };
 
 } // namespace cada

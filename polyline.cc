@@ -22,28 +22,19 @@
 
 #include "cada_shape.h"
 
-using namespace cada;
+namespace cada {
 
-/**
- * Creates a polyline object without points.
- */
 Polyline::Polyline() : closed(false)
 {
 }
 
-/**
- * Creates a polyline object with the given points.
- */
-Polyline::Polyline(const std::vector<Vec3d> &vertices, bool closed)
+Polyline::Polyline(const std::vector<Vec2d> &vertices, bool closed)
     : closed(closed)
 {
 
     setVertices(vertices);
 }
 
-/**
- * Creates a polyline from segments (lines or arcs).
- */
 Polyline::Polyline(const std::vector<std::shared_ptr<Shape>> &segments)
     : closed(false)
 {
@@ -107,21 +98,18 @@ void Polyline::clear()
     Q_ASSERT(vertices.size() == endWidths.size());
 }
 
-/**
- * Removes duplicate vertices.
- */
 void Polyline::normalize(double tolerance)
 {
-    std::vector<Vec3d> newVertices;
+    std::vector<Vec2d> newVertices;
     std::vector<double> newBulges;
     std::vector<double> newStartWidths;
     std::vector<double> newEndWidths;
 
-    Vec3d vPrev;
+    Vec2d vPrev;
     int newIndex = 0;
 
     for (int i = 0; i < vertices.size(); i++) {
-        Vec3d v = vertices[i];
+        Vec2d v = vertices[i];
         double b = bulges[i];
         double s = startWidths[i];
         double e = endWidths[i];
@@ -258,8 +246,8 @@ bool Polyline::appendShape(const Shape &shape, bool prepend)
         return false;
     }
 
-    Vec3d connectionPoint;
-    Vec3d nextPoint;
+    Vec2d connectionPoint;
+    Vec2d nextPoint;
     double gap;
     if (prepend) {
         // prepend:
@@ -306,9 +294,6 @@ bool Polyline::appendShape(const Shape &shape, bool prepend)
     return ret;
 }
 
-/**
- * Appends the given shape to this polyline. The shape is reversed if necessary.
- */
 bool Polyline::appendShapeAuto(const Shape &shape)
 {
     if (!shape.isDirected()) {
@@ -342,10 +327,10 @@ bool Polyline::appendShapeTrim(const Shape &shape)
 
         if (shape.getShapeType() == Shape::Line) {
             std::shared_ptr<Shape> lastSegment = getLastSegment();
-            std::vector<Vec3d> ips =
+            std::vector<Vec2d> ips =
                 lastSegment->getIntersectionPoints(shape, false);
             if (ips.size() == 1) {
-                Vec3d ip = ips[0];
+                Vec2d ip = ips[0];
                 moveEndPoint(ip);
                 std::shared_ptr<Shape> trimmed =
                     std::shared_ptr<Shape>(shape.clone());
@@ -374,10 +359,10 @@ bool Polyline::closeTrim()
 
         if (firstSegment->getShapeType() == Shape::Line &&
             lastSegment->getShapeType() == Shape::Line) {
-            std::vector<Vec3d> ips =
+            std::vector<Vec2d> ips =
                 lastSegment->getIntersectionPoints(*firstSegment, false);
             if (ips.size() == 1) {
-                Vec3d ip = ips[0];
+                Vec2d ip = ips[0];
                 moveStartPoint(ip);
                 moveEndPoint(ip);
                 return true;
@@ -388,7 +373,7 @@ bool Polyline::closeTrim()
     return false;
 }
 
-void Polyline::appendVertex(const Vec3d &vertex, double bulge, double w1,
+void Polyline::appendVertex(const Vec2d &vertex, double bulge, double w1,
                             double w2)
 {
     vertices.push_back(vertex);
@@ -404,10 +389,10 @@ void Polyline::appendVertex(const Vec3d &vertex, double bulge, double w1,
 void Polyline::appendVertex(double x, double y, double bulge, double w1,
                             double w2)
 {
-    appendVertex(Vec3d(x, y), bulge, w1, w2);
+    appendVertex(Vec2d(x, y), bulge, w1, w2);
 }
 
-void Polyline::prependVertex(const Vec3d &vertex, double bulge, double w1,
+void Polyline::prependVertex(const Vec2d &vertex, double bulge, double w1,
                              double w2)
 {
     vertices.prepend(vertex);
@@ -420,7 +405,7 @@ void Polyline::prependVertex(const Vec3d &vertex, double bulge, double w1,
     Q_ASSERT(vertices.size() == endWidths.size());
 }
 
-void Polyline::insertVertex(int index, const Vec3d &vertex, double bulgeBefore,
+void Polyline::insertVertex(int index, const Vec2d &vertex, double bulgeBefore,
                             double bulgeAfter)
 {
     vertices.insert(index, vertex);
@@ -436,10 +421,7 @@ void Polyline::insertVertex(int index, const Vec3d &vertex, double bulgeBefore,
     Q_ASSERT(vertices.size() == endWidths.size());
 }
 
-/**
- * Inserts a vertex at the point on the polyline closest to the given position.
- */
-void Polyline::insertVertexAt(const Vec3d &point)
+void Polyline::insertVertexAt(const Vec2d &point)
 {
     int index = getClosestSegment(point);
     if (index < 0) {
@@ -451,7 +433,7 @@ void Polyline::insertVertexAt(const Vec3d &point)
         return;
     }
 
-    Vec3d p = seg1->getClosestPointOnShape(point, false);
+    Vec2d p = seg1->getClosestPointOnShape(point, false);
 
     std::shared_ptr<Shape> seg2 = std::shared_ptr<Shape>(seg1->clone());
 
@@ -485,12 +467,12 @@ void Polyline::insertVertexAt(const Vec3d &point)
     Q_ASSERT(vertices.size() == endWidths.size());
 }
 
-Vec3d Polyline::insertVertexAtDistance(double dist)
+Vec2d Polyline::insertVertexAtDistance(double dist)
 {
     if (polylineProxy != NULL) {
         return polylineProxy->insertVertexAtDistance(*this, dist);
     }
-    return Vec3d::invalid;
+    return Vec2d::invalid;
 }
 
 void Polyline::removeFirstVertex()
@@ -561,7 +543,7 @@ void Polyline::removeVerticesBefore(int index)
     Q_ASSERT(vertices.size() == endWidths.size());
 }
 
-void Polyline::setVertices(const std::vector<Vec3d> &vertices)
+void Polyline::setVertices(const std::vector<Vec2d> &vertices)
 {
     this->vertices = vertices;
 
@@ -579,22 +561,22 @@ void Polyline::setVertices(const std::vector<Vec3d> &vertices)
     Q_ASSERT(vertices.size() == endWidths.size());
 }
 
-std::vector<Vec3d> Polyline::getVertices() const
+std::vector<Vec2d> Polyline::getVertices() const
 {
     return vertices;
 }
 
-Vec3d Polyline::getVertexAt(int i) const
+Vec2d Polyline::getVertexAt(int i) const
 {
     if (i < 0 || i >= vertices.size()) {
         Q_ASSERT(false);
-        return Vec3d::invalid;
+        return Vec2d::invalid;
     }
 
     return vertices.at(i);
 }
 
-int Polyline::getVertexIndex(const Vec3d &v, double tolerance) const
+int Polyline::getVertexIndex(const Vec2d &v, double tolerance) const
 {
     for (int i = 0; i < vertices.size(); i++) {
         if (vertices[i].equalsFuzzy(v, tolerance)) {
@@ -609,16 +591,16 @@ int Polyline::getVertexIndex(const Vec3d &v, double tolerance) const
     return -1;
 }
 
-Vec3d Polyline::getLastVertex() const
+Vec2d Polyline::getLastVertex() const
 {
     if (vertices.size() == 0) {
-        return Vec3d::invalid;
+        return Vec2d::invalid;
     }
 
     return vertices.at(vertices.size() - 1);
 }
 
-void Polyline::setVertexAt(int i, const Vec3d &v)
+void Polyline::setVertexAt(int i, const Vec2d &v)
 {
     if (i < 0 || i >= vertices.size()) {
         Q_ASSERT(false);
@@ -628,7 +610,7 @@ void Polyline::setVertexAt(int i, const Vec3d &v)
     vertices[i] = v;
 }
 
-void Polyline::moveVertexAt(int i, const Vec3d &offset)
+void Polyline::moveVertexAt(int i, const Vec2d &offset)
 {
     if (i < 0 || i >= vertices.size()) {
         Q_ASSERT(false);
@@ -806,41 +788,22 @@ std::vector<double> Polyline::getEndWidths() const
     return endWidths;
 }
 
-/**
- * Marks the poyline as logically (explicitly) closed.
- * The first and last node are usually not identical. Logically
- * closed polylines have an additional segment from start to end point.
- */
 void Polyline::setClosed(bool on)
 {
     closed = on;
 }
 
-/**
- * \return True if this polyline is logically marked as closed.
- */
 bool Polyline::isClosed() const
 {
     return closed;
 }
 
-/**
- * \return True is this polyline is geometrically closed. If this polyline is
- * logically closed it is implicitly also geometrically closed.
- */
 bool Polyline::isGeometricallyClosed(double tolerance) const
 {
     return isClosed() ||
            getStartPoint().getDistanceTo(getEndPoint()) < tolerance;
 }
 
-/**
- * Converts this geometrically closed polyline (start == end) to a
- * locically closed polyline.
- *
- * \return True on success, false if this polyline is already
- * locically closed or is not geometrically closed.
- */
 bool Polyline::toLogicallyClosed(double tolerance)
 {
     if (isClosed()) {
@@ -861,14 +824,6 @@ bool Polyline::toLogicallyClosed(double tolerance)
     return true;
 }
 
-/**
- * Converts this logically closed polyline to a locically open,
- * geometrically closed polyline. An additional node is inserted
- * to make sure start == end.
- *
- * \return True on success, false if this polyline is not
- * locically closed.
- */
 bool Polyline::toLogicallyOpen()
 {
     if (!isClosed()) {
@@ -885,9 +840,9 @@ bool Polyline::toLogicallyOpen()
     return true;
 }
 
-std::vector<Vec3d> Polyline::getSelfIntersectionPoints(double tolerance) const
+std::vector<Vec2d> Polyline::getSelfIntersectionPoints(double tolerance) const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
     bool cl = isGeometricallyClosed();
 
@@ -898,10 +853,10 @@ std::vector<Vec3d> Polyline::getSelfIntersectionPoints(double tolerance) const
         for (int k = i + 1; k < segments.size(); k++) {
             std::shared_ptr<Shape> otherSegment = getSegmentAt(k);
 
-            std::vector<Vec3d> ips =
+            std::vector<Vec2d> ips =
                 segment->getIntersectionPoints(*otherSegment);
             for (int n = 0; n < ips.size(); n++) {
-                Vec3d ip = ips[n];
+                Vec2d ip = ips[n];
                 if (k == i + 1 &&
                     ip.equalsFuzzy(segment->getEndPoint(), tolerance)) {
                     // ignore intersection at vertex between two consecutive
@@ -939,7 +894,7 @@ NS::Orientation Polyline::getOrientation(bool implicitelyClosed) const
         return plSegmented.getOrientation(implicitelyClosed);
     }
 
-    Vec3d minV = Vec3d::invalid;
+    Vec2d minV = Vec2d::invalid;
     std::shared_ptr<Shape> shapeBefore;
     std::shared_ptr<Shape> shapeAfter;
     std::shared_ptr<Shape> shape;
@@ -957,7 +912,7 @@ NS::Orientation Polyline::getOrientation(bool implicitelyClosed) const
             continue;
         }
 
-        Vec3d v = shape->getStartPoint();
+        Vec2d v = shape->getStartPoint();
         if (!minV.isValid() || v.x < minV.x ||
             (v.x == minV.x && v.y < minV.y)) {
             minV = v;
@@ -971,8 +926,8 @@ NS::Orientation Polyline::getOrientation(bool implicitelyClosed) const
     // TODO: fails for large arc (>180d) at bottom left corner, creating round
     // bottom left shape:
     //    double l;
-    //    Vec3d p;
-    //    std::vector<Vec3d> list;
+    //    Vec2d p;
+    //    std::vector<Vec2d> list;
     //    std::shared_ptr<Arc> arcBefore = shapeBefore.dynamicCast<Arc>();
     //    if (!arcBefore.isNull()) {
     //        l = arcBefore->getLength();
@@ -1069,9 +1024,6 @@ Polyline Polyline::convertArcToLineSegmentsLength(double segmentLength) const
     return ret;
 }
 
-/**
- * \return A QPainterPath object that represents this polyline.
- */
 RPainterPath Polyline::toPainterPath(bool addOriginalShapes) const
 {
     RPainterPath ret;
@@ -1128,11 +1080,7 @@ int Polyline::getSegmentAtDist(double dist)
     return -1;
 }
 
-/**
- * Relocates the start point of this closed polyline to the given point.
- * The visual appearance of the polyline does not change.
- */
-bool Polyline::relocateStartPoint(const Vec3d &p)
+bool Polyline::relocateStartPoint(const Vec2d &p)
 {
     if (polylineProxy != NULL) {
         return polylineProxy->relocateStartPoint(*this, p);
@@ -1179,9 +1127,6 @@ bool Polyline::convertToOpen()
     return true;
 }
 
-/**
- * \return True if the segment at the given position is a line.
- */
 bool Polyline::isLineSegment(int i) const
 {
     if (i < 0 || i > bulges.size()) {
@@ -1191,22 +1136,13 @@ bool Polyline::isLineSegment(int i) const
     return Polyline::isStraight(bulges.at(i));
 }
 
-/**
- * \return True if the given bulge indicates a straight line segment (i.e. is
- * 0.0).
- */
 bool Polyline::isStraight(double bulge)
 {
     return fabs(bulge) < 1.0e-6;
 }
 
-/**
- * \return List of RLines and RArcs describing this polyline.
- */
 std::vector<std::shared_ptr<Shape>> Polyline::getExploded(int segments) const
 {
-    // Q_UNUSED(segments);
-
     std::vector<std::shared_ptr<Shape>> ret;
 
     if (vertices.size() <= 1) {
@@ -1249,11 +1185,6 @@ std::vector<Polyline> Polyline::getOutline() const
     }
 }
 
-/**
- * \return Number of segments. The number of segments equals the
- *      number of vertices for a closed polyline and one less for
- *      an open polyline.
- */
 int Polyline::countSegments() const
 {
     int ret = countVertices();
@@ -1266,9 +1197,6 @@ int Polyline::countSegments() const
     return ret;
 }
 
-/**
- * \return Shape of segment at given position.
- */
 std::shared_ptr<Shape> Polyline::getSegmentAt(int i) const
 {
     if (i < 0 || i >= vertices.size() || i >= bulges.size()) {
@@ -1276,8 +1204,8 @@ std::shared_ptr<Shape> Polyline::getSegmentAt(int i) const
         return std::shared_ptr<Shape>();
     }
 
-    Vec3d p1 = vertices.at(i);
-    Vec3d p2 = vertices.at((i + 1) % vertices.size());
+    Vec2d p1 = vertices.at(i);
+    Vec2d p2 = vertices.at((i + 1) % vertices.size());
 
     if (Polyline::isStraight(bulges.at(i))) {
         return std::shared_ptr<Shape>(new Line(p1, p2));
@@ -1294,8 +1222,8 @@ std::shared_ptr<Shape> Polyline::getSegmentAt(int i) const
         }
 
         double radius;
-        Vec3d center;
-        Vec3d middle;
+        Vec2d center;
+        Vec2d middle;
         double dist;
         double angle;
 
@@ -1358,16 +1286,7 @@ std::shared_ptr<Shape> Polyline::getFirstSegment() const
     return getSegmentAt(0);
 }
 
-/**
- * Checks if the given point is inside this closed polygon. If this
- * polyline is not closed, false is returned.
- *
- * \see setClosed
- *
- * \param borderIsInside True if a position on the polyline counts as inside.
- * \param tolerance Tolerance used to check if point is on polyline.
- */
-bool Polyline::contains(const Vec3d &point, bool borderIsInside,
+bool Polyline::contains(const Vec2d &point, bool borderIsInside,
                         double tolerance) const
 {
     if (!isGeometricallyClosed(tolerance)) {
@@ -1400,16 +1319,6 @@ bool Polyline::contains(const Vec3d &point, bool borderIsInside,
     return c;
 }
 
-/**
- * Checks if the given shape is completely inside this closed polygon. If this
- * polyline is not closed, false is returned.
- *
- * \see setClosed
- *
- * If the shape touches the polyline, false is returned.
- *
- * \param shape The shape to check.
- */
 bool Polyline::containsShape(const Shape &shape) const
 {
     // check if the shape intersects with any of the polygon edges:
@@ -1452,8 +1361,8 @@ bool Polyline::containsShape(const Shape &shape) const
         // circle:
         if (Shape::isCircleShape(shape)) {
             const Circle &circle = dynamic_cast<const Circle &>(shape);
-            Vec3d p1 = circle.getCenter() + Vec3d(circle.getRadius(), 0);
-            Vec3d p2 = circle.getCenter() + Vec3d(-circle.getRadius(), 0);
+            Vec2d p1 = circle.getCenter() + Vec2d(circle.getRadius(), 0);
+            Vec2d p2 = circle.getCenter() + Vec2d(-circle.getRadius(), 0);
             if (contains(p1) || contains(p2)) {
                 return true;
             }
@@ -1461,7 +1370,7 @@ bool Polyline::containsShape(const Shape &shape) const
         }
         else {
             // other shapes:
-            Vec3d pointOnShape = shape.getPointOnShape();
+            Vec2d pointOnShape = shape.getPointOnShape();
             if (contains(pointOnShape, true)) {
                 return true;
             }
@@ -1474,30 +1383,27 @@ bool Polyline::containsShape(const Shape &shape) const
     return false;
 }
 
-/**
- * \return Any point that is inside this polyline.
- */
-Vec3d Polyline::getPointInside() const
+Vec2d Polyline::getPointInside() const
 {
     if (polylineProxy != NULL) {
         return polylineProxy->getPointInside(*this);
     }
-    return Vec3d::invalid;
+    return Vec2d::invalid;
 }
 
-Vec3d Polyline::getStartPoint() const
+Vec2d Polyline::getStartPoint() const
 {
     if (vertices.size() == 0) {
-        return Vec3d::invalid;
+        return Vec2d::invalid;
     }
 
     return vertices.first();
 }
 
-Vec3d Polyline::getEndPoint() const
+Vec2d Polyline::getEndPoint() const
 {
     if (vertices.size() == 0) {
-        return Vec3d::invalid;
+        return Vec2d::invalid;
     }
 
     if (isClosed()) {
@@ -1507,17 +1413,17 @@ Vec3d Polyline::getEndPoint() const
     return vertices.last();
 }
 
-Vec3d Polyline::getMiddlePoint() const
+Vec2d Polyline::getMiddlePoint() const
 {
-    std::vector<Vec3d> pts =
+    std::vector<Vec2d> pts =
         getPointsWithDistanceToEnd(getLength() / 2, NS::FromStart);
     if (pts.size() == 1) {
         return pts[0];
     }
-    return Vec3d::invalid;
+    return Vec2d::invalid;
 }
 
-void Polyline::moveStartPoint(const Vec3d &pos)
+void Polyline::moveStartPoint(const Vec2d &pos)
 {
     if (vertices.isEmpty()) {
         return;
@@ -1525,7 +1431,7 @@ void Polyline::moveStartPoint(const Vec3d &pos)
     vertices.first() = pos;
 }
 
-void Polyline::moveEndPoint(const Vec3d &pos)
+void Polyline::moveEndPoint(const Vec2d &pos)
 {
     if (vertices.isEmpty()) {
         return;
@@ -1533,7 +1439,7 @@ void Polyline::moveEndPoint(const Vec3d &pos)
     vertices.last() = pos;
 }
 
-void Polyline::moveSegmentAt(int i, const Vec3d &offset)
+void Polyline::moveSegmentAt(int i, const Vec2d &offset)
 {
     moveVertexAt(i, offset);
     if (i + 1 < countVertices()) {
@@ -1574,7 +1480,7 @@ double Polyline::getDirection2() const
     return shape->getDirection2();
 }
 
-NS::Side Polyline::getSideOfPoint(const Vec3d &point) const
+NS::Side Polyline::getSideOfPoint(const Vec2d &point) const
 {
     int i = getClosestSegment(point);
     if (i < 0 || i >= countSegments()) {
@@ -1616,9 +1522,6 @@ BBox Polyline::getBoundingBox() const
     return ret;
 }
 
-/**
- * \return Area of (implicitly closed) polyline.
- */
 double Polyline::getArea() const
 {
     double ret = 0.0;
@@ -1644,11 +1547,7 @@ double Polyline::getLength() const
     return ret;
 }
 
-/**
- * \return Length along polyline from start point to given point p or
- * the closest point to p on the polyline.
- */
-double Polyline::getLengthTo(const Vec3d &p, bool limited) const
+double Polyline::getLengthTo(const Vec2d &p, bool limited) const
 {
     double ret = 0.0;
 
@@ -1673,17 +1572,13 @@ double Polyline::getLengthTo(const Vec3d &p, bool limited) const
     if (segIdx != 0 && segIdx != countSegments() - 1) {
         lim = true;
     }
-    Vec3d p2 = seg->getClosestPointOnShape(p, lim);
+    Vec2d p2 = seg->getClosestPointOnShape(p, lim);
     seg->trimEndPoint(p2);
     ret += seg->getLength();
 
     return ret;
 }
 
-/**
- * \return Length of all segments from first index (fromIndex) to last index
- * (toIndex), excluding toIndex.
- */
 double Polyline::getSegmentsLength(int fromIndex, int toIndex) const
 {
     double len = 0.0;
@@ -1694,7 +1589,7 @@ double Polyline::getSegmentsLength(int fromIndex, int toIndex) const
     return len;
 }
 
-std::vector<double> Polyline::getDistancesFromStart(const Vec3d &p) const
+std::vector<double> Polyline::getDistancesFromStart(const Vec2d &p) const
 {
     std::vector<double> ret;
 
@@ -1716,7 +1611,7 @@ std::vector<double> Polyline::getDistancesFromStart(const Vec3d &p) const
     return ret;
 }
 
-std::vector<Vec3d> Polyline::getEndPoints() const
+std::vector<Vec2d> Polyline::getEndPoints() const
 {
     return vertices;
 }
@@ -1731,9 +1626,9 @@ getExploded(); std::vector<std::shared_ptr<Shape> >::iterator it; for
 }
 */
 
-std::vector<Vec3d> Polyline::getMiddlePoints() const
+std::vector<Vec2d> Polyline::getMiddlePoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
     std::vector<std::shared_ptr<Shape>> sub = getExploded();
     std::vector<std::shared_ptr<Shape>>::iterator it;
@@ -1744,9 +1639,9 @@ std::vector<Vec3d> Polyline::getMiddlePoints() const
     return ret;
 }
 
-std::vector<Vec3d> Polyline::getCenterPoints() const
+std::vector<Vec2d> Polyline::getCenterPoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
     std::vector<std::shared_ptr<Shape>> sub = getExploded();
     std::vector<std::shared_ptr<Shape>>::iterator it;
@@ -1757,22 +1652,22 @@ std::vector<Vec3d> Polyline::getCenterPoints() const
     return ret;
 }
 
-Vec3d Polyline::getPointAtPercent(double p) const
+Vec2d Polyline::getPointAtPercent(double p) const
 {
     double length = getLength();
     double distance = p * length;
-    std::vector<Vec3d> candidates =
+    std::vector<Vec2d> candidates =
         getPointsWithDistanceToEnd(distance, NS::FromStart | NS::AlongPolyline);
     if (candidates.size() != 1) {
-        return Vec3d::invalid;
+        return Vec2d::invalid;
     }
     return candidates.at(0);
 }
 
-std::vector<Vec3d> Polyline::getPointsWithDistanceToEnd(double distance,
+std::vector<Vec2d> Polyline::getPointsWithDistanceToEnd(double distance,
                                                         int from) const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
     std::vector<std::shared_ptr<Shape>> sub = getExploded();
 
@@ -1838,9 +1733,9 @@ std::vector<Vec3d> Polyline::getPointsWithDistanceToEnd(double distance,
     return ret;
 }
 
-std::vector<Vec3d> Polyline::getPointCloud(double segmentLength) const
+std::vector<Vec2d> Polyline::getPointCloud(double segmentLength) const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     for (int i = 0; i < countSegments(); i++) {
         std::shared_ptr<Shape> seg = getSegmentAt(i);
         if (seg.isNull()) {
@@ -1893,10 +1788,10 @@ double Polyline::getAngleAt(double distance, NS::From from) const
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-Vec3d Polyline::getVectorTo(const Vec3d &point, bool limited,
+Vec2d Polyline::getVectorTo(const Vec2d &point, bool limited,
                             double strictRange) const
 {
-    Vec3d ret = Vec3d::invalid;
+    Vec2d ret = Vec2d::invalid;
 
     std::vector<std::shared_ptr<Shape>> sub = getExploded();
     for (int i = 0; i < sub.size(); i++) {
@@ -1906,7 +1801,7 @@ Vec3d Polyline::getVectorTo(const Vec3d &point, bool limited,
             // segments in the middle: always limited:
             lim = true;
         }
-        Vec3d v = shape->getVectorTo(point, lim, strictRange);
+        Vec2d v = shape->getVectorTo(point, lim, strictRange);
         if (v.isValid() &&
             (!ret.isValid() || v.getMagnitude() < ret.getMagnitude())) {
             ret = v;
@@ -1916,14 +1811,12 @@ Vec3d Polyline::getVectorTo(const Vec3d &point, bool limited,
     return ret;
 }
 
-double Polyline::getDistanceTo(const Vec3d &point, bool limited,
+double Polyline::getDistanceTo(const Vec2d &point, bool limited,
                                double strictRange) const
 {
     if (!hasWidths()) {
         return Shape::getDistanceTo(point, limited, strictRange);
     }
-
-    // Q_UNUSED(limited)
 
     if (!getBoundingBox().grow(strictRange).contains(point)) {
         return std::numeric_limits<double>::quiet_NaN();
@@ -1951,7 +1844,7 @@ double Polyline::getDistanceTo(const Vec3d &point, bool limited,
     return ret;
 }
 
-int Polyline::getClosestSegment(const Vec3d &point) const
+int Polyline::getClosestSegment(const Vec2d &point) const
 {
     int ret = -1;
     double minDist = -1;
@@ -1974,12 +1867,12 @@ int Polyline::getClosestSegment(const Vec3d &point) const
     return ret;
 }
 
-int Polyline::getClosestVertex(const Vec3d &point) const
+int Polyline::getClosestVertex(const Vec2d &point) const
 {
     return point.getClosestIndex(getVertices());
 }
 
-bool Polyline::move(const Vec3d &offset)
+bool Polyline::move(const Vec2d &offset)
 {
     for (int i = 0; i < vertices.size(); i++) {
         vertices[i].move(offset);
@@ -1987,7 +1880,7 @@ bool Polyline::move(const Vec3d &offset)
     return true;
 }
 
-bool Polyline::rotate(double rotation, const Vec3d &center)
+bool Polyline::rotate(double rotation, const Vec2d &center)
 {
     if (fabs(rotation) < NS::AngleTolerance) {
         return false;
@@ -1998,12 +1891,12 @@ bool Polyline::rotate(double rotation, const Vec3d &center)
     return true;
 }
 
-bool Polyline::scale(double scaleFactor, const Vec3d &center)
+bool Polyline::scale(double scaleFactor, const Vec2d &center)
 {
     return Shape::scale(scaleFactor, center);
 }
 
-bool Polyline::scale(const Vec3d &scaleFactors, const Vec3d &center)
+bool Polyline::scale(const Vec2d &scaleFactors, const Vec2d &center)
 {
     if (hasArcSegments() &&
         !Math::fuzzyCompare(scaleFactors.x, scaleFactors.y)) {
@@ -2074,7 +1967,7 @@ bool Polyline::mirror(const Line &axis)
 
 bool Polyline::reverse()
 {
-    std::vector<Vec3d> vs = vertices;
+    std::vector<Vec2d> vs = vertices;
     if (closed) {
         vs.push_back(vs.first());
     }
@@ -2110,7 +2003,7 @@ Polyline Polyline::getReversed() const
     return ret;
 }
 
-bool Polyline::stretch(const Polyline &area, const Vec3d &offset)
+bool Polyline::stretch(const Polyline &area, const Vec2d &offset)
 {
     for (int i = 0; i < vertices.size(); i++) {
         vertices[i].stretch(area, offset);
@@ -2118,7 +2011,7 @@ bool Polyline::stretch(const Polyline &area, const Vec3d &offset)
     return true;
 }
 
-NS::Ending Polyline::getTrimEnd(const Vec3d &trimPoint, const Vec3d &clickPoint)
+NS::Ending Polyline::getTrimEnd(const Vec2d &trimPoint, const Vec2d &clickPoint)
 {
     if (polylineProxy != NULL) {
         return polylineProxy->getTrimEnd(*this, trimPoint, clickPoint);
@@ -2126,7 +2019,7 @@ NS::Ending Polyline::getTrimEnd(const Vec3d &trimPoint, const Vec3d &clickPoint)
     return NS::EndingNone;
 }
 
-bool Polyline::trimStartPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
+bool Polyline::trimStartPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
                               bool extend)
 {
     if (polylineProxy != NULL) {
@@ -2136,7 +2029,7 @@ bool Polyline::trimStartPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
     return false;
 }
 
-bool Polyline::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
+bool Polyline::trimEndPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
                             bool extend)
 {
     if (polylineProxy != NULL) {
@@ -2162,10 +2055,6 @@ bool Polyline::trimEndPoint(double trimDist)
     return false;
 }
 
-/**
- * Simplify by attempting to skip nodes within given tolerance.
- * \return True if nodes have been skipped.
- */
 bool Polyline::simplify(double tolerance)
 {
     if (Polyline::hasProxy()) {
@@ -2176,10 +2065,7 @@ bool Polyline::simplify(double tolerance)
     }
 }
 
-/**
- * Verifies the tangency of this polyline.
- */
-std::vector<Vec3d> Polyline::verifyTangency(double toleranceMin,
+std::vector<Vec2d> Polyline::verifyTangency(double toleranceMin,
                                             double toleranceMax)
 {
     if (Polyline::hasProxy()) {
@@ -2187,15 +2073,10 @@ std::vector<Vec3d> Polyline::verifyTangency(double toleranceMin,
                                                             toleranceMax);
     }
     else {
-        return std::vector<Vec3d>();
+        return std::vector<Vec2d>();
     }
 }
 
-/**
- * Modifies (bevels, rounds, trims) the corner of this polyline between
- * segmentIndex1 and segmentIndex2 at the given segment endings. The given
- * cornerShape (bevel, rounding) is inserted between.
- */
 Polyline Polyline::modifyPolylineCorner(const Shape &trimmedShape1,
                                         NS::Ending ending1, int segmentIndex1,
                                         const Shape &trimmedShape2,
@@ -2287,10 +2168,10 @@ bool Polyline::isConcave() const
     return !getConcaveVertices().isEmpty();
 }
 
-std::vector<Vec3d> Polyline::getConvexVertices(bool convex) const
+std::vector<Vec2d> Polyline::getConvexVertices(bool convex) const
 {
     if (!isGeometricallyClosed()) {
-        return std::vector<Vec3d>();
+        return std::vector<Vec2d>();
     }
 
     Polyline pl = *this;
@@ -2298,7 +2179,7 @@ std::vector<Vec3d> Polyline::getConvexVertices(bool convex) const
 
     NS::Orientation ori = pl.getOrientation();
 
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
     for (int i = 0; i < pl.vertices.count(); i++) {
         int iPrev = Math::absmod(i - 1, pl.vertices.count());
@@ -2308,10 +2189,10 @@ std::vector<Vec3d> Polyline::getConvexVertices(bool convex) const
         double aPrev = segmentPrev->getDirection2() + M_PI;
         double aNext = segmentNext->getDirection1();
 
-        Vec3d pPrev = Vec3d::createPolar(1.0, aPrev);
-        Vec3d pNext = Vec3d::createPolar(1.0, aNext);
+        Vec2d pPrev = Vec2d::createPolar(1.0, aPrev);
+        Vec2d pNext = Vec2d::createPolar(1.0, aNext);
 
-        Vec3d cp = Vec3d::getCrossProduct(pPrev, pNext);
+        Vec2d cp = Vec2d::getCrossProduct(pPrev, pNext);
 
         if (convex) {
             if (ori == NS::CW && cp.z < 0.0 || ori == NS::CCW && cp.z > 0.0) {
@@ -2328,19 +2209,15 @@ std::vector<Vec3d> Polyline::getConvexVertices(bool convex) const
     return ret;
 }
 
-std::vector<Vec3d> Polyline::getConcaveVertices() const
+std::vector<Vec2d> Polyline::getConcaveVertices() const
 {
     return getConvexVertices(false);
 }
 
-/**
- * \return Centroid of this polygon or invalid if polyline contains arc
- * segments. The polyline is implicitely considered to be closed.
- */
-Vec3d Polyline::getCentroid() const
+Vec2d Polyline::getCentroid() const
 {
     if (hasArcSegments()) {
-        return Vec3d::invalid;
+        return Vec2d::invalid;
     }
 
     double xSum = 0;
@@ -2365,7 +2242,7 @@ Vec3d Polyline::getCentroid() const
     double centroidX = xSum / (6.0 * signedArea);
     double centroidY = ySum / (6.0 * signedArea);
 
-    return Vec3d(centroidX, centroidY);
+    return Vec2d(centroidX, centroidY);
 }
 
 std::vector<Polyline> Polyline::splitAtDiscontinuities(double tolerance) const
@@ -2376,9 +2253,6 @@ std::vector<Polyline> Polyline::splitAtDiscontinuities(double tolerance) const
     return std::vector<Polyline>() << *this;
 }
 
-/**
- * Splits the polyline into polylines with exclusively line or arc segments.
- */
 std::vector<Polyline> Polyline::splitAtSegmentTypeChange() const
 {
     if (polylineProxy != NULL) {
@@ -2462,3 +2336,5 @@ Polyline Polyline::getPolygonHull(double angle, double tolerance,
     }
     return *this;
 }
+
+} // namespace cada

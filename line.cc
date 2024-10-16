@@ -22,12 +22,9 @@
 
 #include "cada_shape.h"
 
-using namespace cada;
+namespace cada {
 
-/**
- * Creates a line object with invalid start and end points.
- */
-Line::Line() : startPoint(Vec3d::invalid), endPoint(Vec3d::invalid)
+Line::Line() : startPoint(Vec2d::invalid), endPoint(Vec2d::invalid)
 {
 }
 
@@ -36,19 +33,16 @@ Line::Line(double x1, double y1, double x2, double y2)
 {
 }
 
-/**
- * Creates a line object with the given start and end point.
- */
-Line::Line(const Vec3d &startPoint, const Vec3d &endPoint)
+Line::Line(const Vec2d &startPoint, const Vec2d &endPoint)
     : startPoint(startPoint), endPoint(endPoint)
 {
 }
 
-Line::Line(const Vec3d &startPoint, double angle, double distance)
+Line::Line(const Vec2d &startPoint, double angle, double distance)
     : startPoint(startPoint)
 {
 
-    endPoint = startPoint + Vec3d::createPolar(distance, angle);
+    endPoint = startPoint + Vec2d::createPolar(distance, angle);
 }
 
 bool Line::isValid() const
@@ -64,10 +58,10 @@ double Line::getLength() const
 void Line::setLength(double l, bool fromStart)
 {
     if (fromStart) {
-        endPoint = startPoint + Vec3d::createPolar(l, getAngle());
+        endPoint = startPoint + Vec2d::createPolar(l, getAngle());
     }
     else {
-        startPoint = endPoint - Vec3d::createPolar(l, getAngle());
+        startPoint = endPoint - Vec2d::createPolar(l, getAngle());
     }
 }
 
@@ -78,7 +72,7 @@ double Line::getAngle() const
 
 void Line::setAngle(double a)
 {
-    endPoint = startPoint + Vec3d::createPolar(getLength(), a);
+    endPoint = startPoint + Vec2d::createPolar(getLength(), a);
 }
 
 bool Line::isParallel(const Line &line) const
@@ -89,21 +83,11 @@ bool Line::isParallel(const Line &line) const
     return Math::isSameDirection(a, oa) || Math::isSameDirection(a, oa + M_PI);
 }
 
-/**
- * \return True if the line is vertical.
- * If the start and end points of the line are identical, the line is both
- * vertical and horizontal.
- */
 bool Line::isVertical(double tolerance) const
 {
     return Math::fuzzyCompare(startPoint.x, endPoint.x, tolerance);
 }
 
-/**
- * \return True if the line is horizontal.
- * If the start and end points of the line are identical, the line is both
- * vertical and horizontal.
- */
 bool Line::isHorizontal(double tolerance) const
 {
     return Math::fuzzyCompare(startPoint.y, endPoint.y, tolerance);
@@ -119,77 +103,77 @@ double Line::getDirection2() const
     return endPoint.getAngleTo(startPoint);
 }
 
-Vec3d Line::getStartPoint() const
+Vec2d Line::getStartPoint() const
 {
     return startPoint;
 }
 
-void Line::setStartPoint(const Vec3d &vector)
+void Line::setStartPoint(const Vec2d &vector)
 {
     startPoint = vector;
 }
 
-Vec3d Line::getEndPoint() const
+Vec2d Line::getEndPoint() const
 {
     return endPoint;
 }
 
-void Line::setEndPoint(const Vec3d &vector)
+void Line::setEndPoint(const Vec2d &vector)
 {
     endPoint = vector;
 }
 
-Vec3d Line::getMiddlePoint() const
+Vec2d Line::getMiddlePoint() const
 {
     return (startPoint + endPoint) / 2.0;
 }
 
 BBox Line::getBoundingBox() const
 {
-    return BBox(Vec3d::getMinimum(startPoint, endPoint),
-                Vec3d::getMaximum(startPoint, endPoint));
+    return BBox(Vec2d::getMinimum(startPoint, endPoint),
+                Vec2d::getMaximum(startPoint, endPoint));
 }
 
-std::vector<Vec3d> Line::getEndPoints() const
+std::vector<Vec2d> Line::getEndPoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     ret.push_back(startPoint);
     ret.push_back(endPoint);
     return ret;
 }
 
-std::vector<Vec3d> Line::getMiddlePoints() const
+std::vector<Vec2d> Line::getMiddlePoints() const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     ret.push_back(getMiddlePoint());
     return ret;
 }
 
-std::vector<Vec3d> Line::getCenterPoints() const
+std::vector<Vec2d> Line::getCenterPoints() const
 {
     return getMiddlePoints();
 }
 
-std::vector<Vec3d> Line::getPointsWithDistanceToEnd(double distance,
+std::vector<Vec2d> Line::getPointsWithDistanceToEnd(double distance,
                                                     int from) const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
 
     if (from & NS::FromStart) {
-        Vec3d normalStart = (endPoint - startPoint).getNormalized();
+        Vec2d normalStart = (endPoint - startPoint).getNormalized();
         ret.push_back(startPoint + normalStart * distance);
     }
     if (from & NS::FromEnd) {
-        Vec3d normalEnd = (startPoint - endPoint).getNormalized();
+        Vec2d normalEnd = (startPoint - endPoint).getNormalized();
         ret.push_back(endPoint + normalEnd * distance);
     }
 
     return ret;
 }
 
-std::vector<Vec3d> Line::getPointCloud(double segmentLength) const
+std::vector<Vec2d> Line::getPointCloud(double segmentLength) const
 {
-    std::vector<Vec3d> ret;
+    std::vector<Vec2d> ret;
     ret.push_back(startPoint);
     if (segmentLength > getLength() / 10000.0) {
         for (double d = segmentLength; d < getLength(); d += segmentLength) {
@@ -202,48 +186,45 @@ std::vector<Vec3d> Line::getPointCloud(double segmentLength) const
 
 double Line::getAngleAt(double distance, NS::From from) const
 {
-    // Q_UNUSED(distance)
-    // Q_UNUSED(from)
-
     return getAngle();
 }
 
-Vec3d Line::getVectorTo(const Vec3d &point, bool limited,
+Vec2d Line::getVectorTo(const Vec2d &point, bool limited,
                         double strictRange) const
 {
 
-    Vec3d ae = (endPoint - startPoint).get2D();
-    Vec3d ap = (point - startPoint).get2D();
+    Vec2d ae = (endPoint - startPoint).get2D();
+    Vec2d ap = (point - startPoint).get2D();
 
     if (ae.getMagnitude2D() < 1.0e-6) {
-        return Vec3d::invalid;
+        return Vec2d::invalid;
     }
 
     if (ap.getMagnitude2D() < 1.0e-6) {
         // distance to start point is very small:
-        return Vec3d(0, 0);
+        return Vec2d(0, 0);
     }
 
-    double b = Vec3d::getDotProduct(ap, ae) / Vec3d::getDotProduct(ae, ae);
+    double b = Vec2d::getDotProduct(ap, ae) / Vec2d::getDotProduct(ae, ae);
 
     if (limited && (b < 0 || b > 1.0)) {
         // orthogonal to line does not cross line, use distance to end point:
-        Vec3d ret = getVectorFromEndpointTo(point);
+        Vec2d ret = getVectorFromEndpointTo(point);
         if (ret.getMagnitude() < strictRange) {
             return ret;
         }
         else {
             // not within given range:
-            return Vec3d::invalid;
+            return Vec2d::invalid;
         }
     }
 
-    Vec3d closestPoint = startPoint + ae * b;
+    Vec2d closestPoint = startPoint + ae * b;
 
     return point - closestPoint;
 }
 
-NS::Side Line::getSideOfPoint(const Vec3d &point) const
+NS::Side Line::getSideOfPoint(const Vec2d &point) const
 {
     double entityAngle = getAngle();
     double angleToCoord = startPoint.getAngleTo(point);
@@ -316,16 +297,16 @@ void Line::clipToXY(const BBox &box)
             y1 = y1 + u1 * deltaY;
         }
 
-        startPoint = Vec3d(x1, y1);
-        endPoint = Vec3d(x2, y2);
+        startPoint = Vec2d(x1, y1);
+        endPoint = Vec2d(x2, y2);
     }
     else {
-        startPoint = Vec3d::invalid;
-        endPoint = Vec3d::invalid;
+        startPoint = Vec2d::invalid;
+        endPoint = Vec2d::invalid;
     }
 }
 
-bool Line::move(const Vec3d &offset)
+bool Line::move(const Vec2d &offset)
 {
     if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance) {
         return false;
@@ -335,7 +316,7 @@ bool Line::move(const Vec3d &offset)
     return true;
 }
 
-bool Line::rotate(double rotation, const Vec3d &center)
+bool Line::rotate(double rotation, const Vec2d &center)
 {
     if (fabs(rotation) < NS::AngleTolerance) {
         return false;
@@ -345,7 +326,7 @@ bool Line::rotate(double rotation, const Vec3d &center)
     return true;
 }
 
-bool Line::scale(const Vec3d &scaleFactors, const Vec3d &center)
+bool Line::scale(const Vec2d &scaleFactors, const Vec2d &center)
 {
     startPoint.scale(scaleFactors, center);
     endPoint.scale(scaleFactors, center);
@@ -375,13 +356,13 @@ bool Line::flipVertical()
 
 bool Line::reverse()
 {
-    Vec3d v = startPoint;
+    Vec2d v = startPoint;
     startPoint = endPoint;
     endPoint = v;
     return true;
 }
 
-bool Line::stretch(const Polyline &area, const Vec3d &offset)
+bool Line::stretch(const Polyline &area, const Vec2d &offset)
 {
     bool ret = false;
 
@@ -397,13 +378,13 @@ bool Line::stretch(const Polyline &area, const Vec3d &offset)
     return ret;
 }
 
-bool Line::moveTo(const Vec3d &dest)
+bool Line::moveTo(const Vec2d &dest)
 {
-    Vec3d offset = dest - startPoint;
+    Vec2d offset = dest - startPoint;
     return move(offset);
 }
 
-NS::Ending Line::getTrimEnd(const Vec3d &trimPoint, const Vec3d &clickPoint)
+NS::Ending Line::getTrimEnd(const Vec2d &trimPoint, const Vec2d &clickPoint)
 {
     double lineAngle = getAngle();
     double angleToClickPoint = trimPoint.getAngleTo(clickPoint);
@@ -424,12 +405,10 @@ NS::Ending Line::getTrimEnd(const Vec3d &trimPoint, const Vec3d &clickPoint)
     }
 }
 
-bool Line::trimStartPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
+bool Line::trimStartPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
                           bool extend)
 {
-    // Q_UNUSED(clickPoint)
-    // Q_UNUSED(extend)
-    Vec3d tp = getClosestPointOnShape(trimPoint, false);
+    Vec2d tp = getClosestPointOnShape(trimPoint, false);
     if (!tp.isValid()) {
         return false;
     }
@@ -437,12 +416,10 @@ bool Line::trimStartPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
     return true;
 }
 
-bool Line::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
+bool Line::trimEndPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
                         bool extend)
 {
-    // Q_UNUSED(clickPoint)
-    // Q_UNUSED(extend)
-    Vec3d tp = getClosestPointOnShape(trimPoint, false);
+    Vec2d tp = getClosestPointOnShape(trimPoint, false);
     if (!tp.isValid()) {
         return false;
     }
@@ -450,11 +427,11 @@ bool Line::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
     return true;
 }
 
-double Line::getDistanceFromStart(const Vec3d &p) const
+double Line::getDistanceFromStart(const Vec2d &p) const
 {
     double ret = startPoint.getDistanceTo(p);
 
-    Vec3d p2 = getClosestPointOnShape(p, false);
+    Vec2d p2 = getClosestPointOnShape(p, false);
     double angle = startPoint.getAngleTo(p2);
     if (Math::isSameDirection(getAngle(), angle, M_PI / 2)) {
         return ret;
@@ -465,7 +442,7 @@ double Line::getDistanceFromStart(const Vec3d &p) const
 }
 
 std::vector<std::shared_ptr<Shape>>
-Line::splitAt(const std::vector<Vec3d> &points) const
+Line::splitAt(const std::vector<Vec2d> &points) const
 {
     if (points.size() == 0) {
         return Shape::splitAt(points);
@@ -473,8 +450,8 @@ Line::splitAt(const std::vector<Vec3d> &points) const
 
     std::vector<std::shared_ptr<Shape>> ret;
 
-    std::vector<Vec3d> sortedPoints =
-        Vec3d::getSortedByDistance(points, startPoint);
+    std::vector<Vec2d> sortedPoints =
+        Vec2d::getSortedByDistance(points, startPoint);
 
     if (!startPoint.equalsFuzzy(sortedPoints[0])) {
         sortedPoints.prepend(startPoint);
@@ -494,3 +471,5 @@ Line::splitAt(const std::vector<Vec3d> &points) const
 
     return ret;
 }
+
+} // namespace cada

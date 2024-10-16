@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 11)
 add_library(cada2d STATIC
     arc.cc
     bbox.cc
+    bspline.cc
     circle.cc
     ellipse.cc
     intcurvecurve.cc
@@ -14,7 +15,6 @@ add_library(cada2d STATIC
     pointstobspline.cc
     polyline.cc
     ray.cc
-    shape.cc
     vec3d.cc
     xline.cc
 )

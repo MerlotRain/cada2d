@@ -22,12 +22,12 @@
 
 #include "cada_shape.h"
 
-using namespace cada;
+namespace cada {
 
 /**
  * Creates an xline object with invalid base point and direction.
  */
-XLine::XLine() : basePoint(Vec3d::invalid), directionVector(Vec3d::invalid)
+XLine::XLine() : basePoint(Vec2d::invalid), directionVector(Vec2d::invalid)
 {
 }
 
@@ -40,13 +40,13 @@ XLine::XLine(const Line &line)
 /**
  * Creates an xline object with the given base point and direction.
  */
-XLine::XLine(const Vec3d &basePoint, const Vec3d &directionVector)
+XLine::XLine(const Vec2d &basePoint, const Vec2d &directionVector)
     : basePoint(basePoint), directionVector(directionVector)
 {
 }
 
-XLine::XLine(const Vec3d &basePoint, double angle, double distance)
-    : basePoint(basePoint), directionVector(Vec3d::createPolar(distance, angle))
+XLine::XLine(const Vec2d &basePoint, double angle, double distance)
+    : basePoint(basePoint), directionVector(Vec2d::createPolar(distance, angle))
 {
 }
 
@@ -56,8 +56,8 @@ XLine::~XLine()
 
 BBox XLine::getBoundingBox() const
 {
-    return BBox(Vec3d::getMinimum(basePoint, getSecondPoint()),
-                Vec3d::getMaximum(basePoint, getSecondPoint()));
+    return BBox(Vec2d::getMinimum(basePoint, getSecondPoint()),
+                Vec2d::getMaximum(basePoint, getSecondPoint()));
 }
 
 double XLine::getLength() const
@@ -77,7 +77,6 @@ void XLine::setAngle(double a)
 
 void XLine::setLength(double l)
 {
-    // Q_UNUSED(l)
     return;
 }
 
@@ -91,27 +90,25 @@ double XLine::getDirection2() const
     return getSecondPoint().getAngleTo(basePoint);
 }
 
-NS::Side XLine::getSideOfPoint(const Vec3d &point) const
+NS::Side XLine::getSideOfPoint(const Vec2d &point) const
 {
     return getLineShape().getSideOfPoint(point);
 }
 
-Vec3d XLine::getStartPoint() const
+Vec2d XLine::getStartPoint() const
 {
     return basePoint;
 }
 
-Vec3d XLine::getEndPoint() const
+Vec2d XLine::getEndPoint() const
 {
     return getSecondPoint();
 }
 
-bool XLine::trimStartPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
+bool XLine::trimStartPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
                            bool extend)
 {
-    // Q_UNUSED(clickPoint)
-    // Q_UNUSED(extend)
-    Vec3d tp = getClosestPointOnShape(trimPoint, false);
+    Vec2d tp = getClosestPointOnShape(trimPoint, false);
     if (!tp.isValid()) {
         return false;
     }
@@ -119,12 +116,10 @@ bool XLine::trimStartPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
     return true;
 }
 
-bool XLine::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
+bool XLine::trimEndPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
                          bool extend)
 {
-    // Q_UNUSED(clickPoint)
-    // Q_UNUSED(extend)
-    Vec3d tp = getClosestPointOnShape(trimPoint, false);
+    Vec2d tp = getClosestPointOnShape(trimPoint, false);
     if (!tp.isValid()) {
         return false;
     }
@@ -133,16 +128,16 @@ bool XLine::trimEndPoint(const Vec3d &trimPoint, const Vec3d &clickPoint,
     return true;
 }
 
-NS::Ending XLine::getTrimEnd(const Vec3d &trimPoint, const Vec3d &clickPoint)
+NS::Ending XLine::getTrimEnd(const Vec2d &trimPoint, const Vec2d &clickPoint)
 {
     return getLineShape().getTrimEnd(trimPoint, clickPoint);
 }
 
-double XLine::getDistanceFromStart(const Vec3d &p) const
+double XLine::getDistanceFromStart(const Vec2d &p) const
 {
     double ret = basePoint.getDistanceTo(p);
 
-    Vec3d p2 = getClosestPointOnShape(p, false);
+    Vec2d p2 = getClosestPointOnShape(p, false);
     double angle = basePoint.getAngleTo(p2);
     if (Math::isSameDirection(getAngle(), angle, M_PI / 2)) {
         return ret;
@@ -152,82 +147,75 @@ double XLine::getDistanceFromStart(const Vec3d &p) const
     }
 }
 
-Vec3d XLine::getBasePoint() const
+Vec2d XLine::getBasePoint() const
 {
     return basePoint;
 }
 
-void XLine::setBasePoint(const Vec3d &vector)
+void XLine::setBasePoint(const Vec2d &vector)
 {
     basePoint = vector;
 }
 
-Vec3d XLine::getSecondPoint() const
+Vec2d XLine::getSecondPoint() const
 {
     return basePoint + directionVector;
 }
 
-void XLine::setSecondPoint(const Vec3d &vector)
+void XLine::setSecondPoint(const Vec2d &vector)
 {
     directionVector = vector - basePoint;
 }
 
-Vec3d XLine::getDirectionVector() const
+Vec2d XLine::getDirectionVector() const
 {
     return directionVector;
 }
 
-void XLine::setDirectionVector(const Vec3d &vector)
+void XLine::setDirectionVector(const Vec2d &vector)
 {
     directionVector = vector;
 }
 
-Vec3d XLine::getMiddlePoint() const
+Vec2d XLine::getMiddlePoint() const
 {
-    return Vec3d::invalid;
+    return Vec2d::invalid;
 }
 
-std::vector<Vec3d> XLine::getEndPoints() const
+std::vector<Vec2d> XLine::getEndPoints() const
 {
-    return std::vector<Vec3d>();
+    return std::vector<Vec2d>();
 }
 
-std::vector<Vec3d> XLine::getMiddlePoints() const
+std::vector<Vec2d> XLine::getMiddlePoints() const
 {
-    return std::vector<Vec3d>();
+    return std::vector<Vec2d>();
 }
 
-std::vector<Vec3d> XLine::getCenterPoints() const
+std::vector<Vec2d> XLine::getCenterPoints() const
 {
-    return std::vector<Vec3d>();
+    return std::vector<Vec2d>();
 }
 
-std::vector<Vec3d> XLine::getPointsWithDistanceToEnd(double distance,
+std::vector<Vec2d> XLine::getPointsWithDistanceToEnd(double distance,
                                                      int from) const
 {
-    // Q_UNUSED(distance)
-    // Q_UNUSED(from)
-    return std::vector<Vec3d>();
+    return std::vector<Vec2d>();
 }
 
-std::vector<Vec3d> XLine::getPointCloud(double segmentLength) const
+std::vector<Vec2d> XLine::getPointCloud(double segmentLength) const
 {
-    // Q_UNUSED(segmentLength)
-    return std::vector<Vec3d>();
+    return std::vector<Vec2d>();
 }
 
 double XLine::getAngleAt(double distance, NS::From from) const
 {
-    // Q_UNUSED(distance)
-    // Q_UNUSED(from)
-
     return getAngle();
 }
 
-Vec3d XLine::getVectorTo(const Vec3d &point, bool limited,
+Vec2d XLine::getVectorTo(const Vec2d &point, bool limited,
                          double strictRange) const
 {
-    // Q_UNUSED(limited)
     return getLineShape().getVectorTo(point, false, strictRange);
 }
 
@@ -237,12 +225,12 @@ Line XLine::getClippedLine(const BBox &box) const
 
     Polyline pl = box.getPolyline2d();
 
-    std::vector<Vec3d> ips =
+    std::vector<Vec2d> ips =
         Shape::getIntersectionPointsLX(getLineShape(), pl, false);
-    std::vector<Vec3d> sol;
+    std::vector<Vec2d> sol;
     for (int i = 0; i < ips.size(); i++) {
         if (pl.isOnShape(ips[i])) {
-            Vec3d p = ips[i].getClosest(sol);
+            Vec2d p = ips[i].getClosest(sol);
             if (p.equalsFuzzy(ips[i])) {
                 continue;
             }
@@ -261,7 +249,7 @@ Line XLine::getClippedLine(const BBox &box) const
     return ret;
 }
 
-bool XLine::move(const Vec3d &offset)
+bool XLine::move(const Vec2d &offset)
 {
     if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance) {
         return false;
@@ -270,7 +258,7 @@ bool XLine::move(const Vec3d &offset)
     return true;
 }
 
-bool XLine::rotate(double rotation, const Vec3d &center)
+bool XLine::rotate(double rotation, const Vec2d &center)
 {
     if (fabs(rotation) < NS::AngleTolerance) {
         return false;
@@ -280,7 +268,7 @@ bool XLine::rotate(double rotation, const Vec3d &center)
     return true;
 }
 
-bool XLine::scale(const Vec3d &scaleFactors, const Vec3d &center)
+bool XLine::scale(const Vec2d &scaleFactors, const Vec2d &center)
 {
     basePoint.scale(scaleFactors, center);
     directionVector.scale(scaleFactors);
@@ -289,7 +277,7 @@ bool XLine::scale(const Vec3d &scaleFactors, const Vec3d &center)
 
 bool XLine::mirror(const Line &axis)
 {
-    Vec3d sp = getSecondPoint();
+    Vec2d sp = getSecondPoint();
     basePoint.mirror(axis);
     sp.mirror(axis);
     setSecondPoint(sp);
@@ -298,23 +286,20 @@ bool XLine::mirror(const Line &axis)
 
 bool XLine::reverse()
 {
-    Vec3d sp = getSecondPoint();
-    Vec3d bp = basePoint;
+    Vec2d sp = getSecondPoint();
+    Vec2d bp = basePoint;
     setBasePoint(sp);
     setSecondPoint(bp);
     return true;
 }
 
-bool XLine::stretch(const Polyline &area, const Vec3d &offset)
+bool XLine::stretch(const Polyline &area, const Vec2d &offset)
 {
-    // Q_UNUSED(area)
-    // Q_UNUSED(offset)
-
     return false;
 }
 
 std::vector<std::shared_ptr<Shape>>
-XLine::splitAt(const std::vector<Vec3d> &points) const
+XLine::splitAt(const std::vector<Vec2d> &points) const
 {
     if (points.size() == 0) {
         return Shape::splitAt(points);
@@ -322,8 +307,8 @@ XLine::splitAt(const std::vector<Vec3d> &points) const
 
     std::vector<std::shared_ptr<Shape>> ret;
 
-    std::vector<Vec3d> sortedPoints =
-        Vec3d::getSortedByDistance(points, basePoint - directionVector * 1e9);
+    std::vector<Vec2d> sortedPoints =
+        Vec2d::getSortedByDistance(points, basePoint - directionVector * 1e9);
 
     ret.push_back(
         std::shared_ptr<Shape>(new Ray(sortedPoints[0], -directionVector)));
@@ -342,3 +327,5 @@ XLine::splitAt(const std::vector<Vec3d> &points) const
 
     return ret;
 }
+
+} // namespace cada
