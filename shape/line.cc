@@ -171,19 +171,6 @@ std::vector<Vec2d> Line::getPointsWithDistanceToEnd(double distance,
     return ret;
 }
 
-std::vector<Vec2d> Line::getPointCloud(double segmentLength) const
-{
-    std::vector<Vec2d> ret;
-    ret.push_back(startPoint);
-    if (segmentLength > getLength() / 10000.0) {
-        for (double d = segmentLength; d < getLength(); d += segmentLength) {
-            ret.push_back(getPointWithDistanceToStart(d));
-        }
-    }
-    ret.push_back(endPoint);
-    return ret;
-}
-
 double Line::getAngleAt(double distance, NS::From from) const
 {
     return getAngle();

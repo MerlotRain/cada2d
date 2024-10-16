@@ -20,26 +20,20 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef INTCURVECURVE_H
-#define INTCURVECURVE_H
-
-#include "cada_shape.h"
+ #ifndef CADA_POINTSTOBSPLINE_H
+ #define CADA_POINTSTOBSPLINE_H
 
 namespace cada {
+namespace algorithm {
 
-class IntCurveCurve {
-    Shape *mShape1;
-    Shape *mShape2;
 
-public:
-    IntCurveCurve(Shape *shape1, Shape *shape2);
+class PointsToBSpline
+{
 
-    std::vector<Vec2d> intersectPoints(bool limited = true, bool same = false,
-                                       bool force = false) const;
-
-private:
 };
 
+
+} // namespace algorithm
 } // namespace cada
 
-#endif
+ #endif

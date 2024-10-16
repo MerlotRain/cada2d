@@ -32,53 +32,34 @@
 namespace cada {
 
 class BBox;
-
-class Shape;
-class Point;
 class Line;
-class Circle;
-class Arc;
-class Ellipse;
-class Polyline;
-class XLine;
-class Ray;
-class BSpline;
-class Triangle;
 
 struct Vec2d {
     double x;
     double y;
-    double z;
     bool valid;
 
     Vec2d();
-    Vec2d(double vx, double vy, double vz = 0.0, bool valid_in = true);
+    Vec2d(double vx, double vy, bool valid_in = true);
     Vec2d(const std::vector<double> &tuples);
     ~Vec2d();
 
-    void set(double vx, double vy, double vz = 0.0);
+    void set(double vx, double vy);
     void setPolar(double radius, double angle);
-    Vec2d get2D() const;
 
     bool isValid() const;
     bool isZero() const;
     bool isSane() const;
     bool isNaN() const;
 
-    bool isInside(const BBox &b) const;
-
     bool equalsFuzzy(const Vec2d &v, double tol = DBL_EPSILON) const;
-    bool equalsFuzzy2D(const Vec2d &v, double tol = DBL_EPSILON) const;
     double getDistanceTo(const Vec2d &v) const;
-    double getDistanceTo2D(const Vec2d &v) const;
     void setAngle(double a);
     double getAngle() const;
-    double getAngleToPlaneXY() const;
     double getAngleTo(const Vec2d &v) const;
-    void setMagnitude2D(double m);
+    void setMagnitude(double m);
     double getMagnitude() const;
     double getSquaredMagnitude() const;
-    double getMagnitude2D() const;
     Vec2d getLerp(const Vec2d &v, double t) const;
     Vec2d getUnitVector() const;
 
@@ -97,17 +78,13 @@ struct Vec2d {
     Vec2d mirror(const Vec2d &axis1, const Vec2d &axis2);
     Vec2d flipHorizontal();
     Vec2d flipVertical();
-    Vec2d stretch(const Polyline &area, const Vec2d &offset);
 
     Vec2d getDividedComponents(const Vec2d &v) const;
     Vec2d getMultipliedComponents(const Vec2d &v) const;
 
     Vec2d getClosest(const std::vector<Vec2d> &list) const;
-    Vec2d getClosest2D(const std::vector<Vec2d> &list) const;
     double getClosestDistance(const std::vector<Vec2d> &list, int counts);
-    int getClosestIndex(const std::vector<Vec2d> &list,
-                        bool ignoreZ = false) const;
-    int getClosestIndex2D(const std::vector<Vec2d> &list) const;
+    int getClosestIndex(const std::vector<Vec2d> &list) const;
 
     Vec2d operator+(const Vec2d &v) const;
     Vec2d operator-(const Vec2d &v) const;
@@ -143,10 +120,9 @@ struct Vec2d {
     static Vec2d getAverage(const Vec2d &v1, const Vec2d &v2);
     static Vec2d getAverage(const std::vector<Vec2d> &vectors);
 
-    static Vec2d getCrossProduct(const Vec2d &v1, const Vec2d &v2);
+    static double getCrossProduct(const Vec2d &v1, const Vec2d &v2);
     static double getDotProduct(const Vec2d &v1, const Vec2d &v2);
     static Vec2d createPolar(double radius, double angle);
-
 
     static std::vector<Vec2d>
     getSortedByDistance(const std::vector<Vec2d> &list, const Vec2d &v);
@@ -169,6 +145,7 @@ struct Vec3d {
     Vec3d operator+(const Vec3d &rhs) const;
 };
 
+
 struct BBox {
     Vec2d c1;
     Vec2d c2;
@@ -183,9 +160,6 @@ struct BBox {
     bool isSane() const;
 
     bool equalsFuzzy(const BBox &b, double tol = DBL_EPSILON) const;
-    bool equalsFuzzy2D(const BBox &b, double tol = DBL_EPSILON) const;
-
-    BBox get2D() const;
 
     double getWidth() const;
     double getHeight() const;
@@ -195,15 +169,11 @@ struct BBox {
     Vec2d getMinimum() const;
     Vec2d getMaximum() const;
     bool isOutside(const BBox &other) const;
-    bool isOutsideXY(const BBox &other) const;
     bool contains(const BBox &other) const;
     bool contains(const Vec2d &v) const;
     bool intersects(const BBox &other) const;
-    bool intersectsWith(const Shape &shape, bool limited = true) const;
 
     void growToInclude(const BBox &other);
-    void growToIncludeBoxes(const std::vector<BBox> &others);
-
     void growToInclude(const Vec2d &v);
 
     Vec2d getCorner1() const;
@@ -212,18 +182,13 @@ struct BBox {
     void setCorner2(const Vec2d &v);
 
     std::vector<Vec2d> getCorners() const;
-    std::vector<Vec2d> getCorners2d() const;
-    std::vector<Line> getLines2d() const;
-    Polyline getPolyline2d() const;
+    std::vector<Line> getLines() const;
+    Polyline getPolyline() const;
 
     BBox &grow(double offset);
-    BBox &growXY(double offset);
-    BBox &growXY(double offsetX, double offsetY);
+    BBox &grow(double offsetX, double offsetY);
 
     void move(const Vec2d &offset);
-    bool scaleByReference(const Vec2d &referencePoint, const Vec2d &targetPoint,
-                          bool keepAspectRatio = false,
-                          bool fromCenter = false);
 
     bool operator==(const BBox &other) const;
     bool operator!=(const BBox &other) const { return !operator==(other); }
@@ -270,6 +235,7 @@ public:
     virtual bool isValid() const;
     virtual NS::ShapeType getShapeType() const;
     virtual Shape *clone() const = 0;
+
     virtual bool isInterpolated() const;
     virtual BBox getBoundingBox() const = 0;
     virtual double getLength() const = 0;
@@ -278,7 +244,6 @@ public:
 
     virtual Vec2d getClosestPointOnShape(const Vec2d &p, bool limited = true,
                                          double strictRange = DBL_MAX) const;
-
     virtual bool equals(const Shape &other,
                         double tolerance = DBL_EPSILON) const;
     virtual double getDistanceTo(const Vec2d &point, bool limited = true,
@@ -295,7 +260,6 @@ public:
     virtual std::vector<Vec2d> getEndPoints() const = 0;
     virtual std::vector<Vec2d> getMiddlePoints() const = 0;
     virtual std::vector<Vec2d> getCenterPoints() const = 0;
-    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const = 0;
     virtual std::vector<Vec2d>
     getPointsWithDistanceToEnd(double distance,
                                int from = NS::FromAny) const = 0;
@@ -308,17 +272,13 @@ public:
     virtual double getAngleAt(double distance,
                               NS::From from = NS::FromStart) const;
     virtual double getAngleAtPoint(const Vec2d &pos) const;
-
     virtual Vec2d getPointAtPercent(double p) const;
     virtual double getAngleAtPercent(double p) const;
-
     virtual bool intersectsWith(const Shape &other, bool limited = true) const;
-
     std::vector<Vec2d> getIntersectionPoints(const Shape &other,
                                              bool limited = true,
                                              bool same = false,
                                              bool force = false) const;
-
     virtual std::vector<Vec2d>
     getSelfIntersectionPoints(double tolerance = DBL_EPSILON) const;
 
@@ -332,7 +292,6 @@ public:
     virtual Vec2d getMiddlePoint() const;
 
     virtual bool reverse();
-
     virtual bool trimStartPoint(const Vec2d &trimPoint,
                                 const Vec2d &clickPoint = Vec2d::invalid,
                                 bool extend = false);
@@ -340,17 +299,11 @@ public:
     virtual bool trimEndPoint(const Vec2d &trimPoint,
                               const Vec2d &clickPoint = Vec2d::invalid,
                               bool extend = false);
-
     virtual bool trimEndPoint(double trimDist);
     virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
                                   const Vec2d &clickPoint);
     virtual double getDistanceFromStart(const Vec2d &p) const;
     virtual std::vector<double> getDistancesFromStart(const Vec2d &p) const;
-    static std::vector<Vec2d> getIntersectionPoints(const Shape &shape1,
-                                                    const Shape &shape2,
-                                                    bool limited = true,
-                                                    bool same = false,
-                                                    bool force = false);
 
     virtual bool move(const Vec2d &offset) = 0;
     virtual bool rotate(double rotation, const Vec2d &center = Vec2d()) = 0;
@@ -360,142 +313,98 @@ public:
     virtual bool mirror(const Line &axis) = 0;
     virtual bool flipHorizontal();
     virtual bool flipVertical();
-    virtual bool stretch(const BBox &area, const Vec2d &offset);
     virtual bool stretch(const Polyline &area, const Vec2d &offset);
-
-    static std::vector<Polyline>
-    getPolylines(const std::vector<std::shared_ptr<Shape>> &shapes);
-    static std::vector<std::shared_ptr<Shape>>
-    getOrderedShapes(const std::vector<std::shared_ptr<Shape>> &shapes);
-    static bool
-    order(std::vector<std::vector<std::shared_ptr<Shape>>> &boundary);
 
     virtual std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
                     const Vec2d &position = Vec2d::invalid);
 
-    static std::vector<std::shared_ptr<Shape>>
-    getOffsetLines(const Shape &shape, double distance, int number,
-                   NS::Side side, const Vec2d &position = Vec2d::invalid);
-    static std::vector<std::shared_ptr<Shape>>
-    getOffsetArcs(const Shape &shape, double distance, int number,
-                  NS::Side side, const Vec2d &position = Vec2d::invalid);
-
-    static std::vector<std::shared_ptr<Shape>>
-    getReversedShapeList(const std::vector<std::shared_ptr<Shape>> &shapes);
-
     virtual std::vector<std::shared_ptr<Shape>>
     splitAt(const std::vector<Vec2d> &points) const;
-
-    static std::vector<std::shared_ptr<Shape>>
-    trim(const Shape &trimShape, const Vec2d &trimClickPos,
-         const Shape &limitingShape, const Vec2d &limitingClickPos,
-         bool trimBoth, bool samePolyline);
-
-    static std::vector<std::shared_ptr<Shape>>
-    roundCorners(const std::vector<std::shared_ptr<Shape>> &shapes,
-                 double radius);
-
-    static std::vector<std::shared_ptr<Shape>>
-    roundShapes(const std::shared_ptr<Shape> shape1, const Vec2d &clickPos1,
-                const std::shared_ptr<Shape> shape2, const Vec2d &clickPos2,
-                bool trim, bool samePolyline, double radius, const Vec2d &pos);
-
-    static std::shared_ptr<Shape> xLineToRay(std::shared_ptr<Shape> shape);
-    static std::shared_ptr<Shape> rayToLine(std::shared_ptr<Shape> shape);
-
-    static std::shared_ptr<Shape> scaleArc(const Shape &shape,
-                                           const Vec2d &scaleFactors,
-                                           const Vec2d &center = Vec2d());
-
-    static std::shared_ptr<Shape>
-    ellipseToArcCircleEllipse(const Ellipse &ellipse);
 
     virtual std::vector<std::shared_ptr<Shape>>
     roundAllCorners(const std::vector<std::shared_ptr<Shape>> &shapes,
                     double radius) = 0;
 
-private:
-    static double ellipse2tr(double x, double y, double AA, double BB,
-                             double CC, double DD, double EE, double FF);
 };
 
 class Point : public Shape {
+    Vec2d position;
 public:
     Point();
     Point(double x, double y);
     Point(const Vec2d &position);
-    virtual ~Point();
-
-    virtual NS::ShapeType getShapeType() const;
-    virtual Point *clone() const;
+    ~Point() override;
 
     Vec2d getPosition() const;
     void setPosition(const Vec2d &p);
 
-    virtual BBox getBoundingBox() const;
-    virtual double getLength() const;
+public:
+     NS::ShapeType getShapeType() const override;
+     Point *clone() const override;
 
-    virtual std::vector<Vec2d> getEndPoints() const;
-    virtual std::vector<Vec2d> getMiddlePoints() const;
-    virtual std::vector<Vec2d> getCenterPoints() const;
-    virtual std::vector<Vec2d>
-    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
 
-    virtual double getAngleAt(double distance,
-                              NS::From from = NS::FromStart) const;
+     BBox getBoundingBox() const override;
+     double getLength() const override;
 
-    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
-                              double strictRange = DBL_MAX) const;
+     std::vector<Vec2d> getEndPoints() const override;
+     std::vector<Vec2d> getMiddlePoints() const override;
+     std::vector<Vec2d> getCenterPoints() const override;
+     std::vector<Vec2d>
+    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const override;
 
-    virtual bool move(const Vec2d &offset);
-    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
-    virtual bool scale(const Vec2d &scaleFactors,
-                       const Vec2d &center = Vec2d());
-    virtual bool mirror(const Line &axis);
-    virtual bool flipHorizontal();
-    virtual bool flipVertical();
+    double getAngleAt(double distance,
+                              NS::From from = NS::FromStart) const override;
 
-private:
-    Vec2d position;
+    Vec2d getVectorTo(const Vec2d &point, bool limited = true,
+                              double strictRange = DBL_MAX) const override;
+
+    bool move(const Vec2d &offset) override;
+    bool rotate(double rotation, const Vec2d &center = Vec2d()) override;
+    bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d()) override;
+    bool mirror(const Line &axis) override;
+    bool flipHorizontal() override;
+    bool flipVertical() override;
+
 };
 
 class Line : public Shape {
+    Vec2d startPoint;
+    Vec2d endPoint;
 public:
     Line();
     Line(double x1, double y1, double x2, double y2);
     Line(const Vec2d &startPoint, const Vec2d &endPoint);
     Line(const Vec2d &startPoint, double angle, double distance);
 
-    virtual NS::ShapeType getShapeType() const;
-    virtual Line *clone() const;
-
-    virtual bool isDirected() const;
-
-    virtual bool isValid() const;
-
-    virtual BBox getBoundingBox() const;
-
-    virtual std::vector<Vec2d> getEndPoints() const;
-    virtual std::vector<Vec2d> getMiddlePoints() const;
-    virtual std::vector<Vec2d> getCenterPoints() const;
-    virtual std::vector<Vec2d>
-    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
-
-    virtual double getAngleAt(double distance,
-                              NS::From from = NS::FromStart) const;
-
-    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
-                              double strictRange = DBL_MAX) const;
-
-    virtual Vec2d getStartPoint() const;
+    Vec2d getStartPoint() const override;
     void setStartPoint(const Vec2d &vector);
-    virtual Vec2d getEndPoint() const;
+    Vec2d getEndPoint() const override;
     void setEndPoint(const Vec2d &vector);
 
-    virtual Vec2d getMiddlePoint() const;
+public:
+     NS::ShapeType getShapeType() const override;
+     Line *clone() const override;
+
+    bool isDirected() const override;
+    bool isValid() const override;
+    BBox getBoundingBox() const override;
+
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+    std::vector<Vec2d>
+    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const override;
+
+    double getAngleAt(double distance,
+                              NS::From from = NS::FromStart) const override;
+
+    Vec2d getVectorTo(const Vec2d &point, bool limited = true,
+                              double strictRange = DBL_MAX) const override;
+
+
+    Vec2d getMiddlePoint() const override;
 
     double getLength() const;
     double getAngle() const;
@@ -508,93 +417,88 @@ public:
     bool isVertical(double tolerance = DBL_EPSILON) const;
     bool isHorizontal(double tolerance = DBL_EPSILON) const;
 
-    virtual double getDirection1() const;
-    virtual double getDirection2() const;
+    double getDirection1() const override;
+    double getDirection2() const override;
 
-    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
+    NS::Side getSideOfPoint(const Vec2d &point) const override;
 
     void clipToXY(const BBox &box);
 
-    virtual bool move(const Vec2d &offset);
-    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
-    virtual bool scale(const Vec2d &scaleFactors,
-                       const Vec2d &center = Vec2d());
-    virtual bool mirror(const Line &axis);
-    virtual bool flipHorizontal();
-    virtual bool flipVertical();
-    virtual bool reverse();
-    virtual bool stretch(const Polyline &area, const Vec2d &offset);
+    bool move(const Vec2d &offset) override;
+    bool rotate(double rotation, const Vec2d &center = Vec2d()) override;
+    bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d()) override;
+    bool mirror(const Line &axis) override;
+    bool flipHorizontal() override;
+    bool flipVertical() override;
+    bool reverse() override;
+    bool stretch(const Polyline &area, const Vec2d &offset) override;
 
-    virtual bool moveTo(const Vec2d &dest);
+    bool moveTo(const Vec2d &dest) override;
 
-    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
-                                  const Vec2d &clickPoint);
-    virtual bool trimStartPoint(const Vec2d &trimPoint,
+    NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint) override;
+    bool trimStartPoint(const Vec2d &trimPoint,
                                 const Vec2d &clickPoint = Vec2d::invalid,
-                                bool extend = false);
-    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                                bool extend = false) override;
+    bool trimEndPoint(const Vec2d &trimPoint,
                               const Vec2d &clickPoint = Vec2d::invalid,
-                              bool extend = false);
-    virtual bool trimStartPoint(double trimDist);
-    virtual bool trimEndPoint(double trimDist);
-    virtual double getDistanceFromStart(const Vec2d &p) const;
+                              bool extend = false) override;
+    bool trimStartPoint(double trimDist) override;
+    bool trimEndPoint(double trimDist) override;
+    double getDistanceFromStart(const Vec2d &p) const override;
 
-    virtual std::vector<std::shared_ptr<Shape>>
+    std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec2d &position = Vec2d::invalid);
+                    const Vec2d &position = Vec2d::invalid) override;
 
-    virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec2d> &points) const;
-
-private:
-    Vec2d startPoint;
-    Vec2d endPoint;
+    std::vector<std::shared_ptr<Shape>>
+    splitAt(const std::vector<Vec2d> &points) const override;
 };
 
 class Circle : public Shape {
+    Vec2d center;
+    double radius;
 public:
     Circle();
     Circle(double cx, double cy, const double radius);
     Circle(const Vec2d &center, const double radius);
-    virtual ~Circle();
-
-    static Circle createFrom2Points(const Vec2d &p1, const Vec2d &p2);
-    static Circle createFrom3Points(const Vec2d &p1, const Vec2d &p2,
-                                    const Vec2d &p3);
-
-    virtual NS::ShapeType getShapeType() const;
-    virtual Circle *clone() const;
-
-    static Circle createFrom2Points(const Vec2d &p1, const Vec2d &p2);
-    static Circle createFrom3Points(const Vec2d &p1, const Vec2d &p2,
-                                    const Vec2d &p3);
-
-    Arc toArc(double startAngle = 0.0) const;
-
-    virtual bool isValid() const;
-
-    virtual BBox getBoundingBox() const;
-    virtual double getLength() const;
-
-    virtual std::vector<Vec2d> getEndPoints() const;
-    virtual std::vector<Vec2d> getMiddlePoints() const;
-    virtual std::vector<Vec2d> getCenterPoints() const;
-    virtual std::vector<Vec2d> getArcRefPoints() const;
-    virtual std::vector<Vec2d>
-    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
-
-    virtual double getAngleAt(double distance,
-                              NS::From from = NS::FromStart) const;
-    Vec2d getPointAtAngle(double a) const;
-
-    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
-                              double strictRange = DBL_MAX) const;
-
+    ~Circle() override;
+    
     Vec2d getCenter() const;
     void setCenter(const Vec2d &vector);
     double getRadius() const;
     void setRadius(double radius);
+    static Circle createFrom2Points(const Vec2d &p1, const Vec2d &p2);
+    static Circle createFrom3Points(const Vec2d &p1, const Vec2d &p2,
+                                    const Vec2d &p3);
+
+    public:
+
+     NS::ShapeType getShapeType() const override;
+     Circle *clone() const override;
+
+    Arc toArc(double startAngle = 0.0) const;
+
+    bool isValid() const override;
+
+    BBox getBoundingBox() const override;
+    double getLength() const override;
+
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+    std::vector<Vec2d> getArcRefPoints() const override;
+    std::vector<Vec2d>
+    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const override;
+
+    double getAngleAt(double distance,
+                              NS::From from = NS::FromStart) const override;
+    Vec2d getPointAtAngle(double a) const override;
+
+    Vec2d getVectorTo(const Vec2d &point, bool limited = true,
+                              double strictRange = DBL_MAX) const override;
+
 
     double getDiameter() const;
     void setDiameter(double d);
@@ -605,29 +509,31 @@ public:
 
     bool contains(const Vec2d &p) const;
 
-    virtual bool move(const Vec2d &offset);
-    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
-    virtual bool scale(const Vec2d &scaleFactors,
-                       const Vec2d &center = Vec2d());
-    virtual bool mirror(const Line &axis);
-    virtual bool flipHorizontal();
-    virtual bool flipVertical();
+    bool move(const Vec2d &offset) override;
+    bool rotate(double rotation, const Vec2d &center = Vec2d()) override;
+    bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d()) override;
+    bool mirror(const Line &axis) override;
+    bool flipHorizontal() override;
+    bool flipVertical() override;
 
     std::vector<Line> getTangents(const Vec2d &point) const;
 
-    virtual std::vector<std::shared_ptr<Shape>>
+    std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec2d &position = Vec2d::invalid);
+                    const Vec2d &position = Vec2d::invalid) override;
 
-    virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec2d> &points) const;
+    std::vector<std::shared_ptr<Shape>>
+    splitAt(const std::vector<Vec2d> &points) const override;
 
-private:
-    Vec2d center;
-    double radius;
 };
 
 class Arc : public Shape {
+    Vec2d center;
+    double radius;
+    double startAngle;
+    double endAngle;
+    bool reversed;
 public:
     Arc();
     Arc(double cx, double cy, double radius, double startAngle, double endAngle,
@@ -635,14 +541,16 @@ public:
     Arc(const Vec2d &center, double radius, double startAngle, double endAngle,
         bool reversed = false);
 
-    virtual NS::ShapeType getShapeType() const;
-    virtual Arc *clone() const;
-
-    virtual bool isDirected() const;
-
-    virtual bool isValid() const;
-    bool isFullCircle(double tolerance = NS::AngleTolerance) const;
-
+    Vec2d getCenter() const;
+    void setCenter(const Vec2d &vector);
+    double getRadius() const;
+    void setRadius(double radius);
+    double getStartAngle() const;
+    void setStartAngle(double startAngle);
+    double getEndAngle() const;
+    void setEndAngle(double endAngle);
+    bool isReversed() const;
+    void setReversed(bool reversed);
     static Arc createFrom3Points(const Vec2d &startPoint, const Vec2d &point,
                                  const Vec2d &endPoint);
     static Arc createFrom2PBulge(const Vec2d &startPoint, const Vec2d &endPoint,
@@ -655,29 +563,29 @@ public:
                                         double endDirection,
                                         bool secondTry = false);
 
-    virtual BBox getBoundingBox() const;
+public:
 
-    virtual std::vector<Vec2d> getEndPoints() const;
-    virtual std::vector<Vec2d> getMiddlePoints() const;
-    virtual std::vector<Vec2d> getCenterPoints() const;
-    virtual std::vector<Vec2d> getArcRefPoints() const;
-    virtual std::vector<Vec2d>
-    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
 
-    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
-                              double strictRange = DBL_MAX) const;
+     NS::ShapeType getShapeType() const override;
+     Arc *clone() const override;
 
-    Vec2d getCenter() const;
-    void setCenter(const Vec2d &vector);
-    double getRadius() const;
-    void setRadius(double radius);
-    double getStartAngle() const;
-    void setStartAngle(double startAngle);
-    double getEndAngle() const;
-    void setEndAngle(double endAngle);
-    bool isReversed() const;
-    void setReversed(bool reversed);
+    bool isDirected() const override;
+
+     bool isValid() const override;
+    bool isFullCircle(double tolerance = NS::AngleTolerance) const;
+    BBox getBoundingBox() const override;
+
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+    std::vector<Vec2d> getArcRefPoints() const override;
+    std::vector<Vec2d>
+    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const override;
+
+    Vec2d getVectorTo(const Vec2d &point, bool limited = true,
+                              double strictRange = DBL_MAX) const override;
+
+
     double getAngleLength(bool allowForZeroLength = false) const;
     bool isAngleWithinArc(double a) const;
 
@@ -688,46 +596,46 @@ public:
     void setArea(double a);
     double getChordArea() const;
 
-    virtual double getDirection1() const;
-    virtual double getDirection2() const;
+    double getDirection1() const override;
+    double getDirection2() const override;
 
-    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
+    NS::Side getSideOfPoint(const Vec2d &point) const override;
 
     double getSweep() const;
     void setSweep(double s);
     double getLength() const;
 
-    virtual Vec2d getStartPoint() const;
-    virtual Vec2d getEndPoint() const;
-    Vec2d getPointAtAngle(double a) const;
-    virtual double getAngleAt(double distance,
-                              NS::From from = NS::FromStart) const;
-    virtual Vec2d getMiddlePoint() const;
+    Vec2d getStartPoint() const override;
+    Vec2d getEndPoint() const override;
+    Vec2d getPointAtAngle(double a) const override;
+    double getAngleAt(double distance,
+                              NS::From from = NS::FromStart) const override;
+    Vec2d getMiddlePoint() const override;
 
-    void moveStartPoint(const Vec2d &pos, bool keepRadius = true);
-    void moveEndPoint(const Vec2d &pos, bool keepRadius = true);
-    void moveMiddlePoint(const Vec2d &pos);
-    double getBulge() const;
+    void moveStartPoint(const Vec2d &pos, bool keepRadius = true) override;
+    void moveEndPoint(const Vec2d &pos, bool keepRadius = true) override;
+    void moveMiddlePoint(const Vec2d &pos) override;
+    double getBulge() const override;
 
-    virtual bool move(const Vec2d &offset);
-    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
-    virtual bool scale(const Vec2d &scaleFactors,
-                       const Vec2d &center = Vec2d());
-    virtual bool mirror(const Line &axis);
-    virtual bool reverse();
-    virtual bool stretch(const Polyline &area, const Vec2d &offset);
+    bool move(const Vec2d &offset) override;
+    bool rotate(double rotation, const Vec2d &center = Vec2d()) override;
+    bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d()) override
+    bool mirror(const Line &axis) override;
+    bool reverse() override;
+    bool stretch(const Polyline &area, const Vec2d &offset) override;
 
-    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
-                                  const Vec2d &clickPoint);
-    virtual bool trimStartPoint(const Vec2d &trimPoint,
+    NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint) override;
+    bool trimStartPoint(const Vec2d &trimPoint,
                                 const Vec2d &clickPoint = Vec2d::invalid,
-                                bool extend = false);
-    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                                bool extend = false) override;
+    bool trimEndPoint(const Vec2d &trimPoint,
                               const Vec2d &clickPoint = Vec2d::invalid,
-                              bool extend = false);
-    virtual bool trimStartPoint(double trimDist);
-    virtual bool trimEndPoint(double trimDist);
-    virtual double getDistanceFromStart(const Vec2d &p) const;
+                              bool extend = false) override;
+    bool trimStartPoint(double trimDist) override;
+    bool trimEndPoint(double trimDist) override;
+    double getDistanceFromStart(const Vec2d &p) const override;
 
     Polyline approximateWithLines(double segmentLength,
                                   double angle = 0.0) const;
@@ -736,59 +644,35 @@ public:
 
     std::vector<Line> getTangents(const Vec2d &point) const;
 
-    virtual std::vector<std::shared_ptr<Shape>>
+    std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec2d &position = Vec2d::invalid);
+                    const Vec2d &position = Vec2d::invalid) override;
 
-    virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec2d> &points) const;
+    std::vector<std::shared_ptr<Shape>>
+    splitAt(const std::vector<Vec2d> &points) const override;
 
     std::vector<Arc> splitAtQuadrantLines() const;
-
-private:
-    Vec2d center;
-    double radius;
-    double startAngle;
-    double endAngle;
-    bool reversed;
 };
 
 class Ellipse : public Shape {
+    Vec2d center;
+    Vec2d majorPoint;
+    double ratio;
+    double startParam;
+    double endParam;
+    bool reversed;
 public:
     Ellipse();
     Ellipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
             double startParam, double endParam, bool reversed);
-    virtual ~Ellipse();
+    ~Ellipse() override;
 
     static Ellipse createInscribed(const Vec2d &p1, const Vec2d &p2,
                                    const Vec2d &p3, const Vec2d &p4,
                                    const Vec2d &centerHint = Vec2d::invalid);
     static Ellipse createFrom4Points(const Vec2d &p1, const Vec2d &p2,
                                      const Vec2d &p3, const Vec2d &p4);
-
-    virtual NS::ShapeType getShapeType() const;
-    virtual Ellipse *clone() const;
-
-    virtual bool isDirected() const;
-    virtual bool isValid() const;
-
-    virtual BBox getBoundingBox() const;
-
-    virtual std::vector<Vec2d> getEndPoints() const;
-    virtual std::vector<Vec2d> getMiddlePoints() const;
-    virtual std::vector<Vec2d> getCenterPoints() const;
-    virtual std::vector<Vec2d>
-    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
-
-    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
-                              double strictRange = DBL_MAX) const;
-
-    void moveStartPoint(const Vec2d &pos, bool changeAngleOnly = false);
-    void moveEndPoint(const Vec2d &pos, bool changeAngleOnly = false);
-
-    std::vector<Vec2d> getFoci() const;
-
+                                     
     Vec2d getCenter() const;
     void setCenter(const Vec2d &vector);
     Vec2d getMajorPoint() const;
@@ -804,6 +688,31 @@ public:
 
     double getEndParam() const;
     void setEndParam(double endParam);
+
+public:
+
+     NS::ShapeType getShapeType() const override;
+     Ellipse *clone() const override;
+
+    bool isDirected() const override;
+     bool isValid() const override;
+
+    BBox getBoundingBox() const override;
+
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+    std::vector<Vec2d>
+    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const override;
+
+    Vec2d getVectorTo(const Vec2d &point, bool limited = true,
+                              double strictRange = DBL_MAX) const override;
+
+    void moveStartPoint(const Vec2d &pos, bool changeAngleOnly = false) override;
+    void moveEndPoint(const Vec2d &pos, bool changeAngleOnly = false) override;
+
+    std::vector<Vec2d> getFoci() const;
+
 
     double getStartAngle() const;
     void setStartAngle(double a);
@@ -821,13 +730,13 @@ public:
     bool isReversed() const;
     void setReversed(bool reversed);
 
-    virtual double getDirection1() const;
-    virtual double getDirection2() const;
+    double getDirection1() const override;
+    double getDirection2() const override;
 
-    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
+    NS::Side getSideOfPoint(const Vec2d &point) const override;
 
-    virtual Vec2d getStartPoint() const;
-    virtual Vec2d getEndPoint() const;
+    Vec2d getStartPoint() const override;
+    Vec2d getEndPoint() const override;
     double getMajorRadius() const;
     double getMinorRadius() const;
     double getAngle() const;
@@ -839,8 +748,8 @@ public:
 
     bool contains(const Vec2d &p) const;
 
-    virtual double getAngleAt(double distance,
-                              NS::From from = NS::FromStart) const;
+    double getAngleAt(double distance,
+                              NS::From from = NS::FromStart) const override;
 
     double getAngleAtPoint(const Vec2d &pos) const;
     double getParamTo(const Vec2d &pos) const;
@@ -848,26 +757,26 @@ public:
     Vec2d getPointAt(double param) const;
     Vec2d getMiddlePoint() const;
 
-    virtual Vec2d getPointOnShape() const;
+    Vec2d getPointOnShape() const override;
 
-    virtual bool move(const Vec2d &offset);
-    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
-    virtual bool scale(const Vec2d &scaleFactors,
-                       const Vec2d &center = Vec2d());
-    virtual bool mirror(const Line &axis);
+    bool move(const Vec2d &offset) override;
+    bool rotate(double rotation, const Vec2d &center = Vec2d()) override;
+    bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d()) override;
+    bool mirror(const Line &axis) override;
 
-    virtual bool reverse();
+    bool reverse() override;
 
-    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
-                                  const Vec2d &clickPoint);
-    virtual bool trimStartPoint(const Vec2d &trimPoint,
+    NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint) override;
+    bool trimStartPoint(const Vec2d &trimPoint,
                                 const Vec2d &clickPoint = Vec2d::invalid,
-                                bool extend = false);
-    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                                bool extend = false) override;
+    bool trimEndPoint(const Vec2d &trimPoint,
                               const Vec2d &clickPoint = Vec2d::invalid,
-                              bool extend = false);
-    virtual bool trimStartPoint(double trimDist);
-    virtual bool trimEndPoint(double trimDist);
+                              bool extend = false) override;
+    bool trimStartPoint(double trimDist) override;
+    bool trimEndPoint(double trimDist) override;
 
     void correctMajorMinor();
     double getSweep() const;
@@ -880,43 +789,26 @@ public:
     std::vector<BSpline> approximateWithSplines() const;
     Polyline approximateWithArcs(int segments) const;
 
-    virtual std::vector<std::shared_ptr<Shape>>
+    std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec2d &position = Vec2d::invalid);
-    virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec2d> &points) const;
-
-private:
-    Vec2d center;
-    Vec2d majorPoint;
-    double ratio;
-    double startParam;
-    double endParam;
-    bool reversed;
+                    const Vec2d &position = Vec2d::invalid) override;
+    std::vector<std::shared_ptr<Shape>>
+    splitAt(const std::vector<Vec2d> &points) const override;
 };
 
 class Polyline : public Shape {
+
+    std::vector<Vec2d> vertices;
+    std::vector<double> bulges;
+    std::vector<double> endWidths;
+    std::vector<double> startWidths;
+    bool closed;
+
 public:
     Polyline();
     Polyline(const std::vector<Vec2d> &vertices, bool closed);
     Polyline(const std::vector<std::shared_ptr<Shape>> &segments);
-    virtual ~Polyline();
-
-    virtual NS::ShapeType getShapeType() const;
-
-    virtual Polyline *clone() const;
-
-    virtual bool isDirected() const;
-    bool isFlat() const;
-
-    void clear();
-    void normalize(double tolerance = DBL_EPSILON);
-
-    bool prependShape(const Shape &shape);
-    bool appendShape(const Shape &shape, bool prepend = false);
-    bool appendShapeAuto(const Shape &shape);
-    bool appendShapeTrim(const Shape &shape);
-    bool closeTrim();
+    ~Polyline() override;
 
     void appendVertex(const Vec2d &vertex, double bulge = 0.0, double w1 = 0.0,
                       double w2 = 0.0);
@@ -970,6 +862,26 @@ public:
 
     void setClosed(bool on);
     bool isClosed() const;
+
+
+public:
+     NS::ShapeType getShapeType() const override;
+
+     Polyline *clone() const override;
+
+    bool isDirected() const override;
+    bool isFlat() const;
+
+    void clear();
+    void normalize(double tolerance = DBL_EPSILON);
+
+    bool prependShape(const Shape &shape);
+    bool appendShape(const Shape &shape, bool prepend = false);
+    bool appendShapeAuto(const Shape &shape);
+    bool appendShapeTrim(const Shape &shape);
+    bool closeTrim();
+
+    
     bool isGeometricallyClosed(double tolerance = DBL_EPSILON) const;
     bool autoClose(double tolerance = DBL_EPSILON);
     bool toLogicallyClosed(double tolerance = DBL_EPSILON);
@@ -984,83 +896,82 @@ public:
     Polyline convertArcToLineSegments(int segments) const;
     Polyline convertArcToLineSegmentsLength(double segmentLength) const;
 
-    virtual bool contains(const Vec2d &point, bool borderIsInside = false,
-                          double tolerance = DBL_EPSILON) const;
+    bool contains(const Vec2d &point, bool borderIsInside = false,
+                          double tolerance = DBL_EPSILON) const override;
     bool containsShape(const Shape &shape) const;
 
     Vec2d getPointInside() const;
 
-    virtual Vec2d getStartPoint() const;
-    virtual Vec2d getEndPoint() const;
-    virtual Vec2d getMiddlePoint() const;
+    Vec2d getStartPoint() const override;
+    Vec2d getEndPoint() const override;
+    Vec2d getMiddlePoint() const override;
 
     void moveStartPoint(const Vec2d &pos);
     void moveEndPoint(const Vec2d &pos);
 
     void moveSegmentAt(int i, const Vec2d &offset);
 
-    virtual double getDirection1() const;
-    virtual double getDirection2() const;
+    double getDirection1() const override;
+    double getDirection2() const override;
 
-    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
+    NS::Side getSideOfPoint(const Vec2d &point) const override;
 
-    virtual BBox getBoundingBox() const;
+    BBox getBoundingBox() const override;
 
     double getArea() const;
 
-    virtual double getLength() const;
+    double getLength() const override;
 
-    virtual double getDistanceFromStart(const Vec2d &p) const;
-    virtual std::vector<double> getDistancesFromStart(const Vec2d &p) const;
+    double getDistanceFromStart(const Vec2d &p) const override;
+    std::vector<double> getDistancesFromStart(const Vec2d &p) const override;
     double getLengthTo(const Vec2d &p, bool limited = true) const;
     double getSegmentsLength(int fromIndex, int toIndex) const;
 
-    virtual std::vector<Vec2d> getEndPoints() const;
-    virtual std::vector<Vec2d> getMiddlePoints() const;
-    virtual std::vector<Vec2d> getCenterPoints() const;
-    virtual Vec2d getPointAtPercent(double p) const;
-    virtual std::vector<Vec2d>
-    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+    Vec2d getPointAtPercent(double p) const override;
+    std::vector<Vec2d>
+    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const override;
 
-    virtual double getAngleAt(double distance,
-                              NS::From from = NS::FromStart) const;
+    double getAngleAt(double distance,
+                              NS::From from = NS::FromStart) const override;
 
-    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
-                              double strictRange = DBL_MAX) const;
-    virtual double getDistanceTo(const Vec2d &point, bool limited = true,
-                                 double strictRange = DBL_MAX) const;
+    Vec2d getVectorTo(const Vec2d &point, bool limited = true,
+                              double strictRange = DBL_MAX) const override;
+    double getDistanceTo(const Vec2d &point, bool limited = true,
+                                 double strictRange = DBL_MAX) const override;
 
     int getClosestSegment(const Vec2d &point) const;
     int getClosestVertex(const Vec2d &point) const;
-    virtual bool move(const Vec2d &offset);
-    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
-    virtual bool scale(double scaleFactor, const Vec2d &center = Vec2d());
-    virtual bool scale(const Vec2d &scaleFactors,
-                       const Vec2d &center = Vec2d());
-    virtual bool mirror(const Line &axis);
-    virtual bool reverse();
-    virtual Polyline getReversed() const;
-    virtual bool stretch(const Polyline &area, const Vec2d &offset);
+    bool move(const Vec2d &offset) override;
+    bool rotate(double rotation, const Vec2d &center = Vec2d()) override;
+    bool scale(double scaleFactor, const Vec2d &center = Vec2d()) override;
+    bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d()) override;
+    bool mirror(const Line &axis) override;
+    bool reverse() override;
+    Polyline getReversed() const override;
+    bool stretch(const Polyline &area, const Vec2d &offset) override;
 
-    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
-                                  const Vec2d &clickPoint);
-    virtual bool trimStartPoint(const Vec2d &trimPoint,
+    NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint) override;
+    bool trimStartPoint(const Vec2d &trimPoint,
                                 const Vec2d &clickPoint = Vec2d::invalid,
-                                bool extend = false);
-    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                                bool extend = false) override;
+    bool trimEndPoint(const Vec2d &trimPoint,
                               const Vec2d &clickPoint = Vec2d::invalid,
-                              bool extend = false);
-    virtual bool trimStartPoint(double trimDist);
-    virtual bool trimEndPoint(double trimDist);
+                              bool extend = false) override;
+    bool trimStartPoint(double trimDist) override;
+    bool trimEndPoint(double trimDist) override;
 
-    virtual std::vector<std::shared_ptr<Shape>>
-    getExploded(int segments = -1) const;
+    std::vector<std::shared_ptr<Shape>>
+    getExploded(int segments = -1) const override;
     std::vector<Polyline> getOutline() const;
     std::vector<std::pair<Polyline, Polyline>> getLeftRightOutline() const;
     std::vector<Polyline> getLeftOutline() const;
     std::vector<Polyline> getRightOutline() const;
-    virtual bool isInterpolated() const;
+    bool isInterpolated() const override;
     int countSegments() const;
     std::shared_ptr<Shape> getSegmentAt(int i) const;
     bool isArcSegmentAt(int i) const;
@@ -1114,44 +1025,18 @@ public:
 
 protected:
     bool isLineSegment(int i) const;
-
-protected:
-    std::vector<Vec2d> vertices;
-    std::vector<double> bulges;
-    std::vector<double> endWidths;
-    std::vector<double> startWidths;
-    bool closed;
 };
 
 class XLine : public Shape {
+    Vec2d basePoint;
+    Vec2d directionVector;
 public:
     XLine();
     XLine(const Line &line);
     XLine(const Vec2d &basePoint, const Vec2d &directionVector);
     XLine(const Vec2d &basePoint, double angle, double distance);
-    virtual ~XLine();
-
-    virtual NS::ShapeType getShapeType() const;
-
-    Line getLineShape() const;
-    virtual XLine *clone() const;
-    virtual bool isDirected() const;
-
-    BBox getBoundingBox() const;
-
-    virtual std::vector<Vec2d> getEndPoints() const;
-    virtual std::vector<Vec2d> getMiddlePoints() const;
-    virtual std::vector<Vec2d> getCenterPoints() const;
-    virtual std::vector<Vec2d>
-    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
-
-    virtual double getAngleAt(double distance,
-                              NS::From from = NS::FromStart) const;
-
-    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
-                              double strictRange = DBL_MAX) const;
-
+    ~XLine() override;
+    
     Vec2d getBasePoint() const;
     void setBasePoint(const Vec2d &vector);
     Vec2d getSecondPoint() const;
@@ -1159,53 +1044,72 @@ public:
     Vec2d getDirectionVector() const;
     void setDirectionVector(const Vec2d &vector);
 
-    virtual Vec2d getMiddlePoint() const;
+public:
+
+     NS::ShapeType getShapeType() const override;
+
+    Line getLineShape() const;
+     XLine *clone() const override;
+    bool isDirected() const override;
+
+    BBox getBoundingBox() const;
+
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+    std::vector<Vec2d>
+    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const override;
+
+    double getAngleAt(double distance,
+                              NS::From from = NS::FromStart) const override;
+
+    Vec2d getVectorTo(const Vec2d &point, bool limited = true,
+                              double strictRange = DBL_MAX) const override;
+
+    Vec2d getMiddlePoint() const override;
 
     double getLength() const;
     void setLength(double l);
     double getAngle() const;
     void setAngle(double a);
 
-    virtual double getDirection1() const;
-    virtual double getDirection2() const;
+    double getDirection1() const override;
+    double getDirection2() const override;
 
-    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
+    NS::Side getSideOfPoint(const Vec2d &point) const override;
 
-    virtual Vec2d getStartPoint() const;
-    virtual Vec2d getEndPoint() const;
+    Vec2d getStartPoint() const override;
+    Vec2d getEndPoint() const override;
 
-    virtual bool trimStartPoint(const Vec2d &trimPoint,
+    bool trimStartPoint(const Vec2d &trimPoint,
                                 const Vec2d &clickPoint = Vec2d::invalid,
-                                bool extend = false);
-    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                                bool extend = false) override;
+    bool trimEndPoint(const Vec2d &trimPoint,
                               const Vec2d &clickPoint = Vec2d::invalid,
-                              bool extend = false);
-    virtual bool trimStartPoint(double trimDist);
-    virtual bool trimEndPoint(double trimDist);
-    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
-                                  const Vec2d &clickPoint);
-    virtual double getDistanceFromStart(const Vec2d &p) const;
+                              bool extend = false) override;
+    bool trimStartPoint(double trimDist) override;
+    bool trimEndPoint(double trimDist) override;
+    NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint) override;
+    double getDistanceFromStart(const Vec2d &p) const override;
 
-    virtual Line getClippedLine(const BBox &box) const;
+    Line getClippedLine(const BBox &box) const override;
 
-    virtual bool move(const Vec2d &offset);
-    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
-    virtual bool scale(const Vec2d &scaleFactors,
-                       const Vec2d &center = Vec2d());
-    virtual bool mirror(const Line &axis);
-    virtual bool reverse();
-    virtual bool stretch(const Polyline &area, const Vec2d &offset);
+    bool move(const Vec2d &offset) override;
+    bool rotate(double rotation, const Vec2d &center = Vec2d()) override;
+    bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d()) override;
+    bool mirror(const Line &axis) override;
+    bool reverse() override;
+    bool stretch(const Polyline &area, const Vec2d &offset) override;
 
-    virtual std::vector<std::shared_ptr<Shape>>
+    std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec2d &position = Vec2d::invalid);
+                    const Vec2d &position = Vec2d::invalid) override;
 
-    virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec2d> &points) const;
+    std::vector<std::shared_ptr<Shape>>
+    splitAt(const std::vector<Vec2d> &points) const override;
 
-private:
-    Vec2d basePoint;
-    Vec2d directionVector;
 };
 
 class Ray : public XLine {
@@ -1214,48 +1118,51 @@ public:
     Ray(const Line &line);
     Ray(const Vec2d &basePoint, const Vec2d &directionVector);
     Ray(const Vec2d &basePoint, double angle, double distance);
-    virtual ~Ray();
+    ~Ray() override;
 
-    virtual NS::ShapeType getShapeType() const;
+     NS::ShapeType getShapeType() const override;
 
-    virtual Ray *clone() const;
+     Ray *clone() const override;
 
-    virtual bool trimEndPoint(const Vec2d &trimPoint,
+    bool trimEndPoint(const Vec2d &trimPoint,
                               const Vec2d &clickPoint = Vec2d::invalid,
-                              bool extend = false);
-    virtual std::vector<Vec2d> getPointsWithDistanceToEnd(double distance,
-                                                          int from) const;
-    virtual bool reverse();
-    virtual Line getClippedLine(const BBox &box) const;
-    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
-                              double strictRange = DBL_MAX) const;
+                              bool extend = false) override;
+    std::vector<Vec2d> getPointsWithDistanceToEnd(double distance,
+                                                          int from) const override;
+    bool reverse() override;
+    Line getClippedLine(const BBox &box) const override;
+    Vec2d getVectorTo(const Vec2d &point, bool limited = true,
+                              double strictRange = DBL_MAX) const override;
 
-    virtual bool stretch(const Polyline &area, const Vec2d &offset);
+    bool stretch(const Polyline &area, const Vec2d &offset) override;
 
-    virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec2d> &points) const;
+    std::vector<std::shared_ptr<Shape>>
+    splitAt(const std::vector<Vec2d> &points) const override;
 };
 
-class BSpline : public Shape {
+class BSpline : public Shape {    
+    mutable std::vector<Vec2d> controlPoints;
+    mutable std::vector<double> knotVector;
+    mutable std::vector<double> weights;
+    std::vector<Vec2d> fitPoints;
+    mutable int degree;
+
+    mutable Vec2d tangentStart;
+    mutable Vec2d tangentEnd;
+    mutable bool periodic;
+
+    mutable bool dirty;
+    mutable bool updateInProgress;
+
+
+    mutable BBox boundingBox;
+    mutable std::vector<std::shared_ptr<Shape>> exploded;
+    // cached length:
+    mutable double length;
 public:
     BSpline();
     BSpline(const BSpline &other);
     BSpline(const std::vector<Vec2d> &controlPoints, int degree);
-
-    BSpline &operator=(const BSpline &other);
-
-    virtual NS::ShapeType getShapeType() const;
-
-    virtual BSpline *clone() const;
-
-    virtual bool isDirected() const;
-
-    void copySpline(const BSpline &other);
-
-    static std::vector<BSpline> createSplinesFromArc(const Arc &arc);
-    static BSpline createBezierFromSmallArc(double r, double a1, double a2);
-
-    virtual bool isInterpolated() const;
 
     void appendControlPoint(const Vec2d &point);
     void appendControlPoints(const std::vector<Vec2d> &points);
@@ -1289,6 +1196,24 @@ public:
     void setDegree(int d);
     int getDegree() const;
 
+    public:
+
+
+     NS::ShapeType getShapeType() const override;
+
+     BSpline *clone() const override;
+
+    bool isDirected() const override;
+
+    void copySpline(const BSpline &other);
+
+    static std::vector<BSpline> createSplinesFromArc(const Arc &arc);
+    static BSpline createBezierFromSmallArc(double r, double a1, double a2);
+
+    bool isInterpolated() const override;
+
+
+
     int getOrder() const;
 
     void setPeriodic(bool on);
@@ -1298,13 +1223,13 @@ public:
     bool isGeometricallyClosed(double tolerance = DBL_EPSILON) const;
     bool isPeriodic() const;
 
-    virtual double getDirection1() const;
-    virtual double getDirection2() const;
+    double getDirection1() const override;
+    double getDirection2() const override;
 
-    virtual NS::Side getSideOfPoint(const Vec2d &point) const;
+    NS::Side getSideOfPoint(const Vec2d &point) const;
 
-    virtual Vec2d getStartPoint() const;
-    virtual Vec2d getEndPoint() const;
+    Vec2d getStartPoint() const override;
+    Vec2d getEndPoint() const override;
 
     void setStartPoint(const Vec2d &v);
     void setEndPoint(const Vec2d &v);
@@ -1321,65 +1246,64 @@ public:
 
     void updateTangentsPeriodic();
 
-    virtual BBox getBoundingBox() const;
+    BBox getBoundingBox() const override;
 
-    virtual double getLength() const;
+    double getLength() const override;
     Vec2d getPointAt(double t) const;
     Vec2d getPointAtDistance(double distance) const;
-    virtual double getAngleAt(double distance,
-                              NS::From from = NS::FromStart) const;
+    double getAngleAt(double distance,
+                              NS::From from = NS::FromStart) const override;
 
-    virtual std::vector<Vec2d> getEndPoints() const;
-    virtual Vec2d getMiddlePoint() const;
-    virtual std::vector<Vec2d> getMiddlePoints() const;
-    virtual std::vector<Vec2d> getCenterPoints() const;
-    virtual std::vector<Vec2d>
-    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
+    std::vector<Vec2d> getEndPoints() const override;
+    Vec2d getMiddlePoint() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+    std::vector<Vec2d>
+    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const override;
 
-    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
-                              double strictRange = DBL_MAX) const;
-    virtual bool isOnShape(const Vec2d &point, bool limited = true,
-                           double tolerance = DBL_EPSILON) const;
+    Vec2d getVectorTo(const Vec2d &point, bool limited = true,
+                              double strictRange = DBL_MAX) const override;
+    bool isOnShape(const Vec2d &point, bool limited = true,
+                           double tolerance = DBL_EPSILON) const override;
 
-    virtual bool move(const Vec2d &offset);
-    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
-    virtual bool scale(const Vec2d &scaleFactors,
-                       const Vec2d &center = Vec2d());
-    virtual bool mirror(const Line &axis);
-    virtual bool flipHorizontal();
-    virtual bool flipVertical();
-    virtual bool reverse();
-    virtual bool stretch(const Polyline &area, const Vec2d &offset);
+    bool move(const Vec2d &offset) override;
+    bool rotate(double rotation, const Vec2d &center = Vec2d()) override;
+    bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d()) override;
+    bool mirror(const Line &axis) override;
+    bool flipHorizontal() override;
+    bool flipVertical() override;
+    bool reverse() override;
+    bool stretch(const Polyline &area, const Vec2d &offset) override;
 
-    virtual NS::Ending getTrimEnd(const Vec2d &trimPoint,
-                                  const Vec2d &clickPoint);
-    virtual bool trimStartPoint(const Vec2d &trimPoint,
+    NS::Ending getTrimEnd(const Vec2d &trimPoint,
+                                  const Vec2d &clickPoint) override;
+    bool trimStartPoint(const Vec2d &trimPoint,
                                 const Vec2d &clickPoint = Vec2d::invalid,
-                                bool extend = false);
-    virtual bool trimEndPoint(const Vec2d &trimPoint,
+                                bool extend = false) override;
+    bool trimEndPoint(const Vec2d &trimPoint,
                               const Vec2d &clickPoint = Vec2d::invalid,
-                              bool extend = false);
-    virtual bool trimStartPoint(double trimDist);
-    virtual bool trimEndPoint(double trimDist);
-    virtual double getDistanceFromStart(const Vec2d &p) const;
+                              bool extend = false) override;
+    bool trimStartPoint(double trimDist) override;
+    bool trimEndPoint(double trimDist) override;
+    double getDistanceFromStart(const Vec2d &p) const override;
 
-    std::vector<BSpline> splitAtPoints(const std::vector<Vec2d> &points) const;
-    std::vector<BSpline> splitAtParams(const std::vector<double> &params) const;
+    std::vector<BSpline> splitAtPoints(const std::vector<Vec2d> &points) const override;
+    std::vector<BSpline> splitAtParams(const std::vector<double> &params) const override;
 
     Polyline toPolyline(int segments) const;
     Polyline approximateWithArcs(double tolerance,
                                  double radiusLimit = -1) const;
 
-    virtual std::vector<std::shared_ptr<Shape>>
-    getExploded(int segments = -1) const;
+    std::vector<std::shared_ptr<Shape>>
+    getExploded(int segments = -1) const override;
     std::vector<std::shared_ptr<Shape>> getExplodedBezier(int segments) const;
     std::vector<std::shared_ptr<Shape>>
     getExplodedWithSegmentLength(double segmentLength) const;
 
     std::vector<BSpline> getBezierSegments(const BBox &queryBox = BBox()) const;
 
-    virtual bool isValid() const;
+     bool isValid() const override;
     double getTDelta() const;
     double getTMin() const;
     double getTMax() const;
@@ -1395,8 +1319,8 @@ public:
     void updateFromFitPoints() const;
     void update() const;
 
-    virtual std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec2d> &points) const;
+    std::vector<std::shared_ptr<Shape>>
+    splitAt(const std::vector<Vec2d> &points) const override;
 
     bool isDirty() const;
 
@@ -1409,82 +1333,63 @@ protected:
     void updateInternal() const;
     void updateBoundingBox() const;
 
-private:
-    mutable std::vector<Vec2d> controlPoints;
-    mutable std::vector<double> knotVector;
-    mutable std::vector<double> weights;
-    std::vector<Vec2d> fitPoints;
-    mutable int degree;
-
-    mutable Vec2d tangentStart;
-    mutable Vec2d tangentEnd;
-    mutable bool periodic;
-
-    mutable bool dirty;
-    mutable bool updateInProgress;
-
-private:
-    mutable BBox boundingBox;
-    mutable std::vector<std::shared_ptr<Shape>> exploded;
-    // cached length:
-    mutable double length;
 };
 
 class Triangle : public Shape {
+    
+    Vec2d corner[3];
 public:
     Triangle();
     Triangle(const Vec2d &p1, const Vec2d &p2, const Vec2d &p3);
-    virtual ~Triangle();
-
-    virtual NS::ShapeType getShapeType() const;
-
-    virtual Triangle *clone() const;
-
-    Polyline getPolyline() const;
-    NS::Orientation getOrientation() const;
-    virtual bool reverse();
-
-    static Triangle createArrow(const Vec2d &position, double direction,
-                                double size);
-
-    virtual BBox getBoundingBox() const;
-    virtual double getLength() const;
+    ~Triangle() override;
     double getArea() const;
     Vec2d getCorner(int i) const;
     void setCorner(int i, const Vec2d &p);
     void setCorners(const Vec2d &c1, const Vec2d &c2, const Vec2d &c3);
 
-    virtual std::vector<Vec2d> getEndPoints() const;
-    virtual std::vector<Vec2d> getMiddlePoints() const;
-    virtual std::vector<Vec2d> getCenterPoints() const;
-    virtual std::vector<Vec2d>
-    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const;
-    virtual std::vector<Vec2d> getPointCloud(double segmentLength) const;
+public:
+     NS::ShapeType getShapeType() const override;
+     Triangle *clone() const override;
 
-    virtual double getDistanceTo(const Vec2d &point, bool limited = true,
-                                 double strictRange = DBL_MAX) const;
-    virtual Vec2d getVectorTo(const Vec2d &point, bool limited = true,
-                              double strictRange = DBL_MAX) const;
-    virtual Vec2d getNormal() const;
+    Polyline getPolyline() const;
+    NS::Orientation getOrientation() const;
+    bool reverse() override;
+
+    static Triangle createArrow(const Vec2d &position, double direction,
+                                double size);
+
+    BBox getBoundingBox() const override;
+    double getLength() const override;
+
+
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+    std::vector<Vec2d>
+    getPointsWithDistanceToEnd(double distance, int from = NS::FromAny) const override;
+
+    double getDistanceTo(const Vec2d &point, bool limited = true,
+                                 double strictRange = DBL_MAX) const override;
+    Vec2d getVectorTo(const Vec2d &point, bool limited = true,
+                              double strictRange = DBL_MAX) const override;
+    Vec2d getNormal() const override;
 
     bool isPointInTriangle(const Vec2d &p, bool treatAsQuadrant = false) const;
     bool isPointInQuadrant(const Vec2d &p) const;
 
     double getD() const;
 
-    virtual std::vector<std::shared_ptr<Shape>>
-    getExploded(int segments = -1) const;
+    std::vector<std::shared_ptr<Shape>>
+    getExploded(int segments = -1) const override;
 
-    virtual bool move(const Vec2d &offset);
-    virtual bool rotate(double rotation, const Vec2d &center = Vec2d());
-    virtual bool scale(const Vec2d &scaleFactors,
-                       const Vec2d &center = Vec2d());
-    virtual bool mirror(const Line &axis);
-    virtual bool flipHorizontal();
-    virtual bool flipVertical();
+    bool move(const Vec2d &offset) override;
+    bool rotate(double rotation, const Vec2d &center = Vec2d()) override;
+    bool scale(const Vec2d &scaleFactors,
+                       const Vec2d &center = Vec2d()) override;
+    bool mirror(const Line &axis) override;
+    bool flipHorizontal() override;
+    bool flipVertical() override;
 
-public:
-    Vec2d corner[3];
 };
 
 } // namespace cada

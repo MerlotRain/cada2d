@@ -1010,12 +1010,6 @@ std::vector<Vec2d> BSpline::getPointsWithDistanceToEnd(double distance,
     return ret;
 }
 
-std::vector<Vec2d> BSpline::getPointCloud(double segmentLength) const
-{
-    Polyline pl = approximateWithArcs(0.01);
-    return pl.getPointCloud(segmentLength);
-}
-
 Vec2d BSpline::getVectorTo(const Vec2d &point, bool limited,
                            double strictRange) const
 {

@@ -19,3 +19,27 @@
  * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
+
+#ifndef CADA_INTCURVECURVE_H
+#define CADA_INTCURVECURVE_H
+
+#include "cada_shape.h"
+
+namespace cada {
+
+class IntCurveCurve {
+    Shape *mShape1;
+    Shape *mShape2;
+
+public:
+    IntCurveCurve(Shape *shape1, Shape *shape2);
+
+    std::vector<Vec2d> intersectPoints(bool limited = true, bool same = false,
+                                       bool force = false) const;
+
+private:
+};
+
+} // namespace cada
+
+#endif

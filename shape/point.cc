@@ -78,13 +78,6 @@ std::vector<Vec2d> Point::getPointsWithDistanceToEnd(double distance,
     return ret;
 }
 
-std::vector<Vec2d> Point::getPointCloud(double segmentLength) const
-{
-    std::vector<Vec2d> ret;
-    ret.push_back(getPosition());
-    return ret;
-}
-
 double Point::getAngleAt(double distance, NS::From from) const
 {
     return std::numeric_limits<double>::quiet_NaN();
@@ -137,3 +130,5 @@ bool Point::flipVertical()
     position.flipVertical();
     return true;
 }
+
+} // namespace cada 

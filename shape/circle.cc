@@ -200,12 +200,6 @@ std::vector<Vec2d> Circle::getPointsWithDistanceToEnd(double distance,
     return ret;
 }
 
-std::vector<Vec2d> Circle::getPointCloud(double segmentLength) const
-{
-    Arc arc = toArc();
-    return arc.getPointCloud(segmentLength);
-}
-
 double Circle::getAngleAt(double distance, NS::From from) const
 {
     return std::numeric_limits<double>::quiet_NaN();

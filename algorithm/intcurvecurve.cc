@@ -23,6 +23,15 @@
 #include "intcurvecurve.h"
 
 namespace cada {
+namespace algorithm {
+
+
+
+
+static double ellipse2tr(double x, double y, double AA, double BB, double CC, double DD, double EE, double FF)
+{
+    return (AA*x*x + BB*x*y + CC*y*y + DD*x + EE*y + FF);
+}
 
 IntCurveCurve::IntCurveCurve(Shape *shp1, Shape *shp2)
     : mShape1(shp1), mShape2(shp2)
@@ -90,4 +99,6 @@ std::vector<Vec2d> IntCurveCurve::intersectPoints(bool limited, bool same,
     }
 }
 
+
+} // namespace algorithm
 } // namespace cada

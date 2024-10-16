@@ -1733,19 +1733,6 @@ std::vector<Vec2d> Polyline::getPointsWithDistanceToEnd(double distance,
     return ret;
 }
 
-std::vector<Vec2d> Polyline::getPointCloud(double segmentLength) const
-{
-    std::vector<Vec2d> ret;
-    for (int i = 0; i < countSegments(); i++) {
-        std::shared_ptr<Shape> seg = getSegmentAt(i);
-        if (seg.isNull()) {
-            continue;
-        }
-        ret.push_back(seg->getPointCloud(segmentLength));
-    }
-    return ret;
-}
-
 double Polyline::getAngleAt(double distance, NS::From from) const
 {
     std::vector<std::shared_ptr<Shape>> sub = getExploded();

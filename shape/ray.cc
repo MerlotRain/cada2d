@@ -154,3 +154,5 @@ Ray::splitAt(const std::vector<Vec2d> &points) const
 
     return ret;
 }
+
+} // namespace cada

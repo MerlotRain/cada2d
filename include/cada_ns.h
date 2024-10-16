@@ -24,8 +24,9 @@
 #define CADA_H
 
 namespace cada {
-namespace NS {
 
+class NS {
+public:
 static constexpr auto AngleTolerance = 1.0e-9;
 static constexpr auto PointTolerance = 1.0e-9;
 
@@ -136,7 +137,8 @@ enum Easing {
     OutInBounce
 };
 
-} // namespace NS
+};
+
 } // namespace cada
 
 #endif

@@ -711,12 +711,6 @@ std::vector<Vec2d> Ellipse::getPointsWithDistanceToEnd(double distance,
     return ret;
 }
 
-std::vector<Vec2d> Ellipse::getPointCloud(double segmentLength) const
-{
-    Polyline pl = approximateWithArcs(64);
-    return pl.getPointCloud(segmentLength);
-}
-
 Vec2d Ellipse::getVectorTo(const Vec2d &point, bool limited,
                            double strictRange) const
 {

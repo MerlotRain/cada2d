@@ -45,23 +45,21 @@ Vec2d RVectorDistanceSort::v;
 Vec2d RVectorAngleSort::center;
 double RVectorAngleSort::angle = 0.0;
 
-const Vec2d Vec2d::invalid = Vec2d(0, 0, 0, false);
-const Vec2d Vec2d::nullVector = Vec2d(0, 0, 0, true);
+const Vec2d Vec2d::invalid = Vec2d(0, 0, false);
+const Vec2d Vec2d::nullVector = Vec2d(0, 0, true);
 const Vec2d Vec2d::nanVector =
     Vec2d(std::numeric_limits<double>::quiet_NaN(),
-          std::numeric_limits<double>::quiet_NaN(),
           std::numeric_limits<double>::quiet_NaN(), true);
 
-Vec2d::Vec2d() : x(0.0), y(0.0), z(0.0), valid(true)
+Vec2d::Vec2d() : x(0.0), y(0.0), valid(true)
 {
 }
 
-Vec2d::Vec2d(double vx, double vy, double vz, bool valid_in)
-    : x(vx), y(vy), z(vz)
+Vec2d::Vec2d(double vx, double vy, bool valid_in)
+    : x(vx), y(vy)
 {
 
-    valid =
-        valid_in && Math::isNormal(x) && Math::isNormal(y) && Math::isNormal(z);
+    valid = valid_in && Math::isNormal(x) && Math::isNormal(y);
 }
 
 Vec2d::Vec2d(const std::vector<double> &tuples)
@@ -71,9 +69,6 @@ Vec2d::Vec2d(const std::vector<double> &tuples)
     }
     if (tuples.size() > 1) {
         y = tuples[1];
-    }
-    if (tuples.size() > 2) {
-        z = tuples[2];
     }
     valid = true;
 }
@@ -85,7 +80,6 @@ void Vec2d::set(double vx, double vy, double vz = 0.0)
 {
     x = vx;
     y = vy;
-    z = vz;
     valid = true;
 }
 
@@ -96,31 +90,24 @@ bool Vec2d::isValid() const
 
 bool Vec2d::isZero() const
 {
-    return fabs(x) < NS::PointTolerance && fabs(y) < NS::PointTolerance &&
-           fabs(z) < NS::PointTolerance;
+    return fabs(x) < NS::PointTolerance && fabs(y) < NS::PointTolerance;
 }
 
 bool Vec2d::isSane() const
 {
-    return isValid() && Math::isSane(x) && Math::isSane(y) && Math::isSane(z);
+    return isValid() && Math::isSane(x) && Math::isSane(y);
 }
 
 bool Vec2d::isNaN() const
 {
-    return Math::isNaN(x) || Math::isNaN(y) || Math::isNaN(z);
+    return Math::isNaN(x) || Math::isNaN(y);
 }
 
 void Vec2d::setPolar(double radius, double angle)
 {
     x = radius * cos(angle);
     y = radius * sin(angle);
-    z = 0.0;
     valid = Math::isNormal(radius) && Math::isNormal(angle);
-}
-
-Vec2d Vec2d::get2D() const
-{
-    return Vec2d(x, y);
 }
 
 void Vec2d::setAngle(double a)
@@ -132,7 +119,7 @@ void Vec2d::setAngle(double a)
 double Vec2d::getAngle() const
 {
     double ret = 0.0;
-    double m = getMagnitude2D();
+    double m = getMagnitude();
 
     if (m > 1.0e-6) {
         double dp = getDotProduct(*this, Vec2d(1.0, 0.0));
@@ -152,46 +139,23 @@ double Vec2d::getAngle() const
     return ret;
 }
 
-double Vec2d::getAngleToPlaneXY() const
-{
-    Vec2d n(0, 0, 1);
-
-    if (getMagnitude() < 1.0e-4) {
-        return M_PI / 2;
-    }
-    else if ((getDotProduct(*this, n) / (getMagnitude() * 1)) > 1.0) {
-        return 0.0;
-    }
-    else {
-        return M_PI / 2 - acos(getDotProduct(*this, n) / (getMagnitude() * 1));
-    }
-}
-
 double Vec2d::getAngleTo(const Vec2d &v) const
 {
     if (!valid || !v.valid) {
         return std::numeric_limits<double>::quiet_NaN();
     }
     else {
-        return (v.get2D() - get2D()).getAngle();
+        return (v - *this).getAngle();
     }
 }
 
-void Vec2d::setMagnitude2D(double m)
+void Vec2d::setMagnitude(double m)
 {
     double a = getAngle();
     setPolar(m, a);
 }
 
 double Vec2d::getMagnitude() const
-{
-    if (!valid) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    return sqrt(x * x + y * y + z * z);
-}
-
-double Vec2d::getMagnitude2D() const
 {
     if (!valid) {
         return std::numeric_limits<double>::quiet_NaN();
@@ -205,12 +169,12 @@ double Vec2d::getSquaredMagnitude() const
         return std::numeric_limits<double>::quiet_NaN();
     }
 
-    return x * x + y * y + z * z;
+    return x * x + y * y;
 }
 
 Vec2d Vec2d::getLerp(const Vec2d &v, double t) const
 {
-    return Vec2d(x + (v.x - x) * t, y + (v.y - y) * t, z + (v.z - z) * t);
+    return Vec2d(x + (v.x - x) * t, y + (v.y - y) * t);
 }
 
 Vec2d Vec2d::getUnitVector() const
@@ -218,22 +182,7 @@ Vec2d Vec2d::getUnitVector() const
     return *this / getMagnitude();
 }
 
-bool Vec2d::isInside(const BBox &b) const
-{
-    Vec2d bMin = b.getMinimum();
-    Vec2d bMax = b.getMaximum();
-
-    return (x >= bMin.x && x <= bMax.x && y >= bMin.y && y <= bMax.y &&
-            z >= bMin.z && z <= bMax.z);
-}
-
 bool Vec2d::equalsFuzzy(const Vec2d &v, double tol) const
-{
-    return (std::fabs(x - v.x) < tol && std::fabs(y - v.y) < tol &&
-            std::fabs(z - v.z) < tol && valid == v.valid);
-}
-
-bool Vec2d::equalsFuzzy2D(const Vec2d &v, double tol) const
 {
     return (std::fabs(x - v.x) < tol && std::fabs(y - v.y) < tol &&
             valid == v.valid);
@@ -249,17 +198,6 @@ double Vec2d::getDistanceTo(const Vec2d &v) const
     }
 }
 
-double Vec2d::getDistanceTo2D(const Vec2d &v) const
-{
-    if (!valid || !v.valid) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    else {
-        return (*this - v).getMagnitude2D();
-    }
-}
-
-
 Vec2d Vec2d::move(const Vec2d &offset)
 {
     *this += offset;
@@ -272,7 +210,7 @@ Vec2d Vec2d::rotate(double rotation)
         return *this;
     }
 
-    double r = getMagnitude2D();
+    double r = getMagnitude();
     double a = getAngle() + rotation;
 
     x = cos(a) * r;
@@ -304,7 +242,6 @@ Vec2d Vec2d::scale(const Vec2d &factors, const Vec2d &center)
     if (center == Vec2d()) {
         x *= factors.x;
         y *= factors.y;
-        z *= factors.z;
         return *this;
     }
 
@@ -359,32 +296,24 @@ Vec2d Vec2d::flipVertical()
     return mirror(Vec2d(0, 0, 0), Vec2d(1, 0, 0));
 }
 
-Vec2d Vec2d::stretch(const Polyline &area, const Vec2d &offset)
-{
-    if (area.contains(*this, true)) {
-        return move(offset);
-    }
-    return *this;
-}
-
 Vec2d Vec2d::operator+(const Vec2d &v) const
 {
-    return Vec2d(x + v.x, y + v.y, z + v.z, valid && v.valid);
+    return Vec2d(x + v.x, y + v.y, valid && v.valid);
 }
 
 Vec2d Vec2d::operator-(const Vec2d &v) const
 {
-    return Vec2d(x - v.x, y - v.y, z - v.z, valid && v.valid);
+    return Vec2d(x - v.x, y - v.y, valid && v.valid);
 }
 
 Vec2d Vec2d::operator*(double s) const
 {
-    return Vec2d(x * s, y * s, z * s, valid);
+    return Vec2d(x * s, y * s, valid);
 }
 
 Vec2d Vec2d::operator/(double s) const
 {
-    return Vec2d(x / s, y / s, z / s, valid);
+    return Vec2d(x / s, y / s, valid);
 }
 
 Vec2d Vec2d::operator-() const
@@ -394,12 +323,12 @@ Vec2d Vec2d::operator-() const
 
 Vec2d Vec2d::getNegated() const
 {
-    return Vec2d(-x, -y, -z, valid);
+    return Vec2d(-x, -y, valid);
 }
 
 Vec2d Vec2d::getAbsolute() const
 {
-    return Vec2d(fabs(x), fabs(y), fabs(z));
+    return Vec2d(fabs(x), fabs(y));
 }
 
 double Vec2d::dot(const Vec2d &other) const
@@ -424,14 +353,13 @@ Vec2d Vec2d::getNormalized() const
 
 double Vec2d::getDotProduct(const Vec2d &v1, const Vec2d &v2)
 {
-    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+    return v1.x * v2.x + v1.y * v2.y;
 }
 
 void Vec2d::operator+=(const Vec2d &v)
 {
     x += v.x;
     y += v.y;
-    z += v.z;
     valid = valid && v.valid;
 }
 
@@ -439,7 +367,6 @@ void Vec2d::operator-=(const Vec2d &v)
 {
     x -= v.x;
     y -= v.y;
-    z -= v.z;
     valid = valid && v.valid;
 }
 
@@ -447,20 +374,18 @@ void Vec2d::operator*=(double s)
 {
     x *= s;
     y *= s;
-    z *= s;
 }
 
 void Vec2d::operator/=(double s)
 {
     x /= s;
     y /= s;
-    z /= s;
 }
 
 bool Vec2d::operator==(const Vec2d &v) const
 {
     if (valid == true && v.valid == true) {
-        return x == v.x && y == v.y && z == v.z;
+        return x == v.x && y == v.y;
     }
     else if (valid == false && v.valid == false) {
         return true;
@@ -522,14 +447,12 @@ Vec2d Vec2d::getMaximum(const std::vector<Vec2d> &vectors)
 
 Vec2d Vec2d::getMinimum(const Vec2d &v1, const Vec2d &v2)
 {
-    return Vec2d(std::min(v1.x, v2.x), std::min(v1.y, v2.y),
-                 std::min(v1.z, v2.z), v1.valid && v2.valid);
+    return Vec2d(std::min(v1.x, v2.x), std::min(v1.y, v2.y), v1.valid && v2.valid);
 }
 
 Vec2d Vec2d::getMaximum(const Vec2d &v1, const Vec2d &v2)
 {
-    return Vec2d(std::max(v1.x, v2.x), std::max(v1.y, v2.y),
-                 std::max(v1.z, v2.z), v1.valid && v2.valid);
+    return Vec2d(std::max(v1.x, v2.x), std::max(v1.y, v2.y), v1.valid && v2.valid);
 }
 
 Vec2d Vec2d::getAverage(const Vec2d &v1, const Vec2d &v2)
@@ -546,34 +469,24 @@ Vec2d Vec2d::getAverage(const std::vector<Vec2d> &vectors)
     return sum / vectors.size();
 }
 
-Vec2d Vec2d::getCrossProduct(const Vec2d &v1, const Vec2d &v2)
+double Vec2d::getCrossProduct(const Vec2d &v1, const Vec2d &v2)
 {
-    return Vec2d(v1.y * v2.z - v1.z * v2.y, v1.z * v2.x - v1.x * v2.z,
-                 v1.x * v2.y - v1.y * v2.x, v1.valid && v2.valid);
+    return v1.x * v2.y - v1.y * v2.x;
 }
 
 Vec2d Vec2d::getDividedComponents(const Vec2d &v) const
 {
-    return Vec2d(x / v.x, y / v.y, z / v.z, valid);
+    return Vec2d(x / v.x, y / v.y, valid);
 }
 
 Vec2d Vec2d::getMultipliedComponents(const Vec2d &v) const
 {
-    return Vec2d(x * v.x, y * v.y, z * v.z, valid);
+    return Vec2d(x * v.x, y * v.y, valid);
 }
 
 Vec2d Vec2d::getClosest(const std::vector<Vec2d> &list) const
 {
     int index = getClosestIndex(list);
-    if (index == -1) {
-        return Vec2d::invalid;
-    }
-    return list[index].get2D();
-}
-
-Vec2d Vec2d::getClosest2D(const std::vector<Vec2d> &list) const
-{
-    int index = getClosestIndex2D(list);
     if (index == -1) {
         return Vec2d::invalid;
     }
@@ -599,20 +512,14 @@ double Vec2d::getClosestDistance(const std::vector<Vec2d> &list, int counts)
     return ret;
 }
 
-int Vec2d::getClosestIndex(const std::vector<Vec2d> &list, bool ignoreZ) const
+int Vec2d::getClosestIndex(const std::vector<Vec2d> &list) const
 {
     double minDist = DBL_MAX;
     int index = -1;
 
     for (int i = 0; i < list.size(); ++i) {
         if (list[i].valid) {
-            double dist;
-            if (ignoreZ) {
-                dist = getDistanceTo2D(list[i]);
-            }
-            else {
-                dist = getDistanceTo(list[i]);
-            }
+            double dist = getDistanceTo(list[i]);
             if (dist < minDist) {
                 minDist = dist;
                 index = i;
@@ -621,11 +528,6 @@ int Vec2d::getClosestIndex(const std::vector<Vec2d> &list, bool ignoreZ) const
     }
 
     return index;
-}
-
-int Vec2d::getClosestIndex2D(const std::vector<Vec2d> &list) const
-{
-    return getClosestIndex(list, true);
 }
 
 Vec2d Vec2d::createPolar(double radius, double angle)

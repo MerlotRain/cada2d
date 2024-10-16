@@ -203,11 +203,6 @@ std::vector<Vec2d> XLine::getPointsWithDistanceToEnd(double distance,
     return std::vector<Vec2d>();
 }
 
-std::vector<Vec2d> XLine::getPointCloud(double segmentLength) const
-{
-    return std::vector<Vec2d>();
-}
-
 double XLine::getAngleAt(double distance, NS::From from) const
 {
     return getAngle();

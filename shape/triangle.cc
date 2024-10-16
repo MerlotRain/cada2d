@@ -232,16 +232,6 @@ std::vector<Vec2d> Triangle::getPointsWithDistanceToEnd(double distance,
     return c;
 }
 
-std::vector<Vec2d> Triangle::getPointCloud(double segmentLength) const
-{
-
-    std::vector<Vec2d> ret;
-    ret.push_back(corner[0]);
-    ret.push_back(corner[1]);
-    ret.push_back(corner[2]);
-    return ret;
-}
-
 Vec2d Triangle::getNormal() const
 {
     return Vec2d::getCrossProduct(corner[0] - corner[2], corner[1] - corner[2]);

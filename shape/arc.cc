@@ -683,16 +683,6 @@ std::vector<Vec2d> Arc::getPointsWithDistanceToEnd(double distance,
     return ret;
 }
 
-std::vector<Vec2d> Arc::getPointCloud(double segmentLength) const
-{
-    std::vector<Vec2d> ret;
-    Polyline pl = approximateWithLines(segmentLength);
-    ret.push_back(pl.getVertices());
-    pl = approximateWithLinesTan(segmentLength);
-    ret.push_back(pl.getVertices());
-    return ret;
-}
-
 Vec2d Arc::getVectorTo(const Vec2d &point, bool limited,
                        double strictRange) const
 {
