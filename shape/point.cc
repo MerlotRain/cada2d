@@ -40,16 +40,6 @@ Point::~Point()
 {
 }
 
-BBox Point::getBoundingBox() const
-{
-    return BBox(position, position);
-}
-
-double Point::getLength() const
-{
-    return 0.0;
-}
-
 std::vector<Vec2d> Point::getEndPoints() const
 {
     std::vector<Vec2d> ret;
@@ -71,64 +61,4 @@ std::vector<Vec2d> Point::getCenterPoints() const
     return ret;
 }
 
-std::vector<Vec2d> Point::getPointsWithDistanceToEnd(double distance,
-                                                     int from) const
-{
-    std::vector<Vec2d> ret;
-    return ret;
-}
-
-double Point::getAngleAt(double distance, NS::From from) const
-{
-    return std::numeric_limits<double>::quiet_NaN();
-}
-
-Vec2d Point::getVectorTo(const Vec2d &point, bool limited,
-                         double strictRange) const
-{
-    return point - position;
-}
-
-bool Point::move(const Vec2d &offset)
-{
-    if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance) {
-        return false;
-    }
-    position += offset;
-    return true;
-}
-
-bool Point::rotate(double rotation, const Vec2d &center)
-{
-    if (fabs(rotation) < NS::AngleTolerance) {
-        return false;
-    }
-    position.rotate(rotation, center);
-    return true;
-}
-
-bool Point::scale(const Vec2d &scaleFactors, const Vec2d &center)
-{
-    position.scale(scaleFactors, center);
-    return true;
-}
-
-bool Point::mirror(const Line &axis)
-{
-    position.mirror(axis);
-    return true;
-}
-
-bool Point::flipHorizontal()
-{
-    position.flipHorizontal();
-    return true;
-}
-
-bool Point::flipVertical()
-{
-    position.flipVertical();
-    return true;
-}
-
-} // namespace cada 
+} // namespace cada

@@ -101,75 +101,87 @@ Plane::Plane(const Vec3d &p1, const Vec3d &p2, const Vec3d &p3)
     plane_from_points(p1, p2, p3, mRep[0], mRep[1], mRep[2], mRep[3]);
 }
 
-Plane::Plane(const double& a, const double& b, const double& c, const double& d)
+Plane::Plane(const double &a, const double &b, const double &c, const double &d)
     : mRep({a, b, c, d})
 {
 }
 
-double Plane::a() const { return mRep[0]; }
+double Plane::a() const
+{
+    return mRep[0];
+}
 
-double Plane::b() const { return mRep[1]; }
+double Plane::b() const
+{
+    return mRep[1];
+}
 
-double Plane::c() const { return mRep[2]; }
+double Plane::c() const
+{
+    return mRep[2];
+}
 
-double Plane::d() const { return mRep[3]; }
+double Plane::d() const
+{
+    return mRep[3];
+}
 
 Vec3d Plane::point() const
 {
-        double x = 0;
-        double y = 0;
-        double z = 0;
+    double x = 0;
+    double y = 0;
+    double z = 0;
 
-        double abs_pa = fabs(mRep[0]);
-        double abs_pb = fabs(mRep[1]);
-        double abs_pc = fabs(mRep[2]);
-        if (abs_pa >= abs_pb && abs_pa >= abs_pc)
-            x = -mRep[3] / mRep[0];
-        else if (abs_pb >= abs_pa && abs_pb >= abs_pc)
-            y = -mRep[3] / mRep[1];
-        else
-            z = -mRep[3] / mRep[2];
-        return Vec3d(x, y, z);
+    double abs_pa = fabs(mRep[0]);
+    double abs_pb = fabs(mRep[1]);
+    double abs_pc = fabs(mRep[2]);
+    if (abs_pa >= abs_pb && abs_pa >= abs_pc)
+        x = -mRep[3] / mRep[0];
+    else if (abs_pb >= abs_pa && abs_pb >= abs_pc)
+        y = -mRep[3] / mRep[1];
+    else
+        z = -mRep[3] / mRep[2];
+    return Vec3d(x, y, z);
 }
 
 Vec3d Plane::base1() const
 {
-        if (mRep[0] == 0) {
-            return Vec3d(1, 0, 0);
-        }
-        if (mRep[1] == 0) {
-            return Vec3d(0, 1, 0);
-        }
-        if (mRep[2] == 0) {
-            return Vec3d(0, 0, 1);
-        }
+    if (mRep[0] == 0) {
+        return Vec3d(1, 0, 0);
+    }
+    if (mRep[1] == 0) {
+        return Vec3d(0, 1, 0);
+    }
+    if (mRep[2] == 0) {
+        return Vec3d(0, 0, 1);
+    }
 
-        double a = fabs(mRep[0]);
-        double b = fabs(mRep[1]);
-        double c = fabs(mRep[2]);
+    double a = fabs(mRep[0]);
+    double b = fabs(mRep[1]);
+    double c = fabs(mRep[2]);
 
-        if (a <= b && a <= c)
-            return Vec3d(0, -mRep[2], mRep[1]);
+    if (a <= b && a <= c)
+        return Vec3d(0, -mRep[2], mRep[1]);
 
-        if (b <= a && b <= c)
-            return Vec3d(-mRep[2], 0, mRep[0]);
+    if (b <= a && b <= c)
+        return Vec3d(-mRep[2], 0, mRep[0]);
 
-        return Vec3d(-mRep[1], mRep[0], 0);
+    return Vec3d(-mRep[1], mRep[0], 0);
 }
 
 Vec3d Plane::base2() const
 {
-        Vec3d v = orthogonalVector();
-        Vec3d w = base1();
-        return Vec3d(v.y * w.z - v.z * w.y, v.z * w.x - v.x * w.z,
-                     v.x * w.y - v.y * w.x);
+    Vec3d v = orthogonalVector();
+    Vec3d w = base1();
+    return Vec3d(v.y * w.z - v.z * w.y, v.z * w.x - v.x * w.z,
+                 v.x * w.y - v.y * w.x);
 }
 Vec3d Plane::orthogonalVector() const
 {
     return Vec3d(mRep[0], mRep[1], mRep[2]);
 }
 
-bool Plane::on(const Vec3d& p) const
+bool Plane::on(const Vec3d &p) const
 {
     double a = mRep[0];
     double b = mRep[1];
@@ -180,40 +192,39 @@ bool Plane::on(const Vec3d& p) const
 }
 Vec3d Plane::projection(const Vec3d &p) const
 {
-        double pa = mRep[0];
-        double pb = mRep[1];
-        double pc = mRep[2];
-        double pd = mRep[3];
-        double num = pa * p.x + pb * p.y + pc * p.z + pd;
-        double den = pa * pa + pb * pb + pc * pc;
-        double lambda = num / den;
+    double pa = mRep[0];
+    double pb = mRep[1];
+    double pc = mRep[2];
+    double pd = mRep[3];
+    double num = pa * p.x + pb * p.y + pc * p.z + pd;
+    double den = pa * pa + pb * pb + pc * pc;
+    double lambda = num / den;
 
-        double x = p.x - lambda * pa;
-        double y = p.y - lambda * pb;
-        double z = p.z - lambda * pc;
-        return Vec3d(x, y, z);
+    double x = p.x - lambda * pa;
+    double y = p.y - lambda * pb;
+    double z = p.z - lambda * pc;
+    return Vec3d(x, y, z);
 }
 
-Vec2d Plane::to2d(const Vec3d& p) const
+Vec2d Plane::to2d(const Vec3d &p) const
 {
-        double alpha, beta, gamma;
-        Vec3d b1 = base1();
-        Vec3d b2 = base2();
-        Vec3d ov = orthogonal_vector();
-        Vec3d d = p - point();
+    double alpha, beta, gamma;
+    Vec3d b1 = base1();
+    Vec3d b2 = base2();
+    Vec3d ov = orthogonalVector();
+    Vec3d d = p - point();
 
-        cartesian_internal::solve(b1.x, b1.y, b1.z, b2.x, b2.y, b2.z, ov.x,
-                                  ov.y, ov.z, d.x, d.y, d.z, alpha, beta,
-                                  gamma);
+    cartesian_internal::solve(b1.x, b1.y, b1.z, b2.x, b2.y, b2.z, ov.x, ov.y,
+                              ov.z, d.x, d.y, d.z, alpha, beta, gamma);
 
-        return Vec2d(alpha, beta);
+    return Vec2d(alpha, beta);
 }
 
-Vec3d Plane::to3d(const Vec3d& p) const
+Vec3d Plane::to3d(const Vec3d &p) const
 {
-        Vec3d sb1 = base1() * p.x;
-        Vec3d sb2 = base2() * p.y;
-        return point() + sb1 + sb2;
+    Vec3d sb1 = base1() * p.x;
+    Vec3d sb2 = base2() * p.y;
+    return point() + sb1 + sb2;
 }
 
-} // namesapce cada
+} // namespace cada

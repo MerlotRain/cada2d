@@ -43,6 +43,8 @@ public:
                              double tolerance = DBL_EPSILON);
     static bool fuzzyAngleCompare(double v1, double v2,
                                   double tolerance = DBL_EPSILON);
+    static bool isSameDirection(double dir1, double dir2,
+                                double tol = DBL_EPSILON);
 };
 
 } // namespace cada

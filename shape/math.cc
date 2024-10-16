@@ -137,14 +137,25 @@ double Math::getAngleDifference180(double a1, double a2)
     return ret;
 }
 
-bool cada::Math::fuzzyCompare(double v1, double v2, double tolerance)
+bool Math::fuzzyCompare(double v1, double v2, double tolerance)
 {
     return fabs(v1 - v2) < tolerance;
 }
 
-bool cada::Math::fuzzyAngleCompare(double v1, double v2, double tolerance)
+bool Math::fuzzyAngleCompare(double v1, double v2, double tolerance)
 {
     return fabs(getAngleDifference180(v1, v2)) < tolerance;
+}
+
+bool Math::isSameDirection(double dir1, double dir2, double tol)
+{
+    double diff = fabs(dir1 - dir2);
+    if (diff < tol || diff > 2 * M_PI - tol) {
+        return true;
+    }
+    else {
+        return false;
+    }
 }
 
 } // namespace cada

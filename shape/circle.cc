@@ -112,16 +112,6 @@ void Circle::setRadius(double r)
     radius = r;
 }
 
-BBox Circle::getBoundingBox() const
-{
-    return BBox(center - Vec2d(radius, radius), center + Vec2d(radius, radius));
-}
-
-double Circle::getLength() const
-{
-    return 2 * radius * M_PI;
-}
-
 double Circle::getDiameter() const
 {
     return 2 * radius;
@@ -192,83 +182,6 @@ std::vector<Vec2d> Circle::getArcRefPoints() const
 
     return ret;
 }
-
-std::vector<Vec2d> Circle::getPointsWithDistanceToEnd(double distance,
-                                                      int from) const
-{
-    std::vector<Vec2d> ret;
-    return ret;
-}
-
-double Circle::getAngleAt(double distance, NS::From from) const
-{
-    return std::numeric_limits<double>::quiet_NaN();
-}
-
-Vec2d Circle::getPointAtAngle(double a) const
-{
-    return Vec2d(center.x + cos(a) * radius, center.y + sin(a) * radius);
-}
-
-Vec2d Circle::getVectorTo(const Vec2d &point, bool limited,
-                          double strictRange) const
-{
-    Vec2d v = (point - center).get2D();
-
-    // point is at the center of the circle, infinite solutions:
-    if (v.getMagnitude() < NS::PointTolerance) {
-        return Vec2d::invalid;
-    }
-
-    return Vec2d::createPolar(v.getMagnitude() - radius, v.getAngle());
-}
-
-bool Circle::move(const Vec2d &offset)
-{
-    if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance) {
-        return false;
-    }
-    center += offset;
-    return true;
-}
-
-bool Circle::rotate(double rotation, const Vec2d &c)
-{
-    if (fabs(rotation) < NS::AngleTolerance) {
-        return false;
-    }
-    center.rotate(rotation, c);
-    return true;
-}
-
-bool Circle::scale(const Vec2d &scaleFactors, const Vec2d &c)
-{
-    center.scale(scaleFactors, c);
-    radius *= scaleFactors.x;
-    if (radius < 0.0) {
-        radius *= -1.0;
-    }
-    return true;
-}
-
-bool Circle::mirror(const Line &axis)
-{
-    center.mirror(axis);
-    return true;
-}
-
-bool Circle::flipHorizontal()
-{
-    center.flipHorizontal();
-    return true;
-}
-
-bool Circle::flipVertical()
-{
-    center.flipVertical();
-    return true;
-}
-
 std::vector<Line> Circle::getTangents(const Vec2d &point) const
 {
     std::vector<Line> ret;
@@ -291,43 +204,6 @@ std::vector<Line> Circle::getTangents(const Vec2d &point) const
         if (ips.size() > 1) {
             ret.push_back(Line(point, ips[1]));
         }
-    }
-
-    return ret;
-}
-
-std::vector<std::shared_ptr<Shape>>
-Circle::splitAt(const std::vector<Vec2d> &points) const
-{
-    if (points.size() == 0) {
-        return Shape::splitAt(points);
-    }
-
-    std::vector<std::shared_ptr<Shape>> ret;
-
-    double refAngle = center.getAngleTo(points[0]);
-    Vec2d startPoint;
-    Vec2d endPoint;
-
-    startPoint = endPoint = center + Vec2d::createPolar(radius, refAngle);
-
-    std::vector<Vec2d> sortedPoints =
-        Vec2d::getSortedByAngle(points, center, refAngle);
-
-    if (!startPoint.equalsFuzzy(sortedPoints[0])) {
-        sortedPoints.prepend(startPoint);
-    }
-    if (!endPoint.equalsFuzzy(sortedPoints[sortedPoints.size() - 1])) {
-        sortedPoints.push_back(endPoint);
-    }
-    for (int i = 0; i < sortedPoints.size() - 1; i++) {
-        if (sortedPoints[i].equalsFuzzy(sortedPoints[i + 1])) {
-            continue;
-        }
-
-        ret.push_back(std::shared_ptr<Shape>(
-            new Arc(center, radius, center.getAngleTo(sortedPoints[i]),
-                    center.getAngleTo(sortedPoints[i + 1]), false)));
     }
 
     return ret;

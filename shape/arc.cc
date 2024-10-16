@@ -24,7 +24,6 @@
 
 namespace cada {
 
-
 Arc::Arc()
     : center(Vec2d::invalid), radius(0.0), startAngle(0.0), endAngle(0.0),
       reversed(false)
@@ -56,7 +55,6 @@ bool Arc::isFullCircle(double tolerance) const
                Math::getNormalizedAngle(startAngle),
                Math::getNormalizedAngle(endAngle))) < tolerance;
 }
-
 
 Arc Arc::createFrom3Points(const Vec2d &startPoint, const Vec2d &point,
                            const Vec2d &endPoint)
@@ -108,7 +106,7 @@ Arc Arc::createFrom2PBulge(const Vec2d &startPoint, const Vec2d &endPoint,
     // alpha can't be 0.0 at this point
     arc.radius = fabs(dist / sin(alpha / 2.0));
 
-    double wu = fabs(Math::pow(arc.radius, 2.0) - Math::pow(dist, 2.0));
+    double wu = fabs(std::pow(arc.radius, 2.0) - std::pow(dist, 2.0));
     double h = sqrt(wu);
     double angle = startPoint.getAngleTo(endPoint);
 
@@ -199,8 +197,8 @@ std::vector<Arc> Arc::createBiarc(const Vec2d &startPoint,
                               sin((alpha + beta - theta) / 2.0));
 
     // failed, might succeed in reverse direction:
-    if (qAbs(radius1) < NS::PointTolerance ||
-        qAbs(radius2) < NS::PointTolerance || !Math::isNormal(radius1) ||
+    if (std::fabs(radius1) < NS::PointTolerance ||
+        std::fabs(radius2) < NS::PointTolerance || !Math::isNormal(radius1) ||
         !Math::isNormal(radius2)) {
 
         if (secondTry) {
@@ -210,136 +208,36 @@ std::vector<Arc> Arc::createBiarc(const Vec2d &startPoint,
         std::vector<Arc> list =
             Arc::createBiarc(endPoint, endDirection + M_PI, startPoint,
                              startDirection + M_PI, true);
-        if (list.isEmpty()) {
+        if (list.empty()) {
             return std::vector<Arc>();
         }
 
         for (int i = 0; i < list.size(); i++) {
             list[i].reverse();
         }
-        return std::vector<Arc>() << list[1] << list[0];
-        //        return std::vector<Arc>();
+        return std::vector<Arc>{list[1], list[0]};
     }
 
-    Vec2d jointPoint = startPoint + radius1 * (startNormal - jointPointNormal);
+    Vec2d jointPoint = startPoint + (startNormal - jointPointNormal) * radius1;
 
     Vec2d center1 = startPoint + startNormal * radius1;
     Vec2d center2 = jointPoint + jointPointNormal * radius2;
 
-    Arc arc1(center1, qAbs(radius1), center1.getAngleTo(startPoint),
+    Arc arc1(center1, std::fabs(radius1), center1.getAngleTo(startPoint),
              center1.getAngleTo(jointPoint));
-    if (qAbs(Math::getAngleDifference180(arc1.getDirection1(),
-                                         startDirection)) > 0.1) {
+    if (std::fabs(Math::getAngleDifference180(arc1.getDirection1(),
+                                              startDirection)) > 0.1) {
         arc1.setReversed(true);
     }
 
-    Arc arc2(center2, qAbs(radius2), center2.getAngleTo(jointPoint),
+    Arc arc2(center2, std::fabs(radius2), center2.getAngleTo(jointPoint),
              center2.getAngleTo(endPoint));
-    if (qAbs(Math::getAngleDifference180(arc2.getDirection2() + M_PI,
-                                         endDirection)) > 0.1) {
+    if (std::fabs(Math::getAngleDifference180(arc2.getDirection2() + M_PI,
+                                              endDirection)) > 0.1) {
         arc2.setReversed(true);
     }
 
-    return std::vector<Arc>() << arc1 << arc2;
-}
-
-double Arc::getDirection1() const
-{
-    if (!reversed) {
-        return Math::getNormalizedAngle(startAngle + M_PI / 2.0);
-    }
-    else {
-        return Math::getNormalizedAngle(startAngle - M_PI / 2.0);
-    }
-}
-
-double Arc::getDirection2() const
-{
-    if (!reversed) {
-        return Math::getNormalizedAngle(endAngle - M_PI / 2.0);
-    }
-    else {
-        return Math::getNormalizedAngle(endAngle + M_PI / 2.0);
-    }
-}
-
-NS::Side Arc::getSideOfPoint(const Vec2d &point) const
-{
-    if (reversed) {
-        if (center.getDistanceTo(point) < radius) {
-            return NS::RightHand;
-        }
-        else {
-            return NS::LeftHand;
-        }
-    }
-    else {
-        if (center.getDistanceTo(point) < radius) {
-            return NS::LeftHand;
-        }
-        else {
-            return NS::RightHand;
-        }
-    }
-}
-
-void Arc::moveStartPoint(const Vec2d &pos, bool keepRadius)
-{
-    if (!keepRadius) {
-        Arc a = Arc::createFrom3Points(pos, getMiddlePoint(), getEndPoint());
-        if (a.isReversed() != isReversed()) {
-            a.reverse();
-        }
-        *this = a;
-    }
-    else {
-        double bulge = getBulge();
-
-        // full circle: trim instead of move:
-        if (bulge < 1.0e-6 || bulge > 1.0e6) {
-            startAngle = center.getAngleTo(pos);
-        }
-        else {
-            *this = Arc::createFrom2PBulge(pos, getEndPoint(), bulge);
-        }
-    }
-}
-
-void Arc::moveEndPoint(const Vec2d &pos, bool keepRadius)
-{
-    if (!keepRadius) {
-        Arc a = Arc::createFrom3Points(pos, getMiddlePoint(), getStartPoint());
-        if (a.isReversed() != isReversed()) {
-            a.reverse();
-        }
-        *this = a;
-    }
-    else {
-        double bulge = getBulge();
-
-        // full circle: trim instead of move:
-        if (bulge < 1.0e-6 || bulge > 1.0e6) {
-            endAngle = center.getAngleTo(pos);
-        }
-        else {
-            *this = Arc::createFrom2PBulge(getStartPoint(), pos, bulge);
-        }
-    }
-}
-
-void Arc::moveMiddlePoint(const Vec2d &pos)
-{
-    *this = Arc::createFrom3Points(getStartPoint(), pos, getEndPoint());
-}
-
-double Arc::getBulge() const
-{
-    // qDebug() << "sweep: " << getSweep();
-    double bulge = tan(fabs(getSweep()) / 4.0);
-    if (isReversed()) {
-        bulge *= -1;
-    }
-    return bulge;
+    return std::vector<Arc>{arc1, arc2};
 }
 
 double Arc::getLength() const
@@ -524,17 +422,7 @@ Vec2d Arc::getEndPoint() const
 
 Vec2d Arc::getPointAtAngle(double a) const
 {
-    return Vec2d(center.x + cos(a) * radius, center.y + sin(a) * radius,
-                 center.z);
-}
-
-double Arc::getAngleAt(double distance, NS::From from) const
-{
-    std::vector<Vec2d> points = getPointsWithDistanceToEnd(distance, from);
-    if (points.size() != 1) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    return center.getAngleTo(points[0]) + (reversed ? -M_PI / 2 : M_PI / 2);
+    return Vec2d(center.x + cos(a) * radius, center.y + sin(a) * radius);
 }
 
 bool Arc::isReversed() const
@@ -545,62 +433,6 @@ bool Arc::isReversed() const
 void Arc::setReversed(bool r)
 {
     reversed = r;
-}
-
-BBox Arc::getBoundingBox() const
-{
-    if (!isValid()) {
-        return BBox();
-    }
-
-    Vec2d minV;
-    Vec2d maxV;
-    double minX = qMin(getStartPoint().x, getEndPoint().x);
-    double minY = qMin(getStartPoint().y, getEndPoint().y);
-    double maxX = qMax(getStartPoint().x, getEndPoint().x);
-    double maxY = qMax(getStartPoint().y, getEndPoint().y);
-
-    if (getStartPoint().getDistanceTo(getEndPoint()) < 1.0e-6 &&
-        getRadius() > 1.0e5) {
-        minV = Vec2d(minX, minY);
-        maxV = Vec2d(maxX, maxY);
-        return BBox(minV, maxV);
-    }
-
-    double a1 = Math::getNormalizedAngle(!isReversed() ? startAngle : endAngle);
-    double a2 = Math::getNormalizedAngle(!isReversed() ? endAngle : startAngle);
-
-    // check for left limit:
-    if ((a1 < M_PI && a2 > M_PI) || (a1 > a2 - 1.0e-12 && a2 > M_PI) ||
-        (a1 > a2 - 1.0e-12 && a1 < M_PI)) {
-
-        minX = qMin(center.x - radius, minX);
-    }
-
-    // check for right limit:
-    if (a1 > a2 - 1.0e-12) {
-        maxX = qMax(center.x + radius, maxX);
-    }
-
-    // check for bottom limit:
-    if ((a1 < (M_PI_2 * 3) && a2 > (M_PI_2 * 3)) ||
-        (a1 > a2 - 1.0e-12 && a2 > (M_PI_2 * 3)) ||
-        (a1 > a2 - 1.0e-12 && a1 < (M_PI_2 * 3))) {
-
-        minY = qMin(center.y - radius, minY);
-    }
-
-    // check for top limit:
-    if ((a1 < M_PI_2 && a2 > M_PI_2) || (a1 > a2 - 1.0e-12 && a2 > M_PI_2) ||
-        (a1 > a2 - 1.0e-12 && a1 < M_PI_2)) {
-
-        maxY = qMax(center.y + radius, maxY);
-    }
-
-    minV = Vec2d(minX, minY);
-    maxV = Vec2d(maxX, maxY);
-
-    return BBox(minV, maxV);
 }
 
 std::vector<Vec2d> Arc::getEndPoints() const
@@ -643,203 +475,6 @@ std::vector<Vec2d> Arc::getArcRefPoints() const
     }
 
     return ret;
-}
-
-std::vector<Vec2d> Arc::getPointsWithDistanceToEnd(double distance,
-                                                   int from) const
-{
-    std::vector<Vec2d> ret;
-
-    if (radius < NS::PointTolerance) {
-        return ret;
-    }
-
-    double a1;
-    double a2;
-    Vec2d p;
-    double aDist = distance / radius;
-
-    if (isReversed()) {
-        a1 = getStartAngle() - aDist;
-        a2 = getEndAngle() + aDist;
-    }
-    else {
-        a1 = getStartAngle() + aDist;
-        a2 = getEndAngle() - aDist;
-    }
-
-    if (from & NS::FromStart) {
-        p.setPolar(radius, a1);
-        p += center;
-        ret.push_back(p);
-    }
-
-    if (from & NS::FromEnd) {
-        p.setPolar(radius, a2);
-        p += center;
-        ret.push_back(p);
-    }
-
-    return ret;
-}
-
-Vec2d Arc::getVectorTo(const Vec2d &point, bool limited,
-                       double strictRange) const
-{
-    double angle = center.getAngleTo(point);
-    if (limited &&
-        !Math::isAngleBetween(angle, startAngle, endAngle, reversed)) {
-        return Vec2d::invalid;
-    }
-
-    Vec2d v = (point - center).get2D();
-    return Vec2d::createPolar(v.getMagnitude() - radius, v.getAngle());
-}
-
-bool Arc::move(const Vec2d &offset)
-{
-    if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance) {
-        return false;
-    }
-    center += offset;
-    return true;
-}
-
-bool Arc::rotate(double rotation, const Vec2d &c)
-{
-    if (fabs(rotation) < NS::AngleTolerance) {
-        return false;
-    }
-
-    center.rotate(rotation, c);
-
-    // important for circle shaped in hatch boundaries:
-    if (!isFullCircle()) {
-        startAngle = Math::getNormalizedAngle(startAngle + rotation);
-        endAngle = Math::getNormalizedAngle(endAngle + rotation);
-    }
-
-    return true;
-}
-
-bool Arc::scale(const Vec2d &scaleFactors, const Vec2d &c)
-{
-    // negative scaling: mirroring and scaling
-    if (scaleFactors.x < 0.0) {
-        mirror(Line(center, center + Vec2d(0.0, 1.0)));
-    }
-    if (scaleFactors.y < 0.0) {
-        mirror(Line(center, center + Vec2d(1.0, 0.0)));
-    }
-
-    center.scale(scaleFactors, c);
-    radius *= scaleFactors.x;
-    if (radius < 0.0) {
-        radius *= -1.0;
-    }
-
-    return true;
-}
-
-bool Arc::mirror(const Line &axis)
-{
-    center.mirror(axis);
-
-    if (isFullCircle()) {
-        return true;
-    }
-
-    reversed = (!reversed);
-
-    Vec2d v;
-    v.setPolar(1.0, startAngle);
-    v.mirror(Vec2d(0.0, 0.0), axis.endPoint - axis.startPoint);
-    startAngle = v.getAngle();
-
-    v.setPolar(1.0, endAngle);
-    v.mirror(Vec2d(0.0, 0.0), axis.endPoint - axis.startPoint);
-    endAngle = v.getAngle();
-
-    return true;
-}
-
-bool Arc::reverse()
-{
-    double a = startAngle;
-    startAngle = endAngle;
-    endAngle = a;
-    reversed = !reversed;
-    return true;
-}
-
-bool Arc::stretch(const Polyline &area, const Vec2d &offset)
-{
-    bool ret = false;
-
-    if (area.contains(getStartPoint(), true) &&
-        area.contains(getEndPoint(), true)) {
-        return move(offset);
-    }
-
-    if (area.contains(getStartPoint(), true)) {
-        moveStartPoint(getStartPoint() + offset);
-        ret = true;
-    }
-    else if (area.contains(getEndPoint(), true)) {
-        moveEndPoint(getEndPoint() + offset);
-        ret = true;
-    }
-
-    return ret;
-}
-
-NS::Ending Arc::getTrimEnd(const Vec2d &trimPoint, const Vec2d &clickPoint)
-{
-    double angleToTrimPoint = center.getAngleTo(trimPoint);
-    double angleToClickPoint = center.getAngleTo(clickPoint);
-
-    if (Math::getAngleDifference(angleToClickPoint, angleToTrimPoint) > M_PI) {
-        if (reversed) {
-            return NS::EndingEnd;
-        }
-        else {
-            return NS::EndingStart;
-        }
-    }
-    else {
-        if (reversed) {
-            return NS::EndingStart;
-        }
-        else {
-            return NS::EndingEnd;
-        }
-    }
-}
-
-bool Arc::trimStartPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
-                         bool extend)
-{
-    startAngle = center.getAngleTo(trimPoint);
-    return true;
-}
-
-bool Arc::trimEndPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
-                       bool extend)
-{
-    endAngle = center.getAngleTo(trimPoint);
-    return true;
-}
-
-double Arc::getDistanceFromStart(const Vec2d &p) const
-{
-    double a1 = getStartAngle();
-    double ap = center.getAngleTo(p);
-    if (reversed) {
-        return Math::getAngleDifference(ap, a1) * radius;
-    }
-    else {
-        return Math::getAngleDifference(a1, ap) * radius;
-    }
 }
 
 Polyline Arc::approximateWithLines(double segmentLength, double angle) const
@@ -922,8 +557,6 @@ Polyline Arc::approximateWithLinesTan(double segmentLength, double angle) const
         // real angle step:
         aStep = fabs(getSweep()) / steps;
         if (fabs(cos(aStep / 2)) < NS::PointTolerance) {
-            qWarning() << "Arc::approximateWithLinesTan: segmentLength to "
-                          "coarse to yield meaningful result";
             polyline.appendVertex(getStartPoint());
             polyline.appendVertex(getEndPoint());
             return polyline;
@@ -980,57 +613,9 @@ std::vector<Line> Arc::getTangents(const Vec2d &point) const
     return circle.getTangents(point);
 }
 
-std::vector<std::shared_ptr<Shape>>
-Arc::splitAt(const std::vector<Vec2d> &points) const
-{
-    if (points.size() == 0) {
-        return Shape::splitAt(points);
-    }
-
-    std::vector<std::shared_ptr<Shape>> ret;
-
-    if (reversed) {
-        Arc arc = *this;
-        arc.reverse();
-        ret = arc.splitAt(points);
-        return Shape::getReversedShapeList(ret);
-    }
-
-    Vec2d startPoint = getStartPoint();
-    Vec2d endPoint = getEndPoint();
-
-    std::vector<Vec2d> sortedPoints =
-        Vec2d::getSortedByAngle(points, center, getStartAngle());
-
-    if (!startPoint.equalsFuzzy(sortedPoints[0])) {
-        sortedPoints.prepend(startPoint);
-    }
-    if (!endPoint.equalsFuzzy(sortedPoints[sortedPoints.size() - 1])) {
-        sortedPoints.push_back(endPoint);
-    }
-
-    for (int i = 0; i < sortedPoints.size() - 1; i++) {
-        if (sortedPoints[i].equalsFuzzy(sortedPoints[i + 1])) {
-            continue;
-        }
-
-        Arc *seg = clone();
-        double a1 = center.getAngleTo(sortedPoints[i]);
-        double a2 = center.getAngleTo(sortedPoints[i + 1]);
-        if (fabs(Math::getAngleDifference180(a1, a2) * radius) < 0.001) {
-            continue;
-        }
-        seg->setStartAngle(a1);
-        seg->setEndAngle(a2);
-        ret.push_back(std::shared_ptr<Shape>(seg));
-    }
-
-    return ret;
-}
-
 std::vector<Arc> Arc::splitAtQuadrantLines() const
 {
-    QVector<double> angles;
+    std::vector<double> angles;
     angles.push_back(0.0);
     angles.push_back(M_PI / 2);
     angles.push_back(M_PI);
@@ -1047,7 +632,7 @@ std::vector<Arc> Arc::splitAtQuadrantLines() const
 
     std::vector<Arc> ret;
     for (int i = 0; i < segments.size(); i++) {
-        std::shared_ptr<Arc> seg = segments[i].dynamicCast<Arc>();
+        std::shared_ptr<Arc> seg = std::dynamic_pointer_cast<Arc>(segments[i]);
         ret.push_back(*seg);
     }
     return ret;

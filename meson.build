@@ -1,23 +1,15 @@
-project('2dcad_algorithm', 'cpp',
-  version : '0.1',
-  default_options : ['warning_level=3', 'cpp_std=c++11'])
+project(
+  'cada2d',
+  'cpp',
+  version: '0.1',
+  default_options: ['warning_level=3', 'cpp_std=c++11'],
+  license: 'MIT', 
+)
 
-static_library('2dcad_algorithm',
-           'arc.cc',
-           'bspline.cc',
-           'pointstobspline.cc',
-           'ellipse.cc',
-           'math.cc',
-           'intcurvecurve.cc',
-           'bbox.cc',
-           'plane.cc',
-           'point.cc',
-           'polyline.cc',
-           'triangle.cc',
-           'line.cc',
-           'circle.cc',
-           'ray.cc',
-           'vec2d.cc',
-           'vec3d.cc',
-           'xline.cc',
-           install : true)
+inc_dirs = include_directories('include')
+
+subdir('algorithm')
+subdir('include')
+subdir('shape')
+
+cada2d_lib = static_library('cada2d', shape_src + algorithm_src, include_directories: inc_dirs)
