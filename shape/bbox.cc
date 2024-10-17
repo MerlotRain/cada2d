@@ -21,6 +21,7 @@
  */
 
 #include "cada_shape.h"
+#include <cmath>
 
 namespace cada {
 
@@ -233,29 +234,6 @@ std::vector<Vec2d> BBox::getCorners() const
     ret.push_back(Vec2d(c2.x, c2.y));
     ret.push_back(Vec2d(c1.x, c2.y));
 
-    return ret;
-}
-
-std::vector<Line> BBox::getLines() const
-{
-    std::vector<Line> ret;
-
-    ret.push_back(Line(Vec2d(c1.x, c1.y), Vec2d(c2.x, c1.y)));
-    ret.push_back(Line(Vec2d(c2.x, c1.y), Vec2d(c2.x, c2.y)));
-    ret.push_back(Line(Vec2d(c2.x, c2.y), Vec2d(c1.x, c2.y)));
-    ret.push_back(Line(Vec2d(c1.x, c2.y), Vec2d(c1.x, c1.y)));
-
-    return ret;
-}
-
-Polyline BBox::getPolyline() const
-{
-    Polyline ret;
-    ret.appendVertex(Vec2d(c1.x, c1.y));
-    ret.appendVertex(Vec2d(c2.x, c1.y));
-    ret.appendVertex(Vec2d(c2.x, c2.y));
-    ret.appendVertex(Vec2d(c1.x, c2.y));
-    ret.setClosed(true);
     return ret;
 }
 

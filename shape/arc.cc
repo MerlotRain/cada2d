@@ -21,56 +21,72 @@
  */
 
 #include "cada_shape.h"
+#include <cmath>
 
 namespace cada {
 
 Arc::Arc()
-    : center(Vec2d::invalid), radius(0.0), startAngle(0.0), endAngle(0.0),
-      reversed(false)
+    : mCenter(Vec2d::invalid), mRadius(0.0), mStartAngle(0.0), mEndAngle(0.0),
+      mReversed(false)
 {
 }
 
 Arc::Arc(double cx, double cy, double radius, double startAngle,
          double endAngle, bool reversed)
-    : center(cx, cy), radius(radius), startAngle(startAngle),
-      endAngle(endAngle), reversed(reversed)
+    : mCenter(cx, cy), mRadius(radius), mStartAngle(startAngle),
+      mEndAngle(endAngle), mReversed(reversed)
 {
 }
 
 Arc::Arc(const Vec2d &center, double radius, double startAngle, double endAngle,
          bool reversed)
-    : center(center), radius(radius), startAngle(startAngle),
-      endAngle(endAngle), reversed(reversed)
+    : mCenter(center), mRadius(radius), mStartAngle(startAngle),
+      mEndAngle(endAngle), mReversed(reversed)
 {
 }
 
 bool Arc::isValid() const
 {
-    return center.isValid() && radius > 0.0;
+    return mCenter.isValid() && mRadius > 0.0;
+}
+
+NS::ShapeType Arc::getShapeType() const
+{
+    return NS::Arc;
+}
+
+Arc *Arc::clone() const
+{
+    Arc* pClone = new Arc();
+    pClone->mCenter = mCenter;
+    pClone->mRadius = mRadius;
+    pClone->mStartAngle = mStartAngle;
+    pClone->mEndAngle = mEndAngle;
+    pClone->mReversed = mReversed;
+    return pClone;
 }
 
 bool Arc::isFullCircle(double tolerance) const
 {
     return fabs(Math::getAngleDifference180(
-               Math::getNormalizedAngle(startAngle),
-               Math::getNormalizedAngle(endAngle))) < tolerance;
+               Math::getNormalizedAngle(mStartAngle),
+               Math::getNormalizedAngle(mEndAngle))) < tolerance;
+}
+
+bool Arc::isAngleWithinArc(double a) const
+{
+    return false;
 }
 
 Arc Arc::createFrom3Points(const Vec2d &startPoint, const Vec2d &point,
                            const Vec2d &endPoint)
 {
-    // intersection of two middle lines
-
-    // middle points between first two points:
     Vec2d mp1 = Vec2d::getAverage(startPoint, point);
     double a1 = startPoint.getAngleTo(point) + M_PI / 2.0;
-    // direction from middle point to center:
     Vec2d dir1 = Vec2d::createPolar(1.0, a1);
 
-    // middle points between last two points:
     Vec2d mp2 = Vec2d::getAverage(point, endPoint);
     double a2 = point.getAngleTo(endPoint) + M_PI / 2.0;
-    // direction from middle point to center:
     Vec2d dir2 = Vec2d::createPolar(1.0, a2);
 
     Line midLine1(mp1, mp1 + dir1);
@@ -97,16 +113,16 @@ Arc Arc::createFrom2PBulge(const Vec2d &startPoint, const Vec2d &endPoint,
 
     Arc arc;
 
-    arc.reversed = (bulge < 0.0);
+    arc.mReversed = (bulge < 0.0);
     double alpha = atan(bulge) * 4.0;
 
     Vec2d middle = (startPoint + endPoint) / 2.0;
     double dist = startPoint.getDistanceTo(endPoint) / 2.0;
 
     // alpha can't be 0.0 at this point
-    arc.radius = fabs(dist / sin(alpha / 2.0));
+    arc.mRadius = fabs(dist / sin(alpha / 2.0));
 
-    double wu = fabs(std::pow(arc.radius, 2.0) - std::pow(dist, 2.0));
+    double wu = fabs(std::pow(arc.mRadius, 2.0) - std::pow(dist, 2.0));
     double h = sqrt(wu);
     double angle = startPoint.getAngleTo(endPoint);
 
@@ -121,10 +137,10 @@ Arc Arc::createFrom2PBulge(const Vec2d &startPoint, const Vec2d &endPoint,
         h *= -1.0;
     }
 
-    arc.center.setPolar(h, angle);
-    arc.center += middle;
-    arc.startAngle = arc.center.getAngleTo(startPoint);
-    arc.endAngle = arc.center.getAngleTo(endPoint);
+    arc.mCenter.setPolar(h, angle);
+    arc.mCenter += middle;
+    arc.mStartAngle = arc.mCenter.getAngleTo(startPoint);
+    arc.mEndAngle = arc.mCenter.getAngleTo(endPoint);
 
     return arc;
 }
@@ -134,31 +150,28 @@ Arc Arc::createTangential(const Vec2d &startPoint, const Vec2d &pos,
 {
     Arc arc;
 
-    arc.radius = radius;
-
-    // orthogonal to base entity:
+    arc.mRadius = radius;
     Vec2d ortho;
     ortho.setPolar(radius, direction + M_PI / 2.0);
 
-    // two possible center points for arc:
     Vec2d center1 = startPoint + ortho;
     Vec2d center2 = startPoint - ortho;
     if (center1.getDistanceTo(pos) < center2.getDistanceTo(pos)) {
-        arc.center = center1;
+        arc.mCenter = center1;
     }
     else {
-        arc.center = center2;
+        arc.mCenter = center2;
     }
 
     // angles:
-    arc.startAngle = arc.center.getAngleTo(startPoint);
-    arc.endAngle = arc.center.getAngleTo(pos);
+    arc.mStartAngle = arc.mCenter.getAngleTo(startPoint);
+    arc.mEndAngle = arc.mCenter.getAngleTo(pos);
 
     // handle arc direction:
-    arc.reversed = false;
+    arc.mReversed = false;
     double diff = Math::getNormalizedAngle(arc.getDirection1() - direction);
     if (fabs(diff - M_PI) < 1.0e-1) {
-        arc.reversed = true;
+        arc.mReversed = true;
     }
 
     return arc;
@@ -212,7 +225,7 @@ std::vector<Arc> Arc::createBiarc(const Vec2d &startPoint,
             return std::vector<Arc>();
         }
 
-        for (int i = 0; i < list.size(); i++) {
+        for (size_t i = 0; i < list.size(); i++) {
             list[i].reverse();
         }
         return std::vector<Arc>{list[1], list[0]};
@@ -240,47 +253,51 @@ std::vector<Arc> Arc::createBiarc(const Vec2d &startPoint,
     return std::vector<Arc>{arc1, arc2};
 }
 
-double Arc::getLength() const
+double Arc::getBulge() const
 {
-    return fabs(getAngleLength(false)) * radius;
+    double bulge = tan(fabs(getSweep()) / 4.0);
+    if (isReversed()) {
+        bulge *= -1;
+    }
+    return bulge;
 }
 
 double Arc::getDiameter() const
 {
-    return 2 * radius;
+    return 2 * mRadius;
 }
 
 void Arc::setDiameter(double d)
 {
-    radius = d / 2.0;
+    mRadius = d / 2.0;
 }
 
 void Arc::setLength(double l)
 {
-    double sweep = l / radius;
+    double sweep = l / mRadius;
     if (sweep > 2 * M_PI) {
         sweep = 2 * M_PI;
     }
-    if (reversed) {
+    if (mReversed) {
         sweep *= -1;
     }
 
-    endAngle = startAngle + sweep;
+    mEndAngle = mStartAngle + sweep;
 }
 
 double Arc::getArea() const
 {
-    return (radius * radius * getAngleLength(false)) / 2.0;
+    return (mRadius * mRadius * getAngleLength(false)) / 2.0;
 }
 
 void Arc::setArea(double a)
 {
-    double sweep = (a * 2.0) / (radius * radius);
-    if (reversed) {
-        endAngle = Math::getNormalizedAngle(startAngle - sweep);
+    double sweep = (a * 2.0) / (mRadius * mRadius);
+    if (mReversed) {
+        mEndAngle = Math::getNormalizedAngle(mStartAngle - sweep);
     }
     else {
-        endAngle = Math::getNormalizedAngle(startAngle + sweep);
+        mEndAngle = Math::getNormalizedAngle(mStartAngle + sweep);
     }
 }
 
@@ -291,16 +308,16 @@ double Arc::getChordArea() const
     double sweep = getSweep();
     if (sweep < M_PI) {
         sectorArea =
-            ((radius * radius) * (angleLength - sin(angleLength))) / 2.0;
+            ((mRadius * mRadius) * (angleLength - sin(angleLength))) / 2.0;
     }
     else if (sweep == M_PI) {
-        sectorArea = 0.5 * (M_PI * radius * radius);
+        sectorArea = 0.5 * (M_PI * mRadius * mRadius);
     }
     else {
         double remainAngle = (M_PI * 2) - sweep;
-        double remainSliceArea = (radius * radius * remainAngle) / 2.0;
+        double remainSliceArea = (mRadius * mRadius * remainAngle) / 2.0;
         double remainSectorArea =
-            (radius * radius * (remainAngle - sin(remainAngle))) / 2.0;
+            (mRadius * mRadius * (remainAngle - sin(remainAngle))) / 2.0;
         sectorArea = getArea() + (remainSliceArea - remainSectorArea);
     }
 
@@ -330,109 +347,104 @@ double Arc::getSweep() const
 {
     double ret = 0.0;
 
-    if (reversed) {
-        if (startAngle <= endAngle) {
-            ret = -(startAngle + 2 * M_PI - endAngle);
+    if (mReversed) {
+        if (mStartAngle <= mEndAngle) {
+            ret = -(mStartAngle + 2 * M_PI - mEndAngle);
         }
         else {
-            ret = -(startAngle - endAngle);
+            ret = -(mStartAngle - mEndAngle);
         }
     }
     else {
-        if (endAngle <= startAngle) {
-            ret = endAngle + 2 * M_PI - startAngle;
+        if (mEndAngle <= mStartAngle) {
+            ret = mEndAngle + 2 * M_PI - mStartAngle;
         }
         else {
-            ret = endAngle - startAngle;
+            ret = mEndAngle - mStartAngle;
         }
     }
-
-    // full circle:
-    //  if (!allowForZeroLength && fabs(ret) < 1.0e-6) {
-    //      ret = 2 * M_PI;
-    //  }
 
     return ret;
 }
 
 void Arc::setSweep(double s)
 {
-    endAngle = startAngle + s;
-    reversed = (s < 0.0);
+    mEndAngle = mStartAngle + s;
+    mReversed = (s < 0.0);
 }
 
 Vec2d Arc::getCenter() const
 {
-    return center;
+    return mCenter;
 }
 
 void Arc::setCenter(const Vec2d &vector)
 {
-    center = vector;
+    mCenter = vector;
 }
 
 double Arc::getRadius() const
 {
-    return radius;
+    return mRadius;
 }
 
 void Arc::setRadius(double r)
 {
-    radius = r;
+    mRadius = r;
 }
 
 double Arc::getStartAngle() const
 {
-    return startAngle;
+    return mStartAngle;
 }
 
 void Arc::setStartAngle(double a)
 {
-    startAngle = Math::getNormalizedAngle(a);
+    mStartAngle = Math::getNormalizedAngle(a);
 }
 
 double Arc::getEndAngle() const
 {
-    return endAngle;
+    return mEndAngle;
 }
 
 void Arc::setEndAngle(double a)
 {
-    endAngle = Math::getNormalizedAngle(a);
+    mEndAngle = Math::getNormalizedAngle(a);
 }
 
 Vec2d Arc::getMiddlePoint() const
 {
     double a;
-    a = startAngle + getSweep() / 2.0;
-    Vec2d v = Vec2d::createPolar(radius, a);
-    v += center;
+    a = mStartAngle + getSweep() / 2.0;
+    Vec2d v = Vec2d::createPolar(mRadius, a);
+    v += mCenter;
     return v;
 }
 
 Vec2d Arc::getStartPoint() const
 {
-    return getPointAtAngle(startAngle);
+    return getPointAtAngle(mStartAngle);
 }
 
 Vec2d Arc::getEndPoint() const
 {
-    return getPointAtAngle(endAngle);
+    return getPointAtAngle(mEndAngle);
 }
 
 Vec2d Arc::getPointAtAngle(double a) const
 {
-    return Vec2d(center.x + cos(a) * radius, center.y + sin(a) * radius);
+    return Vec2d(mCenter.x + cos(a) * mRadius, mCenter.y + sin(a) * mRadius);
 }
 
 bool Arc::isReversed() const
 {
-    return reversed;
+    return mReversed;
 }
 
 void Arc::setReversed(bool r)
 {
-    reversed = r;
+    mReversed = r;
 }
 
 std::vector<Vec2d> Arc::getEndPoints() const
@@ -462,14 +474,14 @@ std::vector<Vec2d> Arc::getArcRefPoints() const
     std::vector<Vec2d> ret;
 
     std::vector<Vec2d> p;
-    p.push_back(center + Vec2d(radius, 0));
-    p.push_back(center + Vec2d(0, radius));
-    p.push_back(center - Vec2d(radius, 0));
-    p.push_back(center - Vec2d(0, radius));
+    p.push_back(mCenter + Vec2d(mRadius, 0));
+    p.push_back(mCenter + Vec2d(0, mRadius));
+    p.push_back(mCenter - Vec2d(mRadius, 0));
+    p.push_back(mCenter - Vec2d(0, mRadius));
 
-    for (int i = 0; i < p.size(); i++) {
-        if (Math::isAngleBetween(center.getAngleTo(p[i]), startAngle, endAngle,
-                                 reversed)) {
+    for (size_t i = 0; i < p.size(); i++) {
+        if (Math::isAngleBetween(mCenter.getAngleTo(p[i]), mStartAngle, mEndAngle,
+                                 mReversed)) {
             ret.push_back(p[i]);
         }
     }
@@ -491,7 +503,7 @@ Polyline Arc::approximateWithLines(double segmentLength, double angle) const
             segmentLength = 1.0e-6;
         }
         if (segmentLength > 0.0) {
-            aStep = segmentLength / radius;
+            aStep = segmentLength / mRadius;
         }
         else {
             // negative segment length: auto:
@@ -504,14 +516,14 @@ Polyline Arc::approximateWithLines(double segmentLength, double angle) const
     double a, cix, ciy;
 
     polyline.appendVertex(getStartPoint());
-    if (!reversed) {
+    if (!mReversed) {
         // Arc Counterclockwise:
         if (a1 > a2 - 1.0e-10) {
             a2 += 2 * M_PI;
         }
         for (a = a1 + aStep; a <= a2; a += aStep) {
-            cix = center.x + cos(a) * radius;
-            ciy = center.y + sin(a) * radius;
+            cix = mCenter.x + cos(a) * mRadius;
+            ciy = mCenter.y + sin(a) * mRadius;
             polyline.appendVertex(Vec2d(cix, ciy));
         }
     }
@@ -521,8 +533,8 @@ Polyline Arc::approximateWithLines(double segmentLength, double angle) const
             a2 -= 2 * M_PI;
         }
         for (a = a1 - aStep; a >= a2; a -= aStep) {
-            cix = center.x + cos(a) * radius;
-            ciy = center.y + sin(a) * radius;
+            cix = mCenter.x + cos(a) * mRadius;
+            ciy = mCenter.y + sin(a) * mRadius;
             polyline.appendVertex(Vec2d(cix, ciy));
         }
     }
@@ -551,7 +563,7 @@ Polyline Arc::approximateWithLinesTan(double segmentLength, double angle) const
         }
 
         // ideal angle step to satisfy segmentLength:
-        aStep = segmentLength / radius;
+        aStep = segmentLength / mRadius;
 
         int steps = ceil(fabs(getSweep()) / aStep);
         // real angle step:
@@ -563,7 +575,7 @@ Polyline Arc::approximateWithLinesTan(double segmentLength, double angle) const
         }
     }
 
-    double r2 = radius / cos(aStep / 2);
+    double r2 = mRadius / cos(aStep / 2);
 
     double a1 = getStartAngle();
     double a2 = getEndAngle();
@@ -571,14 +583,14 @@ Polyline Arc::approximateWithLinesTan(double segmentLength, double angle) const
     double a, cix, ciy;
 
     polyline.appendVertex(getStartPoint());
-    if (!reversed) {
+    if (!mReversed) {
         // Arc Counterclockwise:
         if (a1 > a2 - 1.0e-10) {
             a2 += 2 * M_PI;
         }
         for (a = a1 + aStep / 2; a < a2; a += aStep) {
-            cix = center.x + cos(a) * r2;
-            ciy = center.y + sin(a) * r2;
+            cix = mCenter.x + cos(a) * r2;
+            ciy = mCenter.y + sin(a) * r2;
             polyline.appendVertex(Vec2d(cix, ciy));
         }
     }
@@ -588,8 +600,8 @@ Polyline Arc::approximateWithLinesTan(double segmentLength, double angle) const
             a2 -= 2 * M_PI;
         }
         for (a = a1 - aStep / 2; a > a2; a -= aStep) {
-            cix = center.x + cos(a) * r2;
-            ciy = center.y + sin(a) * r2;
+            cix = mCenter.x + cos(a) * r2;
+            ciy = mCenter.y + sin(a) * r2;
             polyline.appendVertex(Vec2d(cix, ciy));
         }
     }
@@ -597,8 +609,8 @@ Polyline Arc::approximateWithLinesTan(double segmentLength, double angle) const
     if (polyline.countVertices() == 1) {
         // only got start point, add point in the middle:
         a = getAngleAtPercent(0.5);
-        cix = center.x + cos(a) * r2;
-        ciy = center.y + sin(a) * r2;
+        cix = mCenter.x + cos(a) * r2;
+        ciy = mCenter.y + sin(a) * r2;
         polyline.appendVertex(Vec2d(cix, ciy));
     }
 
@@ -609,7 +621,7 @@ Polyline Arc::approximateWithLinesTan(double segmentLength, double angle) const
 
 std::vector<Line> Arc::getTangents(const Vec2d &point) const
 {
-    Circle circle(center, radius);
+    Circle circle(mCenter, mRadius);
     return circle.getTangents(point);
 }
 
@@ -622,16 +634,16 @@ std::vector<Arc> Arc::splitAtQuadrantLines() const
     angles.push_back(M_PI / 2 * 3);
 
     std::vector<Vec2d> points;
-    for (int i = 0; i < angles.size(); i++) {
+    for (size_t i = 0; i < angles.size(); i++) {
         if (isAngleWithinArc(angles[i])) {
-            points.push_back(center + Vec2d::createPolar(radius, angles[i]));
+            points.push_back(mCenter + Vec2d::createPolar(mRadius, angles[i]));
         }
     }
 
     std::vector<std::shared_ptr<Shape>> segments = splitAt(points);
 
     std::vector<Arc> ret;
-    for (int i = 0; i < segments.size(); i++) {
+    for (size_t i = 0; i < segments.size(); i++) {
         std::shared_ptr<Arc> seg = std::dynamic_pointer_cast<Arc>(segments[i]);
         ret.push_back(*seg);
     }

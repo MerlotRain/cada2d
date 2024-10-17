@@ -28,36 +28,59 @@ Point::Point()
 {
 }
 
-Point::Point(double x, double y) : position(x, y)
+Point::Point(double x, double y) : mPosition(x, y)
 {
 }
 
-Point::Point(const Vec2d &position) : position(position)
+Point::Point(const Vec2d &position) : mPosition(position)
 {
 }
 
-Point::~Point()
+Vec2d Point::getPosition() const
 {
+    return mPosition;
+}
+
+void Point::setPosition(const Vec2d &p)
+{
+    mPosition = p;
+}
+
+bool Point::isValid() const
+{
+    return mPosition.isValid();
+}
+
+NS::ShapeType Point::getShapeType() const
+{
+    return NS::Point;
+}
+
+Point *Point::clone() const
+{
+    Point *pClone = new Point();
+    pClone->mPosition = mPosition;
+    return pClone;
 }
 
 std::vector<Vec2d> Point::getEndPoints() const
 {
     std::vector<Vec2d> ret;
-    ret.push_back(position);
+    ret.push_back(mPosition);
     return ret;
 }
 
 std::vector<Vec2d> Point::getMiddlePoints() const
 {
     std::vector<Vec2d> ret;
-    ret.push_back(position);
+    ret.push_back(mPosition);
     return ret;
 }
 
 std::vector<Vec2d> Point::getCenterPoints() const
 {
     std::vector<Vec2d> ret;
-    ret.push_back(position);
+    ret.push_back(mPosition);
     return ret;
 }
 

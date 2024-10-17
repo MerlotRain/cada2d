@@ -27,13 +27,13 @@ namespace cada {
 /**
  * Creates an xline object with invalid base point and direction.
  */
-XLine::XLine() : basePoint(Vec2d::invalid), directionVector(Vec2d::invalid)
+XLine::XLine() : mBasePoint(Vec2d::invalid), mDirectionVector(Vec2d::invalid)
 {
 }
 
 XLine::XLine(const Line &line)
-    : basePoint(line.getStartPoint()),
-      directionVector(line.getEndPoint() - line.getStartPoint())
+    : mBasePoint(line.getStartPoint()),
+      mDirectionVector(line.getEndPoint() - line.getStartPoint())
 {
 }
 
@@ -41,32 +41,41 @@ XLine::XLine(const Line &line)
  * Creates an xline object with the given base point and direction.
  */
 XLine::XLine(const Vec2d &basePoint, const Vec2d &directionVector)
-    : basePoint(basePoint), directionVector(directionVector)
+    : mBasePoint(basePoint), mDirectionVector(directionVector)
 {
 }
 
 XLine::XLine(const Vec2d &basePoint, double angle, double distance)
-    : basePoint(basePoint), directionVector(Vec2d::createPolar(distance, angle))
+    : mBasePoint(basePoint), mDirectionVector(Vec2d::createPolar(distance, angle))
 {
 }
 
-XLine::~XLine()
+bool XLine::isValid() const
 {
+    return true;
 }
 
-double XLine::getLength() const
+NS::ShapeType XLine::getShapeType() const
 {
-    return std::numeric_limits<double>::quiet_NaN();
+    return NS::XLine;
+}
+
+XLine *XLine::clone() const
+{
+    XLine *pClone = new XLine();
+    pClone->mBasePoint = mBasePoint;
+    pClone->mDirectionVector = mDirectionVector;
+    return pClone;
 }
 
 double XLine::getAngle() const
 {
-    return directionVector.getAngle();
+    return mDirectionVector.getAngle();
 }
 
 void XLine::setAngle(double a)
 {
-    directionVector.setAngle(a);
+    mDirectionVector.setAngle(a);
 }
 
 void XLine::setLength(double l)
@@ -76,42 +85,32 @@ void XLine::setLength(double l)
 
 Vec2d XLine::getStartPoint() const
 {
-    return basePoint;
+    return mBasePoint;
 }
 
 Vec2d XLine::getEndPoint() const
 {
-    return getSecondPoint();
+    return mBasePoint + mDirectionVector;
 }
 
 Vec2d XLine::getBasePoint() const
 {
-    return basePoint;
+    return mBasePoint;
 }
 
 void XLine::setBasePoint(const Vec2d &vector)
 {
-    basePoint = vector;
-}
-
-Vec2d XLine::getSecondPoint() const
-{
-    return basePoint + directionVector;
-}
-
-void XLine::setSecondPoint(const Vec2d &vector)
-{
-    directionVector = vector - basePoint;
+    mBasePoint = vector;
 }
 
 Vec2d XLine::getDirectionVector() const
 {
-    return directionVector;
+    return mDirectionVector;
 }
 
 void XLine::setDirectionVector(const Vec2d &vector)
 {
-    directionVector = vector;
+    mDirectionVector = vector;
 }
 
 Vec2d XLine::getMiddlePoint() const

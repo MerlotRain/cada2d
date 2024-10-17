@@ -26,6 +26,7 @@
 #include "cada_shape.h"
 
 namespace cada {
+namespace algorithm {
 
 class IntCurveCurve {
     Shape *mShape1;
@@ -40,6 +41,7 @@ public:
 private:
 };
 
+} // namespace algorithm
 } // namespace cada
 
 #endif

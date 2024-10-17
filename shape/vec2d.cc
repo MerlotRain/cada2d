@@ -73,9 +73,6 @@ Vec2d::Vec2d(const std::vector<double> &tuples)
     valid = true;
 }
 
-Vec2d::~Vec2d()
-{
-}
 void Vec2d::set(double vx, double vy, double vz = 0.0)
 {
     x = vx;
@@ -256,34 +253,29 @@ Vec2d Vec2d::getScaled(const Vec2d &factors, const Vec2d &center) const
     return ret;
 }
 
-Vec2d Vec2d::mirror(const Line &axis)
+Vec2d Vec2d::mirror(const Vec2d &v1, const Vec2d &v2)
 {
-    double phi1 = axis.startPoint.getAngleTo(*this);
-    double phi2 = axis.startPoint.getAngleTo(axis.endPoint) - phi1;
-    double r1 = axis.startPoint.getDistanceTo(*this);
-    double r2 = axis.endPoint.getDistanceTo(*this);
+    double phi1 = v1.getAngleTo(*this);
+    double phi2 = v1.getAngleTo(v2) - phi1;
+    double r1 = v1.getDistanceTo(*this);
+    double r2 = v2.getDistanceTo(*this);
 
     if (r1 < 1.0e-6 || r2 < 1.0e-6) {
         // point touches one axis point
     }
     else {
         setPolar(r1, phi1 + 2 * phi2);
-        (*this) += axis.startPoint;
+        (*this) += v1;
     }
 
     return *this;
 }
 
-Vec2d Vec2d::getMirrored(const Line &axis) const
+Vec2d Vec2d::getMirrored(const Vec2d &v1, const Vec2d &v2) const
 {
     Vec2d ret = *this;
-    ret.mirror(axis);
+    ret.mirror(v1, v2);
     return ret;
-}
-
-Vec2d Vec2d::mirror(const Vec2d &axis1, const Vec2d &axis2)
-{
-    return mirror(Line(axis1, axis2));
 }
 
 Vec2d Vec2d::flipHorizontal()
@@ -402,7 +394,7 @@ bool Vec2d::containsFuzzy(const std::vector<Vec2d> &vectors, const Vec2d &v,
 int Vec2d::findFirstFuzzy(const std::vector<Vec2d> &vectors, const Vec2d &v,
                           double tol)
 {
-    for (int i = 0; i < vectors.size(); i++) {
+    for (size_t i = 0; i < vectors.size(); i++) {
         if (v.equalsFuzzy(vectors[i], tol)) {
             return i;
         }
@@ -463,7 +455,7 @@ Vec2d Vec2d::getAverage(const Vec2d &v1, const Vec2d &v2)
 Vec2d Vec2d::getAverage(const std::vector<Vec2d> &vectors)
 {
     Vec2d sum = Vec2d::nullVector;
-    for (int i = 0; i < vectors.size(); i++) {
+    for (size_t i = 0; i < vectors.size(); i++) {
         sum += vectors[i];
     }
     return sum / vectors.size();
@@ -517,7 +509,7 @@ int Vec2d::getClosestIndex(const std::vector<Vec2d> &list) const
     double minDist = DBL_MAX;
     int index = -1;
 
-    for (int i = 0; i < list.size(); ++i) {
+    for (size_t i = 0; i < list.size(); ++i) {
         if (list[i].valid) {
             double dist = getDistanceTo(list[i]);
             if (dist < minDist) {

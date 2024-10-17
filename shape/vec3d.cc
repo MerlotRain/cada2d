@@ -24,14 +24,19 @@
 
 namespace cada {
 
-Vec3d::Vec3d(double x, double y, double z) : x(z), y(y), z(z) {}
+Vec3d::Vec3d(double x, double y, double z) : x(x), y(y), z(z)
+{
+}
 
 Vec3d Vec3d::operator-(const Vec3d &rhs) const
 {
     return Vec3d(x - rhs.x, y - rhs.y, z - rhs.z);
 }
 
-Vec3d Vec3d::operator*(double s) const { return Vec3d(x * s, y * s, z * s); }
+Vec3d Vec3d::operator*(double s) const
+{
+    return Vec3d(x * s, y * s, z * s);
+}
 
 Vec3d Vec3d::operator+(const Vec3d &rhs) const
 {

@@ -11,6 +11,7 @@ shape_src = files(
     'polyline.cc',
     'ray.cc',
     'regularpolygon.cc',
+   'shape.cc',
     'triangle.cc',
     'vec2d.cc',
     'vec3d.cc',

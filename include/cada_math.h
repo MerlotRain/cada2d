@@ -45,6 +45,7 @@ public:
                                   double tolerance = DBL_EPSILON);
     static bool isSameDirection(double dir1, double dir2,
                                 double tol = DBL_EPSILON);
+    static int absmod(int a, int b);
 };
 
 } // namespace cada

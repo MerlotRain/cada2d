@@ -28,11 +28,9 @@
 #include <vector>
 #include <memory>
 #include <array>
+#include <limits>
 
 namespace cada {
-
-class BBox;
-class Line;
 
 struct Vec2d {
     double x;
@@ -42,8 +40,6 @@ struct Vec2d {
     Vec2d();
     Vec2d(double vx, double vy, bool valid_in = true);
     Vec2d(const std::vector<double> &tuples);
-    ~Vec2d();
-
     void set(double vx, double vy);
     void setPolar(double radius, double angle);
 
@@ -73,9 +69,8 @@ struct Vec2d {
     Vec2d scale(const Vec2d &factors, const Vec2d &center = nullVector);
     Vec2d getScaled(const Vec2d &factors, const Vec2d &center) const;
 
-    Vec2d mirror(const Line &axis);
-    Vec2d getMirrored(const Line &axis) const;
-    Vec2d mirror(const Vec2d &axis1, const Vec2d &axis2);
+    Vec2d mirror(const Vec2d &v1, const Vec2d &v2);
+    Vec2d getMirrored(const Vec2d &v1, const Vec2d &v2) const;
     Vec2d flipHorizontal();
     Vec2d flipVertical();
 
@@ -180,9 +175,6 @@ struct BBox {
     void setCorner2(const Vec2d &v);
 
     std::vector<Vec2d> getCorners() const;
-    std::vector<Line> getLines() const;
-    Polyline getPolyline() const;
-
     BBox &grow(double offset);
     BBox &grow(double offsetX, double offsetY);
 
@@ -217,21 +209,19 @@ public:
 class Shape {
 public:
     Shape() {}
-    virtual ~Shape() {}
+    virtual ~Shape() = default;
 
-    virtual bool isValid() const;
+    virtual bool isValid() const = 0;
     virtual NS::ShapeType getShapeType() const = 0;
     virtual Shape *clone() const = 0;
     virtual std::vector<Vec2d> getEndPoints() const = 0;
     virtual std::vector<Vec2d> getMiddlePoints() const = 0;
     virtual std::vector<Vec2d> getCenterPoints() const = 0;
-    virtual Vec2d getStartPoint() const;
-    virtual Vec2d getEndPoint() const;
-    virtual Vec2d getMiddlePoint() const;
-    virtual std::vector<Vec2d> getArcRefPoints() const;
+    virtual Vec2d getStartPoint() const { return Vec2d(); }
+    virtual Vec2d getEndPoint() const { return Vec2d(); }
+    virtual Vec2d getMiddlePoint() const { return Vec2d(); }
 
 public:
-    virtual bool isInterpolated() const;
     BBox getBoundingBox() const;
     double getLength() const;
     Vec2d getVectorTo(const Vec2d &point, bool limited = true,
@@ -287,10 +277,10 @@ public:
     bool rotate(double rotation, const Vec2d &center = Vec2d());
     bool scale(double scaleFactor, const Vec2d &center = Vec2d());
     bool scale(const Vec2d &scaleFactors, const Vec2d &center = Vec2d());
-    bool mirror(const Line &axis);
+    bool mirror(const Vec2d &v1, const Vec2d &v2);
     bool flipHorizontal();
     bool flipVertical();
-    bool stretch(const Polyline &area, const Vec2d &offset);
+    bool stretch(const std::vector<Vec2d> &vertex, const Vec2d &offset);
     std::vector<std::shared_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
                     const Vec2d &position = Vec2d::invalid);
@@ -302,20 +292,19 @@ public:
 };
 
 class Point : public Shape {
-    Vec2d position;
+    Vec2d mPosition;
 
 public:
     Point();
     Point(double x, double y);
     Point(const Vec2d &position);
-    ~Point() override;
+
+    bool isValid() const override;
+    NS::ShapeType getShapeType() const override;
+    Point *clone() const override;
 
     Vec2d getPosition() const;
     void setPosition(const Vec2d &p);
-
-public:
-    NS::ShapeType getShapeType() const override;
-    Point *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -323,8 +312,8 @@ public:
 };
 
 class Line : public Shape {
-    Vec2d startPoint;
-    Vec2d endPoint;
+    Vec2d mStartPoint;
+    Vec2d mEndPoint;
 
 public:
     Line();
@@ -333,262 +322,52 @@ public:
     Line(const Vec2d &startPoint, double angle, double distance);
 
     bool isValid() const override;
+    NS::ShapeType getShapeType() const override;
+    Line *clone() const override;
+
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
 
     Vec2d getStartPoint() const override;
-    void setStartPoint(const Vec2d &vector);
     Vec2d getEndPoint() const override;
-    void setEndPoint(const Vec2d &vector);
-
-    NS::ShapeType getShapeType() const override;
-    Line *clone() const override;
-
     Vec2d getMiddlePoint() const override;
 
-    double getLength() const;
-    double getAngle() const;
-
+    void setStartPoint(const Vec2d &vector);
+    void setEndPoint(const Vec2d &vector);
     void setLength(double l, bool fromStart = true);
+
+    double getAngle() const;
     void setAngle(double a);
 
     bool isParallel(const Line &line) const;
-
     bool isVertical(double tolerance = DBL_EPSILON) const;
     bool isHorizontal(double tolerance = DBL_EPSILON) const;
 
     void clipTo(const BBox &box);
 };
 
-class Circle : public Shape {
-    Vec2d center;
-    double radius;
-
-public:
-    Circle();
-    Circle(double cx, double cy, const double radius);
-    Circle(const Vec2d &center, const double radius);
-    ~Circle() override;
-
-    Vec2d getCenter() const;
-    void setCenter(const Vec2d &vector);
-    double getRadius() const;
-    void setRadius(double radius);
-    static Circle createFrom2Points(const Vec2d &p1, const Vec2d &p2);
-    static Circle createFrom3Points(const Vec2d &p1, const Vec2d &p2,
-                                    const Vec2d &p3);
-
-public:
-    NS::ShapeType getShapeType() const override;
-    Circle *clone() const override;
-
-    Arc toArc(double startAngle = 0.0) const;
-
-    bool isValid() const override;
-
-    std::vector<Vec2d> getEndPoints() const override;
-    std::vector<Vec2d> getMiddlePoints() const override;
-    std::vector<Vec2d> getCenterPoints() const override;
-    std::vector<Vec2d> getArcRefPoints() const override;
-
-    double getDiameter() const;
-    void setDiameter(double d);
-    double getCircumference() const;
-    void setCircumference(double c);
-    double getArea() const;
-    void setArea(double a);
-
-    bool contains(const Vec2d &p) const;
-
-    std::vector<Line> getTangents(const Vec2d &point) const;
-};
-
-class Arc : public Shape {
-    Vec2d center;
-    double radius;
-    double startAngle;
-    double endAngle;
-    bool reversed;
-
-public:
-    Arc();
-    Arc(double cx, double cy, double radius, double startAngle, double endAngle,
-        bool reversed = false);
-    Arc(const Vec2d &center, double radius, double startAngle, double endAngle,
-        bool reversed = false);
-
-    Vec2d getCenter() const;
-    void setCenter(const Vec2d &vector);
-    double getRadius() const;
-    void setRadius(double radius);
-    double getStartAngle() const;
-    void setStartAngle(double startAngle);
-    double getEndAngle() const;
-    void setEndAngle(double endAngle);
-    bool isReversed() const;
-    void setReversed(bool reversed);
-    static Arc createFrom3Points(const Vec2d &startPoint, const Vec2d &point,
-                                 const Vec2d &endPoint);
-    static Arc createFrom2PBulge(const Vec2d &startPoint, const Vec2d &endPoint,
-                                 double bulge);
-    static Arc createTangential(const Vec2d &startPoint, const Vec2d &pos,
-                                double direction, double radius);
-    static std::vector<Arc> createBiarc(const Vec2d &startPoint,
-                                        double startDirection,
-                                        const Vec2d &endPoint,
-                                        double endDirection,
-                                        bool secondTry = false);
-    Vec2d getPointAtAngle(double a) const;
-
-public:
-    NS::ShapeType getShapeType() const override;
-    Arc *clone() const override;
-
-    bool isValid() const override;
-    bool isFullCircle(double tolerance = NS::AngleTolerance) const;
-
-    std::vector<Vec2d> getEndPoints() const override;
-    std::vector<Vec2d> getMiddlePoints() const override;
-    std::vector<Vec2d> getCenterPoints() const override;
-    std::vector<Vec2d> getArcRefPoints() const override;
-
-    double getAngleLength(bool allowForZeroLength = false) const;
-    bool isAngleWithinArc(double a) const;
-
-    double getDiameter() const;
-    void setDiameter(double d);
-    void setLength(double l);
-    double getArea() const;
-    void setArea(double a);
-    double getChordArea() const;
-
-    double getSweep() const;
-    void setSweep(double s);
-    double getLength() const;
-
-    Vec2d getStartPoint() const override;
-    Vec2d getEndPoint() const override;
-    Vec2d getMiddlePoint() const override;
-
-    Polyline approximateWithLines(double segmentLength,
-                                  double angle = 0.0) const;
-    Polyline approximateWithLinesTan(double segmentLength,
-                                     double angle = 0.0) const;
-
-    std::vector<Line> getTangents(const Vec2d &point) const;
-
-    std::vector<Arc> splitAtQuadrantLines() const;
-};
-
-class Ellipse : public Shape {
-    Vec2d center;
-    Vec2d majorPoint;
-    double ratio;
-    double startParam;
-    double endParam;
-    bool reversed;
-
-public:
-    Ellipse();
-    Ellipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
-            double startParam, double endParam, bool reversed);
-    ~Ellipse() override;
-
-    static Ellipse createInscribed(const Vec2d &p1, const Vec2d &p2,
-                                   const Vec2d &p3, const Vec2d &p4,
-                                   const Vec2d &centerHint = Vec2d::invalid);
-    static Ellipse createFrom4Points(const Vec2d &p1, const Vec2d &p2,
-                                     const Vec2d &p3, const Vec2d &p4);
-
-    Vec2d getCenter() const;
-    void setCenter(const Vec2d &vector);
-    Vec2d getMajorPoint() const;
-    Vec2d getMinorPoint() const;
-    void setMajorPoint(const Vec2d &vector);
-    void setMinorPoint(const Vec2d &p);
-    bool switchMajorMinor();
-    double getRatio() const;
-    void setRatio(double radius);
-
-    double getStartParam() const;
-    void setStartParam(double startParam);
-
-    double getEndParam() const;
-    void setEndParam(double endParam);
-
-public:
-    NS::ShapeType getShapeType() const override;
-    Ellipse *clone() const override;
-
-    bool isValid() const override;
-
-    std::vector<Vec2d> getEndPoints() const override;
-    std::vector<Vec2d> getMiddlePoints() const override;
-    std::vector<Vec2d> getCenterPoints() const override;
-    std::vector<Vec2d> getFoci() const;
-
-    double getStartAngle() const;
-    void setStartAngle(double a);
-
-    double angleToParam(double a) const;
-
-    double getEndAngle() const;
-    void setEndAngle(double a);
-
-    double getAngleLength(bool allowForZeroLength = false) const;
-
-    bool isAngleWithinArc(double a) const;
-    bool isParamWithinArc(double a) const;
-
-    bool isReversed() const;
-    void setReversed(bool reversed);
-
-    Vec2d getStartPoint() const override;
-    Vec2d getEndPoint() const override;
-    double getMajorRadius() const;
-    double getMinorRadius() const;
-    double getAngle() const;
-    void setAngle(double a);
-    bool isFullEllipse() const;
-    bool isCircular() const;
-    double getLength() const;
-    double getSimpsonLength(double f1, double f2) const;
-
-    bool contains(const Vec2d &p) const;
-
-    double getAngleAtPoint(const Vec2d &pos) const;
-    double getParamTo(const Vec2d &pos) const;
-    double getRadiusAt(double param) const;
-    Vec2d getPointAt(double param) const;
-    Vec2d getMiddlePoint() const;
-
-    void correctMajorMinor();
-    double getSweep() const;
-
-    std::vector<Vec2d> getBoxCorners();
-
-    std::vector<Line> getTangents(const Vec2d &point) const;
-    Vec2d getTangentPoint(const Line &line) const;
-
-    std::vector<BSpline> approximateWithSplines() const;
-    Polyline approximateWithArcs(int segments) const;
-};
-
 class Polyline : public Shape {
-
-    std::vector<Vec2d> vertices;
-    std::vector<double> bulges;
-    std::vector<double> endWidths;
-    std::vector<double> startWidths;
-    bool closed;
+    std::vector<Vec2d> mVertices;
+    std::vector<double> mBulges;
+    std::vector<double> mEndWidths;
+    std::vector<double> mStartWidths;
+    bool mClosed;
 
 public:
     Polyline();
     Polyline(const std::vector<Vec2d> &vertices, bool closed);
     Polyline(const std::vector<std::shared_ptr<Shape>> &segments);
-    ~Polyline() override;
 
+    bool isValid() const override;
+    NS::ShapeType getShapeType() const override;
+    Polyline *clone() const override;
+
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;  
+
+public:
     void appendVertex(const Vec2d &vertex, double bulge = 0.0, double w1 = 0.0,
                       double w2 = 0.0);
     void appendVertex(double x, double y, double bulge = 0.0, double w1 = 0.0,
@@ -642,9 +421,10 @@ public:
     bool isClosed() const;
 
 public:
-    NS::ShapeType getShapeType() const override;
+    Vec2d getStartPoint() const override;
+    Vec2d getEndPoint() const override;
+    Vec2d getMiddlePoint() const override;
 
-    Polyline *clone() const override;
     void clear();
     void normalize(double tolerance = DBL_EPSILON);
 
@@ -659,87 +439,65 @@ public:
     bool toLogicallyClosed(double tolerance = DBL_EPSILON);
     bool toLogicallyOpen();
 
-    std::vector<Vec2d>
-    getSelfIntersectionPoints(double tolerance = DBL_EPSILON) const;
-
     NS::Orientation getOrientation(bool implicitelyClosed = false) const;
     bool setOrientation(NS::Orientation orientation);
 
-    Polyline convertArcToLineSegments(int segments) const;
-    Polyline convertArcToLineSegmentsLength(double segmentLength) const;
-
     bool containsShape(const Shape &shape) const;
-
     Vec2d getPointInside() const;
-
-    Vec2d getStartPoint() const override;
-    Vec2d getEndPoint() const override;
-    Vec2d getMiddlePoint() const override;
 
     void moveStartPoint(const Vec2d &pos);
     void moveEndPoint(const Vec2d &pos);
-
     void moveSegmentAt(int i, const Vec2d &offset);
 
     double getArea() const;
-
     double getLengthTo(const Vec2d &p, bool limited = true) const;
     double getSegmentsLength(int fromIndex, int toIndex) const;
 
-    std::vector<Vec2d> getEndPoints() const override;
-    std::vector<Vec2d> getMiddlePoints() const override;
-    std::vector<Vec2d> getCenterPoints() const override;
-
     int getClosestSegment(const Vec2d &point) const;
     int getClosestVertex(const Vec2d &point) const;
+
+    bool isStraight(double bulge) const;
+    bool simplify(double tolerance = DBL_EPSILON);
+    void stripWidths();
+    void setMinimumWidth(double w);
+    int getSegmentAtDist(double dist);
+    bool relocateStartPoint(const Vec2d &p);
+    bool relocateStartPoint(double dist);
+    bool convertToClosed();
+    bool convertToOpen();
+    bool isConcave() const;
+    double getBaseAngle() const;
+    double getWidth() const;
+    bool setWidth(double v);
+    double getHeight() const;
+    bool setHeight(double v);
+    Vec2d getCentroid() const;
+
+    Polyline convertArcToLineSegments(int segments) const;
+    Polyline convertArcToLineSegmentsLength(double segmentLength) const;
 
     std::vector<Polyline> getOutline() const;
     std::vector<std::pair<Polyline, Polyline>> getLeftRightOutline() const;
     std::vector<Polyline> getLeftOutline() const;
     std::vector<Polyline> getRightOutline() const;
-    bool isInterpolated() const override;
     int countSegments() const;
     std::shared_ptr<Shape> getSegmentAt(int i) const;
     bool isArcSegmentAt(int i) const;
     std::shared_ptr<Shape> getLastSegment() const;
     std::shared_ptr<Shape> getFirstSegment() const;
 
-    bool isStraight(double bulge) const;
-
-    bool simplify(double tolerance = DBL_EPSILON);
     std::vector<Vec2d> verifyTangency(double toleranceMin = NS::AngleTolerance,
                                       double toleranceMax = M_PI_4);
-
-    void stripWidths();
-    void setMinimumWidth(double w);
-
-    int getSegmentAtDist(double dist);
-    bool relocateStartPoint(const Vec2d &p);
-    bool relocateStartPoint(double dist);
-    bool convertToClosed();
-    bool convertToOpen();
-
     Polyline modifyPolylineCorner(const Shape &trimmedShape1,
                                   NS::Ending ending1, int segmentIndex1,
                                   const Shape &trimmedShape2,
                                   NS::Ending ending2, int segmentIndex2,
                                   const Shape *cornerShape = NULL) const;
 
-    bool isConcave() const;
     std::vector<Vec2d> getConvexVertices(bool convex = true) const;
     std::vector<Vec2d> getConcaveVertices() const;
-
-    Vec2d getCentroid() const;
-
     std::vector<Polyline> splitAtDiscontinuities(double tolerance) const;
     std::vector<Polyline> splitAtSegmentTypeChange() const;
-
-    double getBaseAngle() const;
-    double getWidth() const;
-    bool setWidth(double v);
-    double getHeight() const;
-    bool setHeight(double v);
-
     std::vector<Polyline>
     morph(const Polyline &target, int steps, NS::Easing easing = NS::Linear,
           bool zLinear = true,
@@ -750,48 +508,238 @@ public:
                             bool inner = false) const;
 
     std::vector<std::shared_ptr<Shape>> getExploded() const;
+    bool contains(const Vec2d &point, bool borderIsInside = false,
+                  double tolerance = NS::PointTolerance) const;
 
 protected:
     bool isLineSegment(int i) const;
 };
 
+class Arc : public Shape {
+    Vec2d mCenter;
+    double mRadius;
+    double mStartAngle;
+    double mEndAngle;
+    bool mReversed;
+
+public:
+    Arc();
+    Arc(double cx, double cy, double radius, double startAngle, double endAngle,
+        bool reversed = false);
+    Arc(const Vec2d &center, double radius, double startAngle, double endAngle,
+        bool reversed = false);
+    static Arc createFrom3Points(const Vec2d &startPoint, const Vec2d &point,
+                                 const Vec2d &endPoint);
+    static Arc createFrom2PBulge(const Vec2d &startPoint, const Vec2d &endPoint,
+                                 double bulge);
+    static Arc createTangential(const Vec2d &startPoint, const Vec2d &pos,
+                                double direction, double radius);
+    static std::vector<Arc> createBiarc(const Vec2d &startPoint,
+                                        double startDirection,
+                                        const Vec2d &endPoint,
+                                        double endDirection,
+                                        bool secondTry = false);
+
+    bool isValid() const override;
+    NS::ShapeType getShapeType() const override;
+    Arc *clone() const override;
+
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+
+    Vec2d getCenter() const;
+    void setCenter(const Vec2d &vector);
+    double getRadius() const;
+    void setRadius(double radius);
+    double getStartAngle() const;
+    void setStartAngle(double startAngle);
+    double getEndAngle() const;
+    void setEndAngle(double endAngle);
+    bool isReversed() const;
+    void setReversed(bool reversed);
+
+public:
+    double getDiameter() const;
+    void setDiameter(double d);
+    void setLength(double l);
+    double getArea() const;
+    void setArea(double a);
+    double getChordArea() const;
+
+    double getSweep() const;
+    void setSweep(double s);
+    double getBulge() const;
+    double getAngleLength(bool allowForZeroLength = false) const;
+
+    Vec2d getStartPoint() const override;
+    Vec2d getEndPoint() const override;
+    Vec2d getMiddlePoint() const override;
+    Vec2d getPointAtAngle(double a) const;
+    std::vector<Vec2d> getArcRefPoints() const;
+
+    bool isFullCircle(double tolerance = NS::AngleTolerance) const;
+    bool isAngleWithinArc(double a) const;
+
+    Polyline approximateWithLines(double segmentLength,
+                                  double angle = 0.0) const;
+    Polyline approximateWithLinesTan(double segmentLength,
+                                     double angle = 0.0) const;
+    std::vector<Line> getTangents(const Vec2d &point) const;
+    std::vector<Arc> splitAtQuadrantLines() const; 
+};
+
+class Circle : public Shape {
+    Vec2d mCenter;
+    double mRadius;
+
+public:
+    Circle();
+    Circle(double cx, double cy, const double radius);
+    Circle(const Vec2d &center, const double radius);
+
+    static Circle createFrom2Points(const Vec2d &p1, const Vec2d &p2);
+    static Circle createFrom3Points(const Vec2d &p1, const Vec2d &p2,
+                                    const Vec2d &p3);
+
+    bool isValid() const override;
+    NS::ShapeType getShapeType() const override;
+    Circle *clone() const override;
+    
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+
+    Vec2d getCenter() const;
+    void setCenter(const Vec2d &vector);
+    double getRadius() const;
+    void setRadius(double radius);
+
+public:
+    double getDiameter() const;
+    void setDiameter(double d);
+    double getCircumference() const;
+    void setCircumference(double c);
+    double getArea() const;
+    void setArea(double a);
+    bool contains(const Vec2d &p) const;
+
+    Arc toArc(double startAngle = 0.0) const;
+    std::vector<Vec2d> getArcRefPoints() const;
+    std::vector<Line> getTangents(const Vec2d &point) const;
+};
+
+class Ellipse : public Shape {
+    Vec2d mCenter;
+    Vec2d mMajorPoint;
+    double mRatio;
+    double mStartParam;
+    double mEndParam;
+    bool mReversed;
+
+public:
+    Ellipse();
+    Ellipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
+            double startParam, double endParam, bool reversed);
+    static Ellipse createInscribed(const Vec2d &p1, const Vec2d &p2,
+                                   const Vec2d &p3, const Vec2d &p4,
+                                   const Vec2d &centerHint = Vec2d::invalid);
+    static Ellipse createFrom4Points(const Vec2d &p1, const Vec2d &p2,
+                                     const Vec2d &p3, const Vec2d &p4);
+
+    bool isValid() const override;
+    NS::ShapeType getShapeType() const override;
+    Ellipse *clone() const override;
+
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
+
+    Vec2d getCenter() const;
+    void setCenter(const Vec2d &vector);
+    Vec2d getMajorPoint() const;
+    Vec2d getMinorPoint() const;
+    void setMajorPoint(const Vec2d &vector);
+    void setMinorPoint(const Vec2d &p);
+    bool switchMajorMinor();
+    double getRatio() const;
+    void setRatio(double radius);
+    double getStartParam() const;
+    void setStartParam(double startParam);
+    double getEndParam() const;
+    void setEndParam(double endParam);
+    bool isReversed() const;
+    void setReversed(bool reversed);
+
+public:
+    double getStartAngle() const;
+    void setStartAngle(double a);
+    double getEndAngle() const;
+    void setEndAngle(double a);
+    double angleToParam(double a) const;
+    double getAngleLength(bool allowForZeroLength = false) const;
+
+    bool isAngleWithinArc(double a) const;
+    bool isParamWithinArc(double a) const;
+
+    double getMajorRadius() const;
+    double getMinorRadius() const;
+    double getAngle() const;
+    void setAngle(double a);
+    bool isFullEllipse() const;
+    bool isCircular() const;
+    double getSimpsonLength(double f1, double f2) const;
+
+    bool contains(const Vec2d &p) const;
+
+    double getParamTo(const Vec2d &pos) const;
+    double getRadiusAt(double param) const;
+    void correctMajorMinor();
+    double getSweep() const;
+
+    std::vector<Vec2d> getFoci() const;
+    Vec2d getStartPoint() const override;
+    Vec2d getEndPoint() const override;
+    Vec2d getPointAt(double param) const;
+    Vec2d getMiddlePoint() const;
+    std::vector<Vec2d> getBoxCorners();
+
+    std::vector<Line> getTangents(const Vec2d &point) const;
+    Vec2d getTangentPoint(const Line &line) const;
+    Polyline approximateWithArcs(int segments) const;
+};
+
 class XLine : public Shape {
-    Vec2d basePoint;
-    Vec2d directionVector;
+protected:
+    Vec2d mBasePoint;
+    Vec2d mDirectionVector;
 
 public:
     XLine();
     XLine(const Line &line);
     XLine(const Vec2d &basePoint, const Vec2d &directionVector);
     XLine(const Vec2d &basePoint, double angle, double distance);
-    ~XLine() override;
 
-    Vec2d getBasePoint() const;
-    void setBasePoint(const Vec2d &vector);
-    Vec2d getSecondPoint() const;
-    void setSecondPoint(const Vec2d &vector);
-    Vec2d getDirectionVector() const;
-    void setDirectionVector(const Vec2d &vector);
-
-public:
+    bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-
-    Line getLineShape() const;
     XLine *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
 
-    Vec2d getMiddlePoint() const override;
+    Vec2d getBasePoint() const;
+    void setBasePoint(const Vec2d &vector);
+    Vec2d getDirectionVector() const;
+    void setDirectionVector(const Vec2d &vector);
 
-    double getLength() const;
     void setLength(double l);
     double getAngle() const;
     void setAngle(double a);
 
     Vec2d getStartPoint() const override;
     Vec2d getEndPoint() const override;
+    Vec2d getMiddlePoint() const override;
 };
 
 class Ray : public XLine {
@@ -800,38 +748,44 @@ public:
     Ray(const Line &line);
     Ray(const Vec2d &basePoint, const Vec2d &directionVector);
     Ray(const Vec2d &basePoint, double angle, double distance);
-    ~Ray() override;
 
     NS::ShapeType getShapeType() const override;
-
     Ray *clone() const override;
-
-    std::vector<Vec2d> getEndPoints() const override;
 };
 
 class BSpline : public Shape {
-    mutable std::vector<Vec2d> controlPoints;
-    mutable std::vector<double> knotVector;
-    mutable std::vector<double> weights;
-    std::vector<Vec2d> fitPoints;
-    mutable int degree;
+    mutable std::vector<Vec2d> mControlPoints;
+    mutable std::vector<double> mKnotVector;
+    mutable std::vector<double> mWeights;
+    std::vector<Vec2d> mFitPoints;
+    mutable int mDegree;
 
-    mutable Vec2d tangentStart;
-    mutable Vec2d tangentEnd;
-    mutable bool periodic;
+private:
+    mutable Vec2d mTangentStart;
+    mutable Vec2d mTangentEnd;
+    mutable bool mPeriodic;
 
-    mutable bool dirty;
-    mutable bool updateInProgress;
+    mutable bool mDirty;
+    mutable bool mUpdateInProgress;
 
-    mutable BBox boundingBox;
-    mutable std::vector<std::shared_ptr<Shape>> exploded;
-    // cached length:
-    mutable double length;
+    mutable BBox mBoundingBox;
+    mutable std::vector<std::shared_ptr<Shape>> mExploded;
+    mutable double mLength;
 
 public:
     BSpline();
     BSpline(const BSpline &other);
     BSpline(const std::vector<Vec2d> &controlPoints, int degree);
+    static std::vector<BSpline> createSplinesFromArc(const Arc &arc);
+    static BSpline createBezierFromSmallArc(double r, double a1, double a2);
+
+    bool isValid() const override;
+    NS::ShapeType getShapeType() const override;
+    BSpline *clone() const override;
+
+    std::vector<Vec2d> getEndPoints() const override;
+    std::vector<Vec2d> getMiddlePoints() const override;
+    std::vector<Vec2d> getCenterPoints() const override;
 
     void appendControlPoint(const Vec2d &point);
     void appendControlPoints(const std::vector<Vec2d> &points);
@@ -866,84 +820,51 @@ public:
     int getDegree() const;
 
 public:
-    NS::ShapeType getShapeType() const override;
-
-    BSpline *clone() const override;
-
-    void copySpline(const BSpline &other);
-
-    static std::vector<BSpline> createSplinesFromArc(const Arc &arc);
-    static BSpline createBezierFromSmallArc(double r, double a1, double a2);
-
-    bool isInterpolated() const override;
-
     int getOrder() const;
-
     void setPeriodic(bool on);
-    // bool isClosedPeriodic() const;
-
     bool isClosed() const;
     bool isGeometricallyClosed(double tolerance = DBL_EPSILON) const;
     bool isPeriodic() const;
 
-    NS::Side getSideOfPoint(const Vec2d &point) const;
-
     Vec2d getStartPoint() const override;
     Vec2d getEndPoint() const override;
-
     void setStartPoint(const Vec2d &v);
     void setEndPoint(const Vec2d &v);
 
     void setTangents(const Vec2d &start, const Vec2d &end);
     void unsetTangents();
-
     void setTangentAtStart(const Vec2d &t);
     Vec2d getTangentAtStart() const;
     void unsetTangentAtStart();
     void setTangentAtEnd(const Vec2d &t);
     Vec2d getTangentAtEnd() const;
     void unsetTangentAtEnd();
-
     void updateTangentsPeriodic();
-
-    Vec2d getPointAt(double t) const;
-    Vec2d getPointAtDistance(double distance) const;
-
-    std::vector<Vec2d> getEndPoints() const override;
-    Vec2d getMiddlePoint() const override;
-    std::vector<Vec2d> getMiddlePoints() const override;
-    std::vector<Vec2d> getCenterPoints() const override;
-
-    Polyline toPolyline(int segments) const;
-    Polyline approximateWithArcs(double tolerance,
-                                 double radiusLimit = -1) const;
-
-    std::vector<std::shared_ptr<Shape>> getExplodedBezier(int segments) const;
-    std::vector<std::shared_ptr<Shape>>
-    getExplodedWithSegmentLength(double segmentLength) const;
-
-    std::vector<BSpline> getBezierSegments(const BBox &queryBox = BBox()) const;
-
-    bool isValid() const override;
+    void updateFromControlPoints() const;
+    void updateFromFitPoints() const;
+    void update() const;
+    bool isDirty() const;
     double getTDelta() const;
     double getTMin() const;
     double getTMax() const;
     double getTAtPoint(const Vec2d &point) const;
     double getTAtDistance(double distance) const;
     double getDistanceAtT(double t) const;
-    std::vector<BSpline> getSegments(const std::vector<Vec2d> &points) const;
 
+    Vec2d getPointAt(double t) const;
+    Vec2d getPointAtDistance(double distance) const;
+    Vec2d getMiddlePoint() const override;
+
+    Polyline toPolyline(int segments) const;
+    Polyline approximateWithArcs(double tolerance,
+                                 double radiusLimit = -1) const;
+    std::vector<std::shared_ptr<Shape>> getExplodedBezier(int segments) const;
+    std::vector<std::shared_ptr<Shape>>
+    getExplodedWithSegmentLength(double segmentLength) const;
+    std::vector<BSpline> getBezierSegments(const BBox &queryBox = BBox()) const;
+    std::vector<BSpline> getSegments(const std::vector<Vec2d> &points) const;
     std::vector<Vec2d> getDiscontinuities() const;
     BSpline simplify(double tolerance);
-
-    void updateFromControlPoints() const;
-    void updateFromFitPoints() const;
-    void update() const;
-
-    bool isDirty() const;
-
-    std::vector<Vec2d>
-    getSelfIntersectionPoints(double tolerance = DBL_EPSILON) const;
 
 protected:
     void appendToExploded(const Line &line) const;
@@ -955,15 +876,18 @@ protected:
 class RegularPolygon
 {
     Vec2d mCenter;
-    Vec2d mFirstVertrx;
+    Vec2d mFirstVertex;
     unsigned int mNumberSides;
     double mRadius;
 
 public:
     RegularPolygon();
-    RegularPolygon(const Vec2d &center, double radius, double azimuth, unsigned int numberSides, NS::RegularPolygonOption option);
-    RegularPolygon(const Vec2d &center, const Vec2d &pt1, unsigned int numberSides, NS::RegularPolygonOption option);
-    RegularPolygon(const Vec2d &pt1, const Vec2d &pt2, unsigned int  numberSides);
+    RegularPolygon(const Vec2d &center, double radius, double azimuth, 
+                   unsigned int numberSides, NS::RegularPolygonOption option);
+    RegularPolygon(const Vec2d &center, const Vec2d &pt1, 
+                   unsigned int numberSides, NS::RegularPolygonOption option);
+    RegularPolygon(const Vec2d &pt1, const Vec2d &pt2, 
+                   unsigned int  numberSides);
 
     Vec2d center() const;
     double radius() const;
@@ -976,8 +900,8 @@ public:
     void setNumberSides(unsigned int numberSides);
 
     std::vector<Vec2d> points() const;
-    std::vector<Line*> toLines() const;
-    Polyline* toPolyline() const;
+    std::vector<Line *> toLines() const;
+    Polyline *toPolyline() const;
     Circle inscribedCircle() const;
     Circle circumscribedCircle() const;
 
@@ -988,14 +912,13 @@ public:
     double length() const;
 
 private:
-    double apothmToRadius(double apothm, unsigned int numberSides) const;
+    double apothemToRadius(double apothm, unsigned int numberSides) const;
     double interiorAngle(unsigned int nbSides) const;
     double centralAngle(unsigned int nbSides) const;
 };
 
 
-class Triangle
-{
+class Triangle {
     Vec2d mVertex[3];
 
 public:
@@ -1011,8 +934,8 @@ public:
     bool isRight(double lengthTolerance = 0.0001) const;
     bool isScalene(double lengthTolerance = 0.0001) const;
 
-    Polyline* toPolyline() const;
-    std::vector<line*> toLines() const;
+    Polyline *toPolyline() const;
+    std::vector<Line *> toLines() const;
 };
 
 } // namespace cada

@@ -24,55 +24,50 @@
 
 namespace cada {
 
-Line::Line() : startPoint(Vec2d::invalid), endPoint(Vec2d::invalid)
+Line::Line() : mStartPoint(Vec2d::invalid), mEndPoint(Vec2d::invalid)
 {
 }
 
 Line::Line(double x1, double y1, double x2, double y2)
-    : startPoint(x1, y1), endPoint(x2, y2)
+    : mStartPoint(x1, y1), mEndPoint(x2, y2)
 {
 }
 
-Line::Line(const Vec2d &startPoint, const Vec2d &endPoint)
-    : startPoint(startPoint), endPoint(endPoint)
+Line::Line(const Vec2d &mStartPoint, const Vec2d &mEndPoint)
+    : mStartPoint(mStartPoint), mEndPoint(mEndPoint)
 {
 }
 
-Line::Line(const Vec2d &startPoint, double angle, double distance)
-    : startPoint(startPoint)
+Line::Line(const Vec2d &mStartPoint, double angle, double distance)
+    : mStartPoint(mStartPoint)
 {
 
-    endPoint = startPoint + Vec2d::createPolar(distance, angle);
+    mEndPoint = mStartPoint + Vec2d::createPolar(distance, angle);
 }
 
 bool Line::isValid() const
 {
-    return startPoint.isSane() && endPoint.isSane();
-}
-
-double Line::getLength() const
-{
-    return startPoint.getDistanceTo(endPoint);
+    return mStartPoint.isSane() && mEndPoint.isSane();
 }
 
 void Line::setLength(double l, bool fromStart)
 {
     if (fromStart) {
-        endPoint = startPoint + Vec2d::createPolar(l, getAngle());
+        mEndPoint = mStartPoint + Vec2d::createPolar(l, getAngle());
     }
     else {
-        startPoint = endPoint - Vec2d::createPolar(l, getAngle());
+        mStartPoint = mEndPoint - Vec2d::createPolar(l, getAngle());
     }
 }
 
 double Line::getAngle() const
 {
-    return startPoint.getAngleTo(endPoint);
+    return mStartPoint.getAngleTo(mEndPoint);
 }
 
 void Line::setAngle(double a)
 {
-    endPoint = startPoint + Vec2d::createPolar(getLength(), a);
+    mEndPoint = mStartPoint + Vec2d::createPolar(getLength(), a);
 }
 
 bool Line::isParallel(const Line &line) const
@@ -85,44 +80,57 @@ bool Line::isParallel(const Line &line) const
 
 bool Line::isVertical(double tolerance) const
 {
-    return Math::fuzzyCompare(startPoint.x, endPoint.x, tolerance);
+    return Math::fuzzyCompare(mStartPoint.x, mEndPoint.x, tolerance);
 }
 
 bool Line::isHorizontal(double tolerance) const
 {
-    return Math::fuzzyCompare(startPoint.y, endPoint.y, tolerance);
+    return Math::fuzzyCompare(mStartPoint.y, mEndPoint.y, tolerance);
 }
 
 Vec2d Line::getStartPoint() const
 {
-    return startPoint;
+    return mStartPoint;
 }
 
 void Line::setStartPoint(const Vec2d &vector)
 {
-    startPoint = vector;
+    mStartPoint = vector;
 }
 
 Vec2d Line::getEndPoint() const
 {
-    return endPoint;
+    return mEndPoint;
 }
 
 void Line::setEndPoint(const Vec2d &vector)
 {
-    endPoint = vector;
+    mEndPoint = vector;
+}
+
+NS::ShapeType Line::getShapeType() const
+{
+    return NS::Line;
+}
+
+Line *Line::clone() const
+{
+    Line *pClone = new Line();
+    pClone->mStartPoint = mStartPoint;
+    pClone->mEndPoint = mEndPoint;
+    return pClone;
 }
 
 Vec2d Line::getMiddlePoint() const
 {
-    return (startPoint + endPoint) / 2.0;
+    return (mStartPoint + mEndPoint) / 2.0;
 }
 
 std::vector<Vec2d> Line::getEndPoints() const
 {
     std::vector<Vec2d> ret;
-    ret.push_back(startPoint);
-    ret.push_back(endPoint);
+    ret.push_back(mStartPoint);
+    ret.push_back(mEndPoint);
     return ret;
 }
 
@@ -140,10 +148,10 @@ std::vector<Vec2d> Line::getCenterPoints() const
 
 void Line::clipTo(const BBox &box)
 {
-    double x1 = startPoint.x;
-    double y1 = startPoint.y;
-    double x2 = endPoint.x;
-    double y2 = endPoint.y;
+    double x1 = mStartPoint.x;
+    double y1 = mStartPoint.y;
+    double x2 = mEndPoint.x;
+    double y2 = mEndPoint.y;
     double xmin = box.getMinimum().x;
     double ymin = box.getMinimum().y;
     double xmax = box.getMaximum().x;
@@ -162,7 +170,7 @@ void Line::clipTo(const BBox &box)
 
     bool accept = true;
 
-    for (int i = 0; i < 4; i++) {
+    for (size_t i = 0; i < 4; i++) {
         p = pPart[i];
         q = qPart[i];
 
@@ -197,12 +205,12 @@ void Line::clipTo(const BBox &box)
             y1 = y1 + u1 * deltaY;
         }
 
-        startPoint = Vec2d(x1, y1);
-        endPoint = Vec2d(x2, y2);
+        mStartPoint = Vec2d(x1, y1);
+        mEndPoint = Vec2d(x2, y2);
     }
     else {
-        startPoint = Vec2d::invalid;
-        endPoint = Vec2d::invalid;
+        mStartPoint = Vec2d::invalid;
+        mEndPoint = Vec2d::invalid;
     }
 }
 

@@ -30,7 +30,7 @@ bool Math::isNaN(double v)
 {
 #ifdef __APPLE__
     return std::fpclassify(v) == FP_NAN;
-#elif defined __WIN32
+#elif defined _MSC_VER
     return _isnan(v);
 #else
     return std::isnan(v);
@@ -41,7 +41,7 @@ bool Math::isInf(double v)
 {
 #ifdef __APPLE__
     return std::fpclassify(v) == FP_INFINITE;
-#elif defined __WIN32
+#elif defined _MSC_VER
     return !_finite(v);
 #else
     return std::fpclassify(v) == FP_INFINITE;
@@ -156,6 +156,18 @@ bool Math::isSameDirection(double dir1, double dir2, double tol)
     else {
         return false;
     }
+}
+
+int Math::absmod(int a, int b)
+{
+    if (b == 0) {
+        return a;
+    }
+    int m = a % b;
+    if ((b < 0 && m > 0) || (b > 0 && m < 0)) {
+        return b + m;
+    }
+    return m;
 }
 
 } // namespace cada

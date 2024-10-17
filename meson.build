@@ -12,4 +12,4 @@ subdir('algorithm')
 subdir('include')
 subdir('shape')
 
-cada2d_lib = static_library('cada2d', shape_src + algorithm_src, include_directories: inc_dirs)
+cada2d_lib = static_library('cada2d', shape_src + algorithm_src, include_directories: inc_dirs, cpp_args: ['-D_USE_MATH_DEFINES'])

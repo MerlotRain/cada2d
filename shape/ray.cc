@@ -42,8 +42,17 @@ Ray::Ray(const Vec2d &basePoint, double angle, double distance)
 {
 }
 
-Ray::~Ray()
+NS::ShapeType Ray::getShapeType() const
 {
+    return NS::Ray;
+}
+
+Ray *Ray::clone() const
+{
+    Ray *pClone = new Ray();
+    pClone->mBasePoint = mBasePoint;
+    pClone->mDirectionVector = mDirectionVector;
+    return pClone;
 }
 
 } // namespace cada

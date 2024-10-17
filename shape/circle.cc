@@ -26,21 +26,17 @@
 
 namespace cada {
 
-Circle::Circle() : center(Vec2d::invalid), radius(0.0)
+Circle::Circle() : mCenter(Vec2d::invalid), mRadius(0.0)
 {
 }
 
 Circle::Circle(double cx, double cy, const double radius)
-    : center(cx, cy), radius(radius)
+    : mCenter(cx, cy), mRadius(radius)
 {
 }
 
 Circle::Circle(const Vec2d &center, const double radius)
-    : center(center), radius(radius)
-{
-}
-
-Circle::~Circle()
+    : mCenter(center), mRadius(radius)
 {
 }
 
@@ -54,18 +50,11 @@ Circle Circle::createFrom2Points(const Vec2d &p1, const Vec2d &p2)
 Circle Circle::createFrom3Points(const Vec2d &p1, const Vec2d &p2,
                                  const Vec2d &p3)
 {
-    // intersection of two middle lines
-
-    // middle points between first two points:
     Vec2d mp1 = Vec2d::getAverage(p1, p2);
     double a1 = p1.getAngleTo(p2) + M_PI / 2.0;
-    // direction from middle point to center:
     Vec2d dir1 = Vec2d::createPolar(1.0, a1);
-
-    // middle points between last two points:
     Vec2d mp2 = Vec2d::getAverage(p2, p3);
     double a2 = p2.getAngleTo(p3) + M_PI / 2.0;
-    // direction from middle point to center:
     Vec2d dir2 = Vec2d::createPolar(1.0, a2);
 
     Line midLine1(mp1, mp1 + dir1);
@@ -78,11 +67,6 @@ Circle Circle::createFrom3Points(const Vec2d &p1, const Vec2d &p2,
 
     Vec2d center = ips[0];
     double radius = center.getDistanceTo(p3);
-    //    double angle1 = center.getAngleTo(p1);
-    //    double angle2 = center.getAngleTo(p3);
-    //    bool reversed = Math::isAngleBetween(center.getAngleTo(p2),
-    //                                            angle1, angle2, true);
-
     return Circle(center, radius);
 }
 
@@ -94,63 +78,58 @@ Arc Circle::toArc(double startAngle) const
 
 Vec2d Circle::getCenter() const
 {
-    return center;
+    return mCenter;
 }
 
 void Circle::setCenter(const Vec2d &vector)
 {
-    center = vector;
+    mCenter = vector;
 }
 
 double Circle::getRadius() const
 {
-    return radius;
+    return mRadius;
 }
 
 void Circle::setRadius(double r)
 {
-    radius = r;
+    mRadius = r;
 }
 
 double Circle::getDiameter() const
 {
-    return 2 * radius;
+    return 2 * mRadius;
 }
 
 void Circle::setDiameter(double d)
 {
-    radius = d / 2.0;
+    mRadius = d / 2.0;
 }
 
 double Circle::getCircumference() const
 {
-    return radius * 2 * M_PI;
+    return mRadius * 2 * M_PI;
 }
 
 void Circle::setCircumference(double c)
 {
-    radius = c / M_PI / 2.0;
+    mRadius = c / M_PI / 2.0;
 }
 
 double Circle::getArea() const
 {
-    return radius * radius * M_PI;
+    return mRadius * mRadius * M_PI;
 }
 
 void Circle::setArea(double a)
 {
-    radius = sqrt(fabs(a) / M_PI);
+    mRadius = sqrt(fabs(a) / M_PI);
 }
 
 bool Circle::contains(const Vec2d &p) const
 {
-    return p.getDistanceTo(center) < radius;
-    // TODO: + NS::PointTolerance ?
+    return p.getDistanceTo(mCenter) < mRadius;
 }
-
-// bool Circle::touchesCircleInternally(const Circle& other) const {
-//     return contains(other.center) || other.contains(center);
-// }
 
 std::vector<Vec2d> Circle::getEndPoints() const
 {
@@ -167,7 +146,7 @@ std::vector<Vec2d> Circle::getMiddlePoints() const
 std::vector<Vec2d> Circle::getCenterPoints() const
 {
     std::vector<Vec2d> ret;
-    ret.push_back(center);
+    ret.push_back(mCenter);
     return ret;
 }
 
@@ -175,10 +154,10 @@ std::vector<Vec2d> Circle::getArcRefPoints() const
 {
     std::vector<Vec2d> ret;
 
-    ret.push_back(center + Vec2d(radius, 0));
-    ret.push_back(center + Vec2d(0, radius));
-    ret.push_back(center - Vec2d(radius, 0));
-    ret.push_back(center - Vec2d(0, radius));
+    ret.push_back(mCenter + Vec2d(mRadius, 0));
+    ret.push_back(mCenter + Vec2d(0, mRadius));
+    ret.push_back(mCenter - Vec2d(mRadius, 0));
+    ret.push_back(mCenter - Vec2d(0, mRadius));
 
     return ret;
 }
@@ -186,7 +165,6 @@ std::vector<Line> Circle::getTangents(const Vec2d &point) const
 {
     std::vector<Line> ret;
 
-    // create temporary thales circle:
     Vec2d thalesCenter = (point + getCenter()) / 2;
     double thalesRadius = point.getDistanceTo(thalesCenter);
 
@@ -196,7 +174,6 @@ std::vector<Line> Circle::getTangents(const Vec2d &point) const
 
     Circle thalesCircle(thalesCenter, thalesRadius);
 
-    // get the two intersection points which are the tangent points:
     std::vector<Vec2d> ips = thalesCircle.getIntersectionPoints(*this, false);
 
     if (ips.size() > 0) {

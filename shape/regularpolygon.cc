@@ -22,13 +22,14 @@
 
 #include "cada_shape.h"
 #include <assert.h>
+#include <cmath>
 
 namespace cada {
 
-static Vec2d projectVertex(const Vec2d &v, double radius, double azimuth, double inclination = 90.0)
+static Vec2d projectVertex(const Vec2d &v, double distance, double azimuth, double inclination = 90.0)
 {
   const double radsXy = azimuth * M_PI / 180.0;
-  double dx = 0.0, dy = 0.0, dz = 0.0;
+  double dx = 0.0, dy = 0.0;
 
   inclination = std::fmod(inclination, 360.0);
 
@@ -51,12 +52,13 @@ static double azimuthVertex(const Vec2d &v1, const Vec2d &v2)
   return (std::atan2(dx, dy) * 180.0 / M_PI);
 }
 
-RegularPolygon::RegularPolygon()
-    : mNumberSides(0), mRadius(0.0)
+RegularPolygon::RegularPolygon() : mNumberSides(0), mRadius(0.0)
 {
 }
 
-RegularPolygon::RegularPolygon(const Vec2d &center, double radius, double azimuth, unsigned int numberSides, NS::RegularPolygonOption option)
+RegularPolygon::RegularPolygon(const Vec2d &center, double radius, 
+                               double azimuth, unsigned int numberSides, 
+                               NS::RegularPolygonOption option)
     : mCenter(center)
 {
     assert(numberSides >= 3);
@@ -67,13 +69,13 @@ RegularPolygon::RegularPolygon(const Vec2d &center, double radius, double azimut
         case NS::InscribedCircle:
         {
             mRadius = std::fabs(radius);
-            mFirstVertrx = projectVertex(mCenter, mRadius, azimuth);
+            mFirstVertex = projectVertex(mCenter, mRadius, azimuth);
             break;
         }
         case NS::CircumscribedCircle:
         {
-            mRadius = apothmToRadius(radius);
-            mFirstVertrx = projectVertex(mCenter, mRadius, azimuth - centralAngle(numberSides) / 2);
+            mRadius = apothemToRadius(std::fabs(radius), numberSides);
+            mFirstVertex = projectVertex(mCenter, mRadius, azimuth - centralAngle(numberSides) / 2);
         }
     }
 }
@@ -86,15 +88,15 @@ RegularPolygon::RegularPolygon(const Vec2d &center, const Vec2d &pt1, unsigned i
     {
         case NS::InscribedCircle:
         {
-            mFirstVertrx = pt1;
+            mFirstVertex = pt1;
             mRadius = center.getDistanceTo(pt1);
             break;
         }
         case NS::CircumscribedCircle:
         {
-            mRadius = apothmToRadius(center.getDistanceTo(pt1), numberSides);
+            mRadius = apothemToRadius(center.getDistanceTo(pt1), numberSides);
             const double azimuth = azimuthVertex(center, pt1);
-            mFirstVertrx = projectVertex(mCenter, mRadius, azimuth - centralAngle(mNumberSides) / 2);
+            mFirstVertex = projectVertex(mCenter, mRadius, azimuth - centralAngle(mNumberSides) / 2);
             break;
         }
     }
@@ -236,7 +238,7 @@ double RegularPolygon::length() const
     return mRadius * 2 * std::sin( M_PI / mNumberSides )
 }
 
-double RegularPolygon::apothmToRadius(double apothm, unsigned int numberSides) const
+double RegularPolygon::apothemToRadius(double apothm, unsigned int numberSides) const
 {
     return apothem / std::cos( M_PI / numberSides );
 }
