@@ -23,6 +23,7 @@
 #include "cada_shape.h"
 
 namespace cada {
+namespace shape {
 
 Ellipse::Ellipse()
     : mCenter(Vec2d::invalid), mMajorPoint(Vec2d::invalid), mRatio(0.0),
@@ -357,7 +358,7 @@ double Ellipse::getSimpsonLength(double a1, double a2) const
     double sum = 0.0;
     double q = 1.0;
 
-    for (size_t i = 0; i <= interval; ++i) {
+    for (int i = 0; i <= interval; ++i) {
         double y = sqrt(::pow(majorR * sin(a1 + i * df), 2) +
                         ::pow(minorR * cos(a1 + i * df), 2));
         if (i == 0 || i == interval) {
@@ -599,4 +600,5 @@ Polyline Ellipse::approximateWithArcs(int segments) const
     return Polyline();
 }
 
+} // namespace shape
 } // namespace cada

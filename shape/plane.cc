@@ -23,6 +23,7 @@
 #include "cada_shape.h"
 
 namespace cada {
+namespace shape {
 
 namespace cartesian_internal {
 
@@ -227,4 +228,5 @@ Vec3d Plane::to3d(const Vec3d &p) const
     return point() + sb1 + sb2;
 }
 
+} // namespace shape
 } // namespace cada

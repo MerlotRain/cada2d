@@ -31,6 +31,7 @@
 #include <limits>
 
 namespace cada {
+namespace shape {
 
 struct Vec2d {
     double x;
@@ -365,7 +366,7 @@ public:
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
-    std::vector<Vec2d> getCenterPoints() const override;  
+    std::vector<Vec2d> getCenterPoints() const override;
 
 public:
     void appendVertex(const Vec2d &vertex, double bulge = 0.0, double w1 = 0.0,
@@ -586,7 +587,7 @@ public:
     Polyline approximateWithLinesTan(double segmentLength,
                                      double angle = 0.0) const;
     std::vector<Line> getTangents(const Vec2d &point) const;
-    std::vector<Arc> splitAtQuadrantLines() const; 
+    std::vector<Arc> splitAtQuadrantLines() const;
 };
 
 class Circle : public Shape {
@@ -605,7 +606,7 @@ public:
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
     Circle *clone() const override;
-    
+
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
@@ -700,8 +701,8 @@ public:
     std::vector<Vec2d> getFoci() const;
     Vec2d getStartPoint() const override;
     Vec2d getEndPoint() const override;
+    Vec2d getMiddlePoint() const override;
     Vec2d getPointAt(double param) const;
-    Vec2d getMiddlePoint() const;
     std::vector<Vec2d> getBoxCorners();
 
     std::vector<Line> getTangents(const Vec2d &point) const;
@@ -774,7 +775,6 @@ private:
 
 public:
     BSpline();
-    BSpline(const BSpline &other);
     BSpline(const std::vector<Vec2d> &controlPoints, int degree);
     static std::vector<BSpline> createSplinesFromArc(const Arc &arc);
     static BSpline createBezierFromSmallArc(double r, double a1, double a2);
@@ -873,8 +873,7 @@ protected:
     void updateBoundingBox() const;
 };
 
-class RegularPolygon
-{
+class RegularPolygon {
     Vec2d mCenter;
     Vec2d mFirstVertex;
     unsigned int mNumberSides;
@@ -882,12 +881,12 @@ class RegularPolygon
 
 public:
     RegularPolygon();
-    RegularPolygon(const Vec2d &center, double radius, double azimuth, 
+    RegularPolygon(const Vec2d &center, double radius, double azimuth,
                    unsigned int numberSides, NS::RegularPolygonOption option);
-    RegularPolygon(const Vec2d &center, const Vec2d &pt1, 
+    RegularPolygon(const Vec2d &center, const Vec2d &pt1,
                    unsigned int numberSides, NS::RegularPolygonOption option);
-    RegularPolygon(const Vec2d &pt1, const Vec2d &pt2, 
-                   unsigned int  numberSides);
+    RegularPolygon(const Vec2d &pt1, const Vec2d &pt2,
+                   unsigned int numberSides);
 
     Vec2d center() const;
     double radius() const;
@@ -917,14 +916,13 @@ private:
     double centralAngle(unsigned int nbSides) const;
 };
 
-
 class Triangle {
     Vec2d mVertex[3];
 
 public:
     Triangle();
     Triangle(const Vec2d &p1, const Vec2d &p2, const Vec2d &p3);
-    
+
     Vec2d vertexAt(int index) const;
     std::vector<double> lengths() const;
     std::vector<double> angles() const;
@@ -938,6 +936,7 @@ public:
     std::vector<Line *> toLines() const;
 };
 
+} // namespace shape
 } // namespace cada
 
 #endif

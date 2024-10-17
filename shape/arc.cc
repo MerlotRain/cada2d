@@ -24,6 +24,7 @@
 #include <cmath>
 
 namespace cada {
+namespace shape {
 
 Arc::Arc()
     : mCenter(Vec2d::invalid), mRadius(0.0), mStartAngle(0.0), mEndAngle(0.0),
@@ -57,7 +58,7 @@ NS::ShapeType Arc::getShapeType() const
 
 Arc *Arc::clone() const
 {
-    Arc* pClone = new Arc();
+    Arc *pClone = new Arc();
     pClone->mCenter = mCenter;
     pClone->mRadius = mRadius;
     pClone->mStartAngle = mStartAngle;
@@ -480,8 +481,8 @@ std::vector<Vec2d> Arc::getArcRefPoints() const
     p.push_back(mCenter - Vec2d(0, mRadius));
 
     for (size_t i = 0; i < p.size(); i++) {
-        if (Math::isAngleBetween(mCenter.getAngleTo(p[i]), mStartAngle, mEndAngle,
-                                 mReversed)) {
+        if (Math::isAngleBetween(mCenter.getAngleTo(p[i]), mStartAngle,
+                                 mEndAngle, mReversed)) {
             ret.push_back(p[i]);
         }
     }
@@ -650,4 +651,5 @@ std::vector<Arc> Arc::splitAtQuadrantLines() const
     return ret;
 }
 
+} // namespace shape
 } // namespace cada

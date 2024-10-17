@@ -27,6 +27,7 @@
 #include <stdexcept>
 
 namespace cada {
+namespace shape {
 
 class RVectorAngleSort {
 public:
@@ -73,7 +74,7 @@ Vec2d::Vec2d(const std::vector<double> &tuples)
     valid = true;
 }
 
-void Vec2d::set(double vx, double vy, double vz = 0.0)
+void Vec2d::set(double vx, double vy)
 {
     x = vx;
     y = vy;
@@ -569,4 +570,5 @@ bool RVectorAngleSort::lessThan(const Vec2d &v1, const Vec2d &v2)
     return diff1 < diff2;
 }
 
+} // namespace shape
 } // namespace cada

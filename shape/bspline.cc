@@ -25,16 +25,12 @@
 #include <cmath>
 
 namespace cada {
+namespace shape {
 
 BSpline::BSpline()
     : mDegree(3), mPeriodic(false), mDirty(true), mUpdateInProgress(false),
       mLength(std::numeric_limits<double>::quiet_NaN())
 {
-}
-
-BSpline::BSpline(const BSpline &other)
-{
-    *this = other;
 }
 
 BSpline::BSpline(const std::vector<Vec2d> &controlPoints, int degree)
@@ -549,4 +545,6 @@ bool BSpline::isDirty() const
 {
     return false;
 }
+
+} // namespace shape
 } // namespace cada

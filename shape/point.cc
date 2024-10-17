@@ -23,6 +23,7 @@
 #include "cada_shape.h"
 
 namespace cada {
+namespace shape {
 
 Point::Point()
 {
@@ -84,4 +85,5 @@ std::vector<Vec2d> Point::getCenterPoints() const
     return ret;
 }
 
+} // namespace shape
 } // namespace cada

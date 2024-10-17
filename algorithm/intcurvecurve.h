@@ -26,17 +26,25 @@
 #include "cada_shape.h"
 
 namespace cada {
+namespace shape {
+class Shape;
+struct Vec2d;
+} // namespace shape
+} // namespace cada
+
+namespace cada {
 namespace algorithm {
 
 class IntCurveCurve {
-    Shape *mShape1;
-    Shape *mShape2;
+    shape::Shape *mShape1;
+    shape::Shape *mShape2;
 
 public:
-    IntCurveCurve(Shape *shape1, Shape *shape2);
+    IntCurveCurve(shape::Shape *shape1, shape::Shape *shape2);
 
-    std::vector<Vec2d> intersectPoints(bool limited = true, bool same = false,
-                                       bool force = false) const;
+    std::vector<shape::Vec2d> intersectPoints(bool limited = true,
+                                              bool same = false,
+                                              bool force = false) const;
 
 private:
 };

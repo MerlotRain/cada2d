@@ -25,6 +25,7 @@
 #include <limits>
 
 namespace cada {
+namespace shape {
 
 Circle::Circle() : mCenter(Vec2d::invalid), mRadius(0.0)
 {
@@ -186,4 +187,5 @@ std::vector<Line> Circle::getTangents(const Vec2d &point) const
     return ret;
 }
 
+} // namespace shape
 } // namespace cada

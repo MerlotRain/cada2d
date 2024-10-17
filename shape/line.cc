@@ -23,6 +23,7 @@
 #include "cada_shape.h"
 
 namespace cada {
+namespace shape {
 
 Line::Line() : mStartPoint(Vec2d::invalid), mEndPoint(Vec2d::invalid)
 {
@@ -214,4 +215,5 @@ void Line::clipTo(const BBox &box)
     }
 }
 
+} // namespace shape
 } // namespace cada

@@ -24,6 +24,7 @@
 #include <cmath>
 
 namespace cada {
+namespace shape {
 
 BBox::BBox() : c1(Vec2d::invalid), c2(Vec2d::invalid)
 {
@@ -242,4 +243,5 @@ bool BBox::operator==(const BBox &other) const
     return c1 == other.c1 && c2 == other.c2;
 }
 
+} // namespace shape
 } // namespace cada

@@ -23,6 +23,7 @@
 #include "cada_shape.h"
 
 namespace cada {
+namespace shape {
 
 Vec3d::Vec3d(double x, double y, double z) : x(x), y(y), z(z)
 {
@@ -43,4 +44,5 @@ Vec3d Vec3d::operator+(const Vec3d &rhs) const
     return Vec3d(x + rhs.x, y + rhs.y, z + rhs.z);
 }
 
+} // namespace shape
 } // namespace cada

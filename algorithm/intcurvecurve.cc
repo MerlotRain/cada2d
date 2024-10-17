@@ -24,6 +24,8 @@
 
 #include <stdexcept>
 
+using namespace cada::shape;
+
 namespace cada {
 namespace algorithm {
 
@@ -46,7 +48,7 @@ std::vector<Vec2d> IntCurveCurve::intersectPoints(bool limited, bool same,
 {
     bool gotInfiniteShape = false;
     if (mShape1->getShapeType() == NS::XLine ||
-        mShape2->getShapeType() == NS::XLine || 
+        mShape2->getShapeType() == NS::XLine ||
         mShape1->getShapeType() == NS::Ray ||
         mShape2->getShapeType() == NS::Ray) {
         gotInfiniteShape = true;
@@ -87,8 +89,8 @@ std::vector<Vec2d> IntCurveCurve::intersectPoints(bool limited, bool same,
             //     return getIntersectionPointsLE(line1, ellipse2, limited);
             // }
 
-            // const Triangle *triangle2 = dynamic_cast<const Triangle *>(mShape2);
-            // if (triangle2) {
+            // const Triangle *triangle2 = dynamic_cast<const Triangle
+            // *>(mShape2); if (triangle2) {
             //     return getIntersectionPointsLT(line1, triangle2, limited);
             // }
 
@@ -99,7 +101,6 @@ std::vector<Vec2d> IntCurveCurve::intersectPoints(bool limited, bool same,
         }
     }
 }
-
 
 } // namespace algorithm
 } // namespace cada

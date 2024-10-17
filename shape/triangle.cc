@@ -23,7 +23,7 @@
 #include "cada_shape.h"
 
 namespace cada {
+namespace shape {
 
-
-
+} // namespace shape
 } // namespace cada

@@ -23,6 +23,7 @@
 #include "cada_shape.h"
 
 namespace cada {
+namespace shape {
 
 /**
  * Creates an xline object with invalid base point and direction.
@@ -46,7 +47,8 @@ XLine::XLine(const Vec2d &basePoint, const Vec2d &directionVector)
 }
 
 XLine::XLine(const Vec2d &basePoint, double angle, double distance)
-    : mBasePoint(basePoint), mDirectionVector(Vec2d::createPolar(distance, angle))
+    : mBasePoint(basePoint),
+      mDirectionVector(Vec2d::createPolar(distance, angle))
 {
 }
 
@@ -133,4 +135,5 @@ std::vector<Vec2d> XLine::getCenterPoints() const
     return std::vector<Vec2d>();
 }
 
+} // namespace shape
 } // namespace cada

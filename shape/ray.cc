@@ -23,6 +23,7 @@
 #include "cada_shape.h"
 
 namespace cada {
+namespace shape {
 
 Ray::Ray() : XLine()
 {
@@ -55,4 +56,5 @@ Ray *Ray::clone() const
     return pClone;
 }
 
+} // namespace shape
 } // namespace cada

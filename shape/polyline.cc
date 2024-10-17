@@ -25,6 +25,7 @@
 #include <assert.h>
 
 namespace cada {
+namespace shape {
 
 Polyline::Polyline() : mClosed(false)
 {
@@ -404,8 +405,8 @@ void Polyline::insertVertex(int index, const Vec2d &vertex, double bulgeBefore,
         mBulges[index - 1] = bulgeBefore;
     }
     mBulges.insert(mBulges.begin() + index, bulgeAfter);
-    mStartWidths.insert(mStartWidths.begin() +index, 0.0);
-    mEndWidths.insert(mEndWidths.begin() +index, 0.0);
+    mStartWidths.insert(mStartWidths.begin() + index, 0.0);
+    mEndWidths.insert(mEndWidths.begin() + index, 0.0);
 
     assert(mVertices.size() == mBulges.size());
     assert(mVertices.size() == mStartWidths.size());
@@ -575,7 +576,6 @@ int Polyline::getVertexIndex(const Vec2d &v, double tolerance) const
         if (mVertices[i].equalsFuzzy(v, tolerance)) {
             return i;
         }
-
     }
 
     return -1;
@@ -1691,4 +1691,5 @@ Polyline Polyline::getPolygonHull(double angle, double tolerance,
     return *this;
 }
 
+} // namespace shape
 } // namespace cada
