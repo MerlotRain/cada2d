@@ -136,6 +136,12 @@ public:
         InOutBounce,
         OutInBounce
     };
+
+    enum RegularPolygonOption
+    {
+        InscribedCircle,
+        CircumscribedCircle
+    };
 };
 
 } // namespace cada

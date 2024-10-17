@@ -10,6 +10,8 @@ shape_src = files(
     'point.cc',
     'polyline.cc',
     'ray.cc',
+    'regularpolygon.cc',
+    'triangle.cc',
     'vec2d.cc',
     'vec3d.cc',
     'xline.cc'

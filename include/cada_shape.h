@@ -952,6 +952,69 @@ protected:
     void updateBoundingBox() const;
 };
 
+class RegularPolygon
+{
+    Vec2d mCenter;
+    Vec2d mFirstVertrx;
+    unsigned int mNumberSides;
+    double mRadius;
+
+public:
+    RegularPolygon();
+    RegularPolygon(const Vec2d &center, double radius, double azimuth, unsigned int numberSides, NS::RegularPolygonOption option);
+    RegularPolygon(const Vec2d &center, const Vec2d &pt1, unsigned int numberSides, NS::RegularPolygonOption option);
+    RegularPolygon(const Vec2d &pt1, const Vec2d &pt2, unsigned int  numberSides);
+
+    Vec2d center() const;
+    double radius() const;
+    Vec2d firstVertex() const;
+    double apothem() const;
+    unsigned int numberSides() const;
+    void setCenter(const Vec2d &center);
+    void setRadius(double radius);
+    void setFirstVertex(const Vec2d &firstVertex);
+    void setNumberSides(unsigned int numberSides);
+
+    std::vector<Vec2d> points() const;
+    std::vector<Line*> toLines() const;
+    Polyline* toPolyline() const;
+    Circle inscribedCircle() const;
+    Circle circumscribedCircle() const;
+
+    double interiorAngle() const;
+    double centralAngle() const;
+    double area() const;
+    double perimeter() const;
+    double length() const;
+
+private:
+    double apothmToRadius(double apothm, unsigned int numberSides) const;
+    double interiorAngle(unsigned int nbSides) const;
+    double centralAngle(unsigned int nbSides) const;
+};
+
+
+class Triangle
+{
+    Vec2d mVertex[3];
+
+public:
+    Triangle();
+    Triangle(const Vec2d &p1, const Vec2d &p2, const Vec2d &p3);
+    
+    Vec2d vertexAt(int index) const;
+    std::vector<double> lengths() const;
+    std::vector<double> angles() const;
+    bool isDegenerate() const;
+    bool isIsocele(double lengthTolerance = 0.0001) const;
+    bool isEquilateral(double lengthTolerance = 0.0001) const;
+    bool isRight(double lengthTolerance = 0.0001) const;
+    bool isScalene(double lengthTolerance = 0.0001) const;
+
+    Polyline* toPolyline() const;
+    std::vector<line*> toLines() const;
+};
+
 } // namespace cada
 
 #endif
