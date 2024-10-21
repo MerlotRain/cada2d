@@ -1,4 +1,5 @@
 algorithm_src = files(
+    'boundingbox.cc',
     'distance.cc',
     'flip.cc',
     'intcurvecurve.cc',
@@ -11,5 +12,5 @@ algorithm_src = files(
     'scale.cc',
     'split.cc',
     'stretch.cc',
-    'trim.cc'
+    'trim.cc',
 )
