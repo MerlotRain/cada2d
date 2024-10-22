@@ -114,12 +114,12 @@ NS::ShapeType Line::getShapeType() const
     return NS::Line;
 }
 
-Line *Line::clone() const
+std::unique_ptr<Shape> Line::clone() const
 {
     Line *pClone = new Line();
     pClone->mStartPoint = mStartPoint;
     pClone->mEndPoint = mEndPoint;
-    return pClone;
+    return std::unique_ptr<Shape>(pClone);
 }
 
 Vec2d Line::getMiddlePoint() const

@@ -57,11 +57,11 @@ NS::ShapeType Point::getShapeType() const
     return NS::Point;
 }
 
-Point *Point::clone() const
+std::unique_ptr<Shape> Point::clone() const
 {
     Point *pClone = new Point();
     pClone->mPosition = mPosition;
-    return pClone;
+    return std::unique_ptr<Shape>(pClone);
 }
 
 std::vector<Vec2d> Point::getEndPoints() const

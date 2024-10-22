@@ -212,9 +212,11 @@ public:
     Shape() {}
     virtual ~Shape() = default;
 
+    typedef std::unique_ptr<Shape> Ptr;
+
     virtual bool isValid() const = 0;
     virtual NS::ShapeType getShapeType() const = 0;
-    virtual Shape *clone() const = 0;
+    virtual std::unique_ptr<Shape> clone() const = 0;
     virtual std::vector<Vec2d> getEndPoints() const = 0;
     virtual std::vector<Vec2d> getMiddlePoints() const = 0;
     virtual std::vector<Vec2d> getCenterPoints() const = 0;
@@ -282,14 +284,11 @@ public:
     bool flipHorizontal();
     bool flipVertical();
     bool stretch(const std::vector<Vec2d> &vertex, const Vec2d &offset);
-    std::vector<std::shared_ptr<Shape>>
-    getOffsetShapes(double distance, int number, NS::Side side,
-                    const Vec2d &position = Vec2d::invalid);
-    std::vector<std::shared_ptr<Shape>>
-    splitAt(const std::vector<Vec2d> &points) const;
-    std::vector<std::shared_ptr<Shape>>
-    roundAllCorners(const std::vector<std::shared_ptr<Shape>> &shapes,
-                    double radius);
+    std::vector<Ptr> getOffsetShapes(double distance, int number, NS::Side side,
+                                     const Vec2d &position = Vec2d::invalid);
+    std::vector<Ptr> splitAt(const std::vector<Vec2d> &points) const;
+    std::vector<Ptr> roundAllCorners(const std::vector<Shape *> &shapes,
+                                     double radius);
 };
 
 class Point : public Shape {
@@ -302,7 +301,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Point *clone() const override;
+    std::unique_ptr<Shape> clone() const override;
 
     Vec2d getPosition() const;
     void setPosition(const Vec2d &p);
@@ -324,7 +323,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Line *clone() const override;
+    std::unique_ptr<Shape> clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -358,11 +357,10 @@ class Polyline : public Shape {
 public:
     Polyline();
     Polyline(const std::vector<Vec2d> &vertices, bool closed);
-    Polyline(const std::vector<std::shared_ptr<Shape>> &segments);
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Polyline *clone() const override;
+    std::unique_ptr<Shape> clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -482,10 +480,10 @@ public:
     std::vector<Polyline> getLeftOutline() const;
     std::vector<Polyline> getRightOutline() const;
     int countSegments() const;
-    std::shared_ptr<Shape> getSegmentAt(int i) const;
+    Shape *getSegmentAt(int i) const;
     bool isArcSegmentAt(int i) const;
-    std::shared_ptr<Shape> getLastSegment() const;
-    std::shared_ptr<Shape> getFirstSegment() const;
+    Shape *getLastSegment() const;
+    Shape *getFirstSegment() const;
 
     std::vector<Vec2d> verifyTangency(double toleranceMin = NS::AngleTolerance,
                                       double toleranceMax = M_PI_4);
@@ -508,7 +506,7 @@ public:
     Polyline getPolygonHull(double angle, double tolerance,
                             bool inner = false) const;
 
-    std::vector<std::shared_ptr<Shape>> getExploded() const;
+    std::vector<Shape *> getExploded() const;
     bool contains(const Vec2d &point, bool borderIsInside = false,
                   double tolerance = NS::PointTolerance) const;
 
@@ -543,7 +541,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Arc *clone() const override;
+    std::unique_ptr<Shape> clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -605,7 +603,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Circle *clone() const override;
+    std::unique_ptr<Shape> clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -650,7 +648,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Ellipse *clone() const override;
+    std::unique_ptr<Shape> clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -723,7 +721,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    XLine *clone() const override;
+    std::unique_ptr<Shape> clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -751,7 +749,7 @@ public:
     Ray(const Vec2d &basePoint, double angle, double distance);
 
     NS::ShapeType getShapeType() const override;
-    Ray *clone() const override;
+    std::unique_ptr<Shape> clone() const override;
 };
 
 class BSpline : public Shape {
@@ -770,7 +768,7 @@ private:
     mutable bool mUpdateInProgress;
 
     mutable BBox mBoundingBox;
-    mutable std::vector<std::shared_ptr<Shape>> mExploded;
+    mutable std::vector<Shape::Ptr> mExploded;
     mutable double mLength;
 
 public:
@@ -781,7 +779,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    BSpline *clone() const override;
+    std::unique_ptr<Shape> clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -858,8 +856,8 @@ public:
     Polyline toPolyline(int segments) const;
     Polyline approximateWithArcs(double tolerance,
                                  double radiusLimit = -1) const;
-    std::vector<std::shared_ptr<Shape>> getExplodedBezier(int segments) const;
-    std::vector<std::shared_ptr<Shape>>
+    std::vector<Shape::Ptr> getExplodedBezier(int segments) const;
+    std::vector<Shape::Ptr>
     getExplodedWithSegmentLength(double segmentLength) const;
     std::vector<BSpline> getBezierSegments(const BBox &queryBox = BBox()) const;
     std::vector<BSpline> getSegments(const std::vector<Vec2d> &points) const;

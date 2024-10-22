@@ -56,7 +56,7 @@ NS::ShapeType Arc::getShapeType() const
     return NS::Arc;
 }
 
-Arc *Arc::clone() const
+std::unique_ptr<Shape> Arc::clone() const
 {
     Arc *pClone = new Arc();
     pClone->mCenter = mCenter;
@@ -64,7 +64,7 @@ Arc *Arc::clone() const
     pClone->mStartAngle = mStartAngle;
     pClone->mEndAngle = mEndAngle;
     pClone->mReversed = mReversed;
-    return pClone;
+    return std::unique_ptr<Shape>(pClone);
 }
 
 bool Arc::isFullCircle(double tolerance) const
@@ -641,11 +641,11 @@ std::vector<Arc> Arc::splitAtQuadrantLines() const
         }
     }
 
-    std::vector<std::shared_ptr<Shape>> segments = splitAt(points);
+    std::vector<std::unique_ptr<Shape>> segments = splitAt(points);
 
     std::vector<Arc> ret;
     for (size_t i = 0; i < segments.size(); i++) {
-        std::shared_ptr<Arc> seg = std::dynamic_pointer_cast<Arc>(segments[i]);
+        std::unique_ptr<Arc> seg(dynamic_cast<Arc *>(segments[i].release()));
         ret.push_back(*seg);
     }
     return ret;

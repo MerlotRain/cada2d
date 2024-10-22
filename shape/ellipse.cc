@@ -68,7 +68,7 @@ NS::ShapeType Ellipse::getShapeType() const
     return NS::ShapeType();
 }
 
-Ellipse *Ellipse::clone() const
+std::unique_ptr<Shape> Ellipse::clone() const
 {
     return nullptr;
 }

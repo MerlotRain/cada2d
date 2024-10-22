@@ -242,24 +242,23 @@ bool Shape::stretch(const std::vector<Vec2d> &vertex, const Vec2d &offset)
     return false;
 }
 
-std::vector<std::shared_ptr<Shape>>
+std::vector<std::unique_ptr<Shape>>
 Shape::getOffsetShapes(double distance, int number, NS::Side side,
                        const Vec2d &position)
 {
-    return std::vector<std::shared_ptr<Shape>>();
+    return std::vector<std::unique_ptr<Shape>>();
 }
 
-std::vector<std::shared_ptr<Shape>>
+std::vector<std::unique_ptr<Shape>>
 Shape::splitAt(const std::vector<Vec2d> &points) const
 {
-    return std::vector<std::shared_ptr<Shape>>();
+    return std::vector<std::unique_ptr<Shape>>();
 }
 
-std::vector<std::shared_ptr<Shape>>
-Shape::roundAllCorners(const std::vector<std::shared_ptr<Shape>> &shapes,
-                       double radius)
+std::vector<std::unique_ptr<Shape>>
+Shape::roundAllCorners(const std::vector<Shape *> &shapes, double radius)
 {
-    return std::vector<std::shared_ptr<Shape>>();
+    return std::vector<std::unique_ptr<Shape>>();
 }
 
 } // namespace shape
