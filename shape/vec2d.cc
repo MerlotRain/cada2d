@@ -30,22 +30,22 @@
 namespace cada {
 namespace shape {
 
-class RVectorAngleSort {
+class Vec2dAngleSort {
 public:
     static bool lessThan(const Vec2d &v1, const Vec2d &v2);
     static Vec2d center;
     static double angle;
 };
 
-class RVectorDistanceSort {
+class Vec2dDistanceSort {
 public:
     static bool lessThan(const Vec2d &v1, const Vec2d &v2);
     static Vec2d v;
 };
 
-Vec2d RVectorDistanceSort::v;
-Vec2d RVectorAngleSort::center;
-double RVectorAngleSort::angle = 0.0;
+Vec2d Vec2dDistanceSort::v;
+Vec2d Vec2dAngleSort::center;
+double Vec2dAngleSort::angle = 0.0;
 
 const Vec2d Vec2d::invalid = Vec2d(0, 0, false);
 const Vec2d Vec2d::nullVector = Vec2d(0, 0, true);
@@ -535,28 +535,28 @@ Vec2d Vec2d::createPolar(double radius, double angle)
 std::vector<Vec2d> Vec2d::getSortedByDistance(const std::vector<Vec2d> &list,
                                               const Vec2d &v)
 {
-    RVectorDistanceSort::v = v;
+    Vec2dDistanceSort::v = v;
     std::vector<Vec2d> ret = list;
-    std::sort(ret.begin(), ret.end(), RVectorDistanceSort::lessThan);
+    std::sort(ret.begin(), ret.end(), Vec2dDistanceSort::lessThan);
     return ret;
 }
 
 std::vector<Vec2d> Vec2d::getSortedByAngle(const std::vector<Vec2d> &list,
                                            const Vec2d &center, double angle)
 {
-    RVectorAngleSort::center = center;
-    RVectorAngleSort::angle = angle;
+    Vec2dAngleSort::center = center;
+    Vec2dAngleSort::angle = angle;
     std::vector<Vec2d> ret = list;
-    std::sort(ret.begin(), ret.end(), RVectorAngleSort::lessThan);
+    std::sort(ret.begin(), ret.end(), Vec2dAngleSort::lessThan);
     return ret;
 }
 
-bool RVectorDistanceSort::lessThan(const Vec2d &v1, const Vec2d &v2)
+bool Vec2dDistanceSort::lessThan(const Vec2d &v1, const Vec2d &v2)
 {
     return v.getDistanceTo(v1) < v.getDistanceTo(v2);
 }
 
-bool RVectorAngleSort::lessThan(const Vec2d &v1, const Vec2d &v2)
+bool Vec2dAngleSort::lessThan(const Vec2d &v1, const Vec2d &v2)
 {
     double a1 = center.getAngleTo(v1);
     double a2 = center.getAngleTo(v2);

@@ -62,12 +62,12 @@ NS::ShapeType XLine::getShapeType() const
     return NS::XLine;
 }
 
-std::unique_ptr<Shape> XLine::clone() const
+Shape *XLine::cloneImpl() const
 {
     XLine *pClone = new XLine();
     pClone->mBasePoint = mBasePoint;
     pClone->mDirectionVector = mDirectionVector;
-    return std::unique_ptr<Shape>(pClone);
+    return pClone;
 }
 
 double XLine::getAngle() const

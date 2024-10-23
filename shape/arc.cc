@@ -56,7 +56,7 @@ NS::ShapeType Arc::getShapeType() const
     return NS::Arc;
 }
 
-std::unique_ptr<Shape> Arc::clone() const
+Shape *Arc::cloneImpl() const
 {
     Arc *pClone = new Arc();
     pClone->mCenter = mCenter;
@@ -64,7 +64,7 @@ std::unique_ptr<Shape> Arc::clone() const
     pClone->mStartAngle = mStartAngle;
     pClone->mEndAngle = mEndAngle;
     pClone->mReversed = mReversed;
-    return std::unique_ptr<Shape>(pClone);
+    return pClone;
 }
 
 bool Arc::isFullCircle(double tolerance) const

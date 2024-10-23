@@ -76,7 +76,7 @@ NS::ShapeType Polyline::getShapeType() const
     return NS::Polyline;
 }
 
-std::unique_ptr<Shape> Polyline::clone() const
+Shape *Polyline::cloneImpl() const
 {
     Polyline *pClone = new Polyline();
     pClone->mVertices = mVertices;
@@ -84,7 +84,7 @@ std::unique_ptr<Shape> Polyline::clone() const
     pClone->mEndWidths = mEndWidths;
     pClone->mStartWidths = mStartWidths;
     pClone->mClosed = mClosed;
-    return std::unique_ptr<Shape>(pClone);
+    return pClone;
 }
 
 void Polyline::clear()

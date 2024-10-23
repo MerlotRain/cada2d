@@ -211,12 +211,16 @@ class Shape {
 public:
     Shape() {}
     virtual ~Shape() = default;
+    virtual std::unique_ptr<Shape> clone() const
+    {
+        return std::unique_ptr<Shape>(cloneImpl());
+    };
 
     typedef std::unique_ptr<Shape> Ptr;
 
     virtual bool isValid() const = 0;
     virtual NS::ShapeType getShapeType() const = 0;
-    virtual std::unique_ptr<Shape> clone() const = 0;
+    virtual Shape *cloneImpl() const = 0;
     virtual std::vector<Vec2d> getEndPoints() const = 0;
     virtual std::vector<Vec2d> getMiddlePoints() const = 0;
     virtual std::vector<Vec2d> getCenterPoints() const = 0;
@@ -301,7 +305,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    std::unique_ptr<Shape> clone() const override;
+    Shape *cloneImpl() const override;
 
     Vec2d getPosition() const;
     void setPosition(const Vec2d &p);
@@ -323,7 +327,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    std::unique_ptr<Shape> clone() const override;
+    Shape *cloneImpl() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -360,7 +364,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    std::unique_ptr<Shape> clone() const override;
+    Shape *cloneImpl() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -541,7 +545,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    std::unique_ptr<Shape> clone() const override;
+    Shape *cloneImpl() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -603,7 +607,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    std::unique_ptr<Shape> clone() const override;
+    Shape *cloneImpl() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -648,7 +652,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    std::unique_ptr<Shape> clone() const override;
+    Shape *cloneImpl() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -721,7 +725,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    std::unique_ptr<Shape> clone() const override;
+    Shape *cloneImpl() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -749,7 +753,7 @@ public:
     Ray(const Vec2d &basePoint, double angle, double distance);
 
     NS::ShapeType getShapeType() const override;
-    std::unique_ptr<Shape> clone() const override;
+    Shape *cloneImpl() const override;
 };
 
 class BSpline : public Shape {
@@ -779,7 +783,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    std::unique_ptr<Shape> clone() const override;
+    Shape *cloneImpl() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;

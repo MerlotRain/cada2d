@@ -48,12 +48,12 @@ NS::ShapeType Ray::getShapeType() const
     return NS::Ray;
 }
 
-std::unique_ptr<Shape> Ray::clone() const
+Shape *Ray::cloneImpl() const
 {
     Ray *pClone = new Ray();
     pClone->mBasePoint = mBasePoint;
     pClone->mDirectionVector = mDirectionVector;
-    return std::unique_ptr<Shape>(pClone);
+    return pClone;
 }
 
 } // namespace shape

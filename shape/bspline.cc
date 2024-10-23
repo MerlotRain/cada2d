@@ -423,7 +423,7 @@ NS::ShapeType BSpline::getShapeType() const
     return NS::BSpline;
 }
 
-std::unique_ptr<Shape> BSpline::clone() const
+Shape *BSpline::cloneImpl() const
 {
     return nullptr;
 }
