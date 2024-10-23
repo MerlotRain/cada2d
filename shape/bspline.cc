@@ -355,8 +355,7 @@ Polyline BSpline::toPolyline(int segments) const
 std::vector<std::unique_ptr<Shape>>
 BSpline::getExplodedBezier(int segments) const
 {
-    std::vector<std::unique_ptr<Shape>> ret;
-    return ret;
+    return std::vector<std::unique_ptr<Shape>>();
 }
 
 void BSpline::appendToExploded(const Line &line) const
@@ -369,8 +368,8 @@ void BSpline::appendToExploded(const Line &line) const
 std::vector<std::unique_ptr<Shape>>
 BSpline::getExplodedWithSegmentLength(double segmentLength) const
 {
-    std::vector<std::unique_ptr<Shape>> ret;
-    return ret;
+
+    return std::vector<std::unique_ptr<Shape>>();
 }
 
 Vec2d BSpline::getPointAt(double t) const
@@ -475,9 +474,9 @@ std::vector<Vec2d> BSpline::getDiscontinuities() const
     return ret;
 }
 
-BSpline BSpline::simplify(double tolerance)
+BSpline *BSpline::simplify(double tolerance)
 {
-    return *this;
+    return nullptr;
 }
 
 void BSpline::invalidate() const

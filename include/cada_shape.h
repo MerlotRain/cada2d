@@ -856,13 +856,13 @@ public:
     Polyline toPolyline(int segments) const;
     Polyline approximateWithArcs(double tolerance,
                                  double radiusLimit = -1) const;
-    std::vector<Shape::Ptr> getExplodedBezier(int segments) const;
-    std::vector<Shape::Ptr>
+    std::vector<std::unique_ptr<Shape>> getExplodedBezier(int segments) const;
+    std::vector<std::unique_ptr<Shape>>
     getExplodedWithSegmentLength(double segmentLength) const;
     std::vector<BSpline> getBezierSegments(const BBox &queryBox = BBox()) const;
     std::vector<BSpline> getSegments(const std::vector<Vec2d> &points) const;
     std::vector<Vec2d> getDiscontinuities() const;
-    BSpline simplify(double tolerance);
+    BSpline *simplify(double tolerance);
 
 protected:
     void appendToExploded(const Line &line) const;

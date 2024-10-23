@@ -23,7 +23,8 @@
 #include "cada_shape.h"
 
 #include <assert.h>
-#include <math.h>
+#include <cmath>
+#include <algorithm>
 #include <stdexcept>
 
 namespace cada {
@@ -56,8 +57,7 @@ Vec2d::Vec2d() : x(0.0), y(0.0), valid(true)
 {
 }
 
-Vec2d::Vec2d(double vx, double vy, bool valid_in)
-    : x(vx), y(vy)
+Vec2d::Vec2d(double vx, double vy, bool valid_in) : x(vx), y(vy)
 {
 
     valid = valid_in && Math::isNormal(x) && Math::isNormal(y);
@@ -440,12 +440,14 @@ Vec2d Vec2d::getMaximum(const std::vector<Vec2d> &vectors)
 
 Vec2d Vec2d::getMinimum(const Vec2d &v1, const Vec2d &v2)
 {
-    return Vec2d(std::min(v1.x, v2.x), std::min(v1.y, v2.y), v1.valid && v2.valid);
+    return Vec2d(std::min(v1.x, v2.x), std::min(v1.y, v2.y),
+                 v1.valid && v2.valid);
 }
 
 Vec2d Vec2d::getMaximum(const Vec2d &v1, const Vec2d &v2)
 {
-    return Vec2d(std::max(v1.x, v2.x), std::max(v1.y, v2.y), v1.valid && v2.valid);
+    return Vec2d(std::max(v1.x, v2.x), std::max(v1.y, v2.y),
+                 v1.valid && v2.valid);
 }
 
 Vec2d Vec2d::getAverage(const Vec2d &v1, const Vec2d &v2)
