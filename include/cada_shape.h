@@ -284,8 +284,9 @@ public:
     bool flipHorizontal();
     bool flipVertical();
     bool stretch(const std::vector<Vec2d> &vertex, const Vec2d &offset);
-    std::vector<Shape *> getOffsetShapes(double distance, int number, NS::Side side,
-                                     const Vec2d &position = Vec2d::invalid);
+    std::vector<Shape *>
+    getOffsetShapes(double distance, int number, NS::Side side,
+                    const Vec2d &position = Vec2d::invalid);
     std::vector<Shape *> splitAt(const std::vector<Vec2d> &points) const;
 };
 
@@ -299,7 +300,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape* clone() const  override;
+    Shape *clone() const override;
 
     Vec2d getPosition() const;
     void setPosition(const Vec2d &p);
@@ -321,7 +322,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape* clone() const  override;
+    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -358,7 +359,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape* clone() const  override;
+    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -539,7 +540,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape* clone() const  override;
+    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -601,7 +602,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape* clone() const  override;
+    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -646,7 +647,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape* clone() const  override;
+    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -718,7 +719,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape* clone() const  override;
+    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -746,7 +747,7 @@ public:
     Ray(const Vec2d &basePoint, double angle, double distance);
 
     NS::ShapeType getShapeType() const override;
-    Shape* clone() const  override;
+    Shape *clone() const override;
 };
 
 class BSpline : public Shape {
@@ -776,7 +777,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape* clone() const  override;
+    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -859,7 +860,7 @@ public:
     std::vector<BSpline> getBezierSegments(const BBox &queryBox = BBox()) const;
     std::vector<BSpline> getSegments(const std::vector<Vec2d> &points) const;
     std::vector<Vec2d> getDiscontinuities() const;
-    BSpline* simplify(double tolerance);
+    BSpline *simplify(double tolerance);
 
 protected:
     void appendToExploded(const Line &line) const;

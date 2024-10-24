@@ -34,7 +34,6 @@ namespace algorithm {
 
 Length::Length(shape::Shape *shape) : mShape(shape)
 {
-
 }
 
 double Length::getLength() const
@@ -60,8 +59,7 @@ double Length::getLength() const
         return getEllipseLength();
     }
     case NS::XLine:
-    case NS::Ray:
-    {
+    case NS::Ray: {
         return std::numeric_limits<double>::quiet_NaN();
     }
     case NS::Polyline:
@@ -77,7 +75,7 @@ double Length::getLength(shape::Shape *shape)
 {
     Length l(shape);
     return l.getLength();
-}    
+}
 
 double Length::getEllipseLength() const
 {
@@ -90,22 +88,22 @@ double Length::getEllipseLength() const
 
     if (ellipse->isFullEllipse()) {
         a1 = 0.0;
-        a2 = 2*M_PI;
+        a2 = 2 * M_PI;
 
-
-        if (Math::fuzzyCompare((a+b), 0.0)) {
+        if (Math::fuzzyCompare((a + b), 0.0)) {
             return 0.0;
         }
-        double h = pow((a-b)/(a+b), 2);
+        double h = pow((a - b) / (a + b), 2);
 
-        return M_PI * (a+b) * ( (135168 - 85760 * h - 5568 * h * h + 3867 * h * h * h) /
-                                    (135168 - 119552 * h + 22208 * h * h - 345 * h * h * h) );
+        return M_PI * (a + b) *
+               ((135168 - 85760 * h - 5568 * h * h + 3867 * h * h * h) /
+                (135168 - 119552 * h + 22208 * h * h - 345 * h * h * h));
     }
     else {
         a1 = Math::getNormalizedAngle(ellipse->getStartParam());
         a2 = Math::getNormalizedAngle(ellipse->getEndParam());
     }
-    
+
     if (ellipse->isReversed()) {
         double t = a1;
         a1 = a2;
@@ -113,40 +111,47 @@ double Length::getEllipseLength() const
     }
 
     if (Math::fuzzyCompare(a2, 0.0)) {
-        a2 = 2*M_PI;
+        a2 = 2 * M_PI;
     }
 
-    if (fabs(a1-a2)<NS::AngleTolerance) {
+    if (fabs(a1 - a2) < NS::AngleTolerance) {
         return 0.0;
     }
 
-    if (a1<a2) {
-        if (a1<M_PI && a2<=M_PI) {
-            return getEllipseSimpsonLength(a,b,a1, a2);
+    if (a1 < a2) {
+        if (a1 < M_PI && a2 <= M_PI) {
+            return getEllipseSimpsonLength(a, b, a1, a2);
         }
-        if (a1<M_PI && a2>M_PI) {
-            return getEllipseSimpsonLength(a,b,a1, M_PI) + getEllipseSimpsonLength(a,b,M_PI, a2);
+        if (a1 < M_PI && a2 > M_PI) {
+            return getEllipseSimpsonLength(a, b, a1, M_PI) +
+                   getEllipseSimpsonLength(a, b, M_PI, a2);
         }
-        if (a1>=M_PI && a2>M_PI) {
-            return getEllipseSimpsonLength(a,b,a1, a2);
+        if (a1 >= M_PI && a2 > M_PI) {
+            return getEllipseSimpsonLength(a, b, a1, a2);
         }
     }
     else {
-        if (a1>M_PI && a2<M_PI) {
-            return getEllipseSimpsonLength(a,b,a1, 2*M_PI) + getEllipseSimpsonLength(a,b,0, a2);
+        if (a1 > M_PI && a2 < M_PI) {
+            return getEllipseSimpsonLength(a, b, a1, 2 * M_PI) +
+                   getEllipseSimpsonLength(a, b, 0, a2);
         }
-        if (a1>M_PI && a2>M_PI) {
-            return getEllipseSimpsonLength(a,b,a1, 2*M_PI) + getEllipseSimpsonLength(a,b,0, M_PI) + getEllipseSimpsonLength(a,b,M_PI, a2);
+        if (a1 > M_PI && a2 > M_PI) {
+            return getEllipseSimpsonLength(a, b, a1, 2 * M_PI) +
+                   getEllipseSimpsonLength(a, b, 0, M_PI) +
+                   getEllipseSimpsonLength(a, b, M_PI, a2);
         }
-        if (a1<M_PI && a2<M_PI) {
-            return getEllipseSimpsonLength(a,b,a1, M_PI) + getEllipseSimpsonLength(a,b,M_PI, 2*M_PI) + getEllipseSimpsonLength(a,b,0, a2);
+        if (a1 < M_PI && a2 < M_PI) {
+            return getEllipseSimpsonLength(a, b, a1, M_PI) +
+                   getEllipseSimpsonLength(a, b, M_PI, 2 * M_PI) +
+                   getEllipseSimpsonLength(a, b, 0, a2);
         }
     }
 
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-double Length::getEllipseSimpsonLength(double majorR, double minorR, double a1, double a2) const
+double Length::getEllipseSimpsonLength(double majorR, double minorR, double a1,
+                                       double a2) const
 {
     int interval = 20;
     double df = (a2 - a1) / interval;
@@ -173,7 +178,6 @@ double Length::getEllipseSimpsonLength(double majorR, double minorR, double a1, 
 
     return (df / 3.0) * sum;
 }
-
 
 } // namespace algorithm
 } // namespace cada

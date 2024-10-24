@@ -51,5 +51,4 @@ private:
 } // namespace algorithm
 } // namespace cada
 
-
 #endif

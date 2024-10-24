@@ -3,6 +3,7 @@ algorithm_src = files(
     'distance.cc',
     'flip.cc',
     'intcurvecurve.cc',
+    'length.cc',
     'mirror.cc',
     'move.cc',
     'offset.cc',

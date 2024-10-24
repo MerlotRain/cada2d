@@ -35,23 +35,19 @@ namespace algorithm {
 ShortestTo::ShortestTo(shape::Shape *shape, bool limited, double strictRange)
     : mShape(shape), mLimited(limited), mStrictRange(strictRange)
 {
-
 }
 
 Vec2d ShortestTo::getShortestTo(const shape::Vec2d &point) const
 {
     assert(mShape);
-    switch(mShape->getShapeType())
-    {
-        case NS::Point:
-        {
-            Point *pt = dynamic_cast<Point *>(mShape);
-            return point - pt->getPosition();
-        }
-        case NS::Line:
-        {
-            return getLineShortestTo(point);
-        }
+    switch (mShape->getShapeType()) {
+    case NS::Point: {
+        Point *pt = dynamic_cast<Point *>(mShape);
+        return point - pt->getPosition();
+    }
+    case NS::Line: {
+        return getLineShortestTo(point);
+    }
     }
 }
 
@@ -63,11 +59,11 @@ Vec2d ShortestTo::getLineShortestTo(const shape::Vec2d &point) const
     Vec2d ae = l->getEndPoint() - l->getStartPoint();
     Vec2d ap = point - l->getStartPoint();
 
-    if(ae.getMagnitude() < 1.0e-6) {
+    if (ae.getMagnitude() < 1.0e-6) {
         return Vec2d::invalid;
     }
     if (ap.getMagnitude() < 1.0e-6) {
-        return Vec2d(0,0);
+        return Vec2d(0, 0);
     }
     double b = Vec2d::getDotProduct(ap, ae) / Vec2d::getDotProduct(ae, ae);
 

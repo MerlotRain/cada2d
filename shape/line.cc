@@ -114,7 +114,7 @@ NS::ShapeType Line::getShapeType() const
     return NS::Line;
 }
 
-Shape* Line::clone() const
+Shape *Line::clone() const
 {
     Line *pClone = new Line();
     pClone->mStartPoint = mStartPoint;

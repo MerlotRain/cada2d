@@ -34,9 +34,9 @@ class Shape;
 namespace cada {
 namespace algorithm {
 
-class Length 
-{
-    shape::Shape* mShape;
+class Length {
+    shape::Shape *mShape;
+
 public:
     Length(shape::Shape *shape);
     double getLength() const;
@@ -45,7 +45,8 @@ public:
 
 private:
     double getEllipseLength() const;
-    double getEllipseSimpsonLength(double majorR, double minorR, double a1, double a2) const;
+    double getEllipseSimpsonLength(double majorR, double minorR, double a1,
+                                   double a2) const;
 };
 
 } // namespace algorithm

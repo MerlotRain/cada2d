@@ -20,7 +20,6 @@
  * IN THE SOFTWARE.
  */
 
-
 #ifndef CADA_EXCEPTION_H
 #define CADA_EXCEPTION_H
 
@@ -29,26 +28,23 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251) // warning C4251: needs to have dll-interface to be used by clients of class
-#pragma warning(disable: 4275) // warning C4275: non-DLL-interface std::exception used as base for DLL-inter
+#pragma warning(disable : 4251) // warning C4251: needs to have dll-interface to
+                                // be used by clients of class
+#pragma warning(disable : 4275) // warning C4275: non-DLL-interface
+#endif                          // std::exception used as base for DLL-inter
 
 namespace cada {
 
 class Exception : public std::runtime_error {
 public:
-    Exception()
-        : std::runtime_error("unknown error")
-    {}
+    Exception() : std::runtime_error("unknown error") {}
 
-    Exception(std::string const& msg)
-        :
-        std::runtime_error(msg)
-    {}
+    Exception(std::string const &msg) : std::runtime_error(msg) {}
 
-    Exception(std::string const& name, std::string const& msg)
-        :
-        std::runtime_error(name + ": " + msg)
-    {}
+    Exception(std::string const &name, std::string const &msg)
+        : std::runtime_error(name + ": " + msg)
+    {
+    }
 };
 
 } // namespace cada

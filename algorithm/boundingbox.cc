@@ -93,41 +93,41 @@ shape::BBox BoundingBox::getArcBoundingBox() const
     double maxX = std::max(startPoint.x, endPoint.x);
     double maxY = std::max(startPoint.y, endPoint.y);
 
-    if(startPoint.getDistanceTo(endPoint) < 1.0e-6 && arc->getRadius() > 1.0e5) {
+    if (startPoint.getDistanceTo(endPoint) < 1.0e-6 &&
+        arc->getRadius() > 1.0e5) {
         minV = Vec2d(minX, minY);
         maxV = Vec2d(maxX, maxY);
         return BBox(minV, maxV);
     }
 
-    double a1 = Math::getNormalizedAngle(arc->isReversed() ? arc->getEndAngle() : arc->getStartAngle());
-    double a2 = Math::getNormalizedAngle(arc->isReversed() ? arc->getStartAngle() : arc->getEndAngle());
+    double a1 = Math::getNormalizedAngle(
+        arc->isReversed() ? arc->getEndAngle() : arc->getStartAngle());
+    double a2 = Math::getNormalizedAngle(
+        arc->isReversed() ? arc->getStartAngle() : arc->getEndAngle());
 
     // check for left limit:
-    if ((a1<M_PI && a2>M_PI) ||
-            (a1>a2-1.0e-12 && a2>M_PI) ||
-            (a1>a2-1.0e-12 && a1<M_PI) ) {
+    if ((a1 < M_PI && a2 > M_PI) || (a1 > a2 - 1.0e-12 && a2 > M_PI) ||
+        (a1 > a2 - 1.0e-12 && a1 < M_PI)) {
 
         minX = std::min(center.x - arc->getRadius(), minX);
     }
 
     // check for right limit:
-    if (a1 > a2-1.0e-12) {
+    if (a1 > a2 - 1.0e-12) {
         maxX = std::max(center.x + arc->getRadius(), maxX);
     }
 
     // check for bottom limit:
-    if ((a1<(M_PI_2*3) && a2>(M_PI_2*3)) ||
-            (a1>a2-1.0e-12    && a2>(M_PI_2*3)) ||
-            (a1>a2-1.0e-12    && a1<(M_PI_2*3)) ) {
+    if ((a1 < (M_PI_2 * 3) && a2 > (M_PI_2 * 3)) ||
+        (a1 > a2 - 1.0e-12 && a2 > (M_PI_2 * 3)) ||
+        (a1 > a2 - 1.0e-12 && a1 < (M_PI_2 * 3))) {
 
         minY = std::min(center.y - arc->getRadius(), minY);
     }
 
-
     // check for top limit:
-    if ((a1<M_PI_2 && a2>M_PI_2) ||
-            (a1>a2-1.0e-12   && a2>M_PI_2) ||
-            (a1>a2-1.0e-12   && a1<M_PI_2) ) {
+    if ((a1 < M_PI_2 && a2 > M_PI_2) || (a1 > a2 - 1.0e-12 && a2 > M_PI_2) ||
+        (a1 > a2 - 1.0e-12 && a1 < M_PI_2)) {
 
         maxY = std::max(center.y + arc->getRadius(), maxY);
     }
@@ -155,9 +155,11 @@ shape::BBox BoundingBox::getEllipseBoundingBox() const
     double radius1 = ellipse->getMajorRadius();
     double radius2 = ellipse->getMinorRadius();
     double angle = ellipse->getAngle();
-    double a1 = (ellipse->isReversed() ? ellipse->getEndParam() : ellipse->getStartParam());
-    double a2 = (ellipse->isReversed() ? ellipse->getStartParam() : ellipse->getEndParam());
-    
+    double a1 = (ellipse->isReversed() ? ellipse->getEndParam()
+                                       : ellipse->getStartParam());
+    double a2 = (ellipse->isReversed() ? ellipse->getStartParam()
+                                       : ellipse->getEndParam());
+
     Vec2d startPoint = ellipse->getStartPoint();
     Vec2d endPoint = ellipse->getEndPoint();
     Vec2d center = ellipse->getCenter();
@@ -169,8 +171,7 @@ shape::BBox BoundingBox::getEllipseBoundingBox() const
     Vec2d vp;
     double a = a1;
     do {
-        vp.set(center.x + radius1 * cos(a),
-               center.y + radius2 * sin(a));
+        vp.set(center.x + radius1 * cos(a), center.y + radius2 * sin(a));
         vp.rotate(angle, center);
 
         minX = std::min(minX, vp.x);
@@ -181,7 +182,7 @@ shape::BBox BoundingBox::getEllipseBoundingBox() const
         a += 0.03;
     } while (Math::isAngleBetween(a, a1, a2, false) && a < 4 * M_PI);
 
-    return BBox(Vec2d(minX,minY), Vec2d(maxX,maxY));
+    return BBox(Vec2d(minX, minY), Vec2d(maxX, maxY));
 }
 
 shape::BBox BoundingBox::getXLineBoundingBox() const
