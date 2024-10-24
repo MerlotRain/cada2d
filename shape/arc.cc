@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-#include "cada_shape.h"
+#include <cada_shape.h>
 #include <cmath>
 
 namespace cada {
@@ -56,7 +56,7 @@ NS::ShapeType Arc::getShapeType() const
     return NS::Arc;
 }
 
-Shape *Arc::cloneImpl() const
+Shape* Arc::clone() const
 {
     Arc *pClone = new Arc();
     pClone->mCenter = mCenter;
@@ -641,11 +641,11 @@ std::vector<Arc> Arc::splitAtQuadrantLines() const
         }
     }
 
-    std::vector<std::unique_ptr<Shape>> segments = splitAt(points);
+    std::vector<Shape *> segments = splitAt(points);
 
     std::vector<Arc> ret;
     for (size_t i = 0; i < segments.size(); i++) {
-        std::unique_ptr<Arc> seg(dynamic_cast<Arc *>(segments[i].release()));
+        Arc *seg = dynamic_cast<Arc *>(segments[i]);
         ret.push_back(*seg);
     }
     return ret;

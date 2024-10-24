@@ -68,7 +68,7 @@ NS::ShapeType Ellipse::getShapeType() const
     return NS::ShapeType();
 }
 
-Shape *Ellipse::cloneImpl() const
+Shape* Ellipse::clone() const
 {
     return nullptr;
 }
@@ -346,37 +346,6 @@ bool Ellipse::isFullEllipse() const
 bool Ellipse::isCircular() const
 {
     return getRatio() > (1.0 - 0.001);
-}
-
-double Ellipse::getSimpsonLength(double a1, double a2) const
-{
-    int interval = 20;
-    double df = (a2 - a1) / interval;
-    double majorR = getMajorRadius();
-    double minorR = getMinorRadius();
-
-    double sum = 0.0;
-    double q = 1.0;
-
-    for (int i = 0; i <= interval; ++i) {
-        double y = sqrt(::pow(majorR * sin(a1 + i * df), 2) +
-                        ::pow(minorR * cos(a1 + i * df), 2));
-        if (i == 0 || i == interval) {
-            q = 1.0;
-        }
-        else {
-            if (i % 2 == 0) {
-                q = 2.0;
-            }
-            else {
-                q = 4.0;
-            }
-        }
-
-        sum += q * y;
-    }
-
-    return (df / 3.0) * sum;
 }
 
 bool Ellipse::contains(const Vec2d &p) const

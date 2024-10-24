@@ -20,70 +20,37 @@
  * IN THE SOFTWARE.
  */
 
-#include "cada_shape.h"
+
+#ifndef CADA_EXCEPTION_H
+#define CADA_EXCEPTION_H
+
+#include <stdexcept>
+#include <string>
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251) // warning C4251: needs to have dll-interface to be used by clients of class
+#pragma warning(disable: 4275) // warning C4275: non-DLL-interface std::exception used as base for DLL-inter
 
 namespace cada {
-namespace shape {
 
-Point::Point()
-{
-}
+class Exception : public std::runtime_error {
+public:
+    Exception()
+        : std::runtime_error("unknown error")
+    {}
 
-Point::Point(double x, double y) : mPosition(x, y)
-{
-}
+    Exception(std::string const& msg)
+        :
+        std::runtime_error(msg)
+    {}
 
-Point::Point(const Vec2d &position) : mPosition(position)
-{
-}
+    Exception(std::string const& name, std::string const& msg)
+        :
+        std::runtime_error(name + ": " + msg)
+    {}
+};
 
-Vec2d Point::getPosition() const
-{
-    return mPosition;
-}
-
-void Point::setPosition(const Vec2d &p)
-{
-    mPosition = p;
-}
-
-bool Point::isValid() const
-{
-    return mPosition.isValid();
-}
-
-NS::ShapeType Point::getShapeType() const
-{
-    return NS::Point;
-}
-
-Shape* Point::clone() const
-{
-    Point *pClone = new Point();
-    pClone->mPosition = mPosition;
-    return pClone;
-}
-
-std::vector<Vec2d> Point::getEndPoints() const
-{
-    std::vector<Vec2d> ret;
-    ret.push_back(mPosition);
-    return ret;
-}
-
-std::vector<Vec2d> Point::getMiddlePoints() const
-{
-    std::vector<Vec2d> ret;
-    ret.push_back(mPosition);
-    return ret;
-}
-
-std::vector<Vec2d> Point::getCenterPoints() const
-{
-    std::vector<Vec2d> ret;
-    ret.push_back(mPosition);
-    return ret;
-}
-
-} // namespace shape
 } // namespace cada
+
+#endif

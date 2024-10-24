@@ -62,7 +62,7 @@ NS::ShapeType XLine::getShapeType() const
     return NS::XLine;
 }
 
-Shape *XLine::cloneImpl() const
+Shape *XLine::clone() const
 {
     XLine *pClone = new XLine();
     pClone->mBasePoint = mBasePoint;

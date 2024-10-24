@@ -20,70 +20,36 @@
  * IN THE SOFTWARE.
  */
 
-#include "cada_shape.h"
+#ifndef CADA_SHORTEST_TO_H
+#define CADA_SHORTEST_TO_H
 
 namespace cada {
 namespace shape {
 
-Point::Point()
-{
-}
-
-Point::Point(double x, double y) : mPosition(x, y)
-{
-}
-
-Point::Point(const Vec2d &position) : mPosition(position)
-{
-}
-
-Vec2d Point::getPosition() const
-{
-    return mPosition;
-}
-
-void Point::setPosition(const Vec2d &p)
-{
-    mPosition = p;
-}
-
-bool Point::isValid() const
-{
-    return mPosition.isValid();
-}
-
-NS::ShapeType Point::getShapeType() const
-{
-    return NS::Point;
-}
-
-Shape* Point::clone() const
-{
-    Point *pClone = new Point();
-    pClone->mPosition = mPosition;
-    return pClone;
-}
-
-std::vector<Vec2d> Point::getEndPoints() const
-{
-    std::vector<Vec2d> ret;
-    ret.push_back(mPosition);
-    return ret;
-}
-
-std::vector<Vec2d> Point::getMiddlePoints() const
-{
-    std::vector<Vec2d> ret;
-    ret.push_back(mPosition);
-    return ret;
-}
-
-std::vector<Vec2d> Point::getCenterPoints() const
-{
-    std::vector<Vec2d> ret;
-    ret.push_back(mPosition);
-    return ret;
-}
+struct Vec2d;
+class Shape;
 
 } // namespace shape
 } // namespace cada
+
+namespace cada {
+namespace algorithm {
+
+class ShortestTo {
+    shape::Shape *mShape;
+    bool mLimited;
+    double mStrictRange;
+
+public:
+    ShortestTo(shape::Shape *shape, bool limited, double strictRange);
+    shape::Vec2d getShortestTo(const shape::Vec2d &point) const;
+
+private:
+    shape::Vec2d getLineShortestTo(const shape::Vec2d &point) const;
+};
+
+} // namespace algorithm
+} // namespace cada
+
+
+#endif

@@ -48,7 +48,7 @@ NS::ShapeType Ray::getShapeType() const
     return NS::Ray;
 }
 
-Shape *Ray::cloneImpl() const
+Shape* Ray::clone() const
 {
     Ray *pClone = new Ray();
     pClone->mBasePoint = mBasePoint;

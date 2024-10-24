@@ -71,6 +71,24 @@ Circle Circle::createFrom3Points(const Vec2d &p1, const Vec2d &p2,
     return Circle(center, radius);
 }
 
+bool Circle::isValid() const
+{
+    return mCenter.isValid();
+}
+
+NS::ShapeType Circle::getShapeType() const
+{
+    return NS::Circle;
+}
+
+Shape* Circle::clone() const
+{
+    Circle* pClone = new Circle();
+    pClone->mCenter = mCenter;
+    pClone->mCenter = mCenter;
+    return pClone;
+}
+
 Arc Circle::toArc(double startAngle) const
 {
     return Arc(getCenter(), getRadius(), startAngle, startAngle + 2 * M_PI,

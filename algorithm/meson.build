@@ -10,6 +10,7 @@ algorithm_src = files(
     'pointstobspline.cc',
     'roundallcorners.cc',
     'scale.cc',
+    'shortest_to.cc',
     'split.cc',
     'stretch.cc',
     'trim.cc',

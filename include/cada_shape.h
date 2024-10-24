@@ -211,16 +211,12 @@ class Shape {
 public:
     Shape() {}
     virtual ~Shape() = default;
-    virtual std::unique_ptr<Shape> clone() const
-    {
-        return std::unique_ptr<Shape>(cloneImpl());
-    };
-
-    typedef std::unique_ptr<Shape> Ptr;
+    typedef std::shared_ptr<Shape> Ptr;
 
     virtual bool isValid() const = 0;
     virtual NS::ShapeType getShapeType() const = 0;
-    virtual Shape *cloneImpl() const = 0;
+
+    virtual Shape *clone() const = 0;
     virtual std::vector<Vec2d> getEndPoints() const = 0;
     virtual std::vector<Vec2d> getMiddlePoints() const = 0;
     virtual std::vector<Vec2d> getCenterPoints() const = 0;
@@ -288,11 +284,9 @@ public:
     bool flipHorizontal();
     bool flipVertical();
     bool stretch(const std::vector<Vec2d> &vertex, const Vec2d &offset);
-    std::vector<Ptr> getOffsetShapes(double distance, int number, NS::Side side,
+    std::vector<Shape *> getOffsetShapes(double distance, int number, NS::Side side,
                                      const Vec2d &position = Vec2d::invalid);
-    std::vector<Ptr> splitAt(const std::vector<Vec2d> &points) const;
-    std::vector<Ptr> roundAllCorners(const std::vector<Shape *> &shapes,
-                                     double radius);
+    std::vector<Shape *> splitAt(const std::vector<Vec2d> &points) const;
 };
 
 class Point : public Shape {
@@ -305,7 +299,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *cloneImpl() const override;
+    Shape* clone() const  override;
 
     Vec2d getPosition() const;
     void setPosition(const Vec2d &p);
@@ -327,7 +321,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *cloneImpl() const override;
+    Shape* clone() const  override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -364,7 +358,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *cloneImpl() const override;
+    Shape* clone() const  override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -545,7 +539,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *cloneImpl() const override;
+    Shape* clone() const  override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -607,7 +601,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *cloneImpl() const override;
+    Shape* clone() const  override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -652,7 +646,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *cloneImpl() const override;
+    Shape* clone() const  override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -691,7 +685,6 @@ public:
     void setAngle(double a);
     bool isFullEllipse() const;
     bool isCircular() const;
-    double getSimpsonLength(double f1, double f2) const;
 
     bool contains(const Vec2d &p) const;
 
@@ -725,7 +718,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *cloneImpl() const override;
+    Shape* clone() const  override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -753,7 +746,7 @@ public:
     Ray(const Vec2d &basePoint, double angle, double distance);
 
     NS::ShapeType getShapeType() const override;
-    Shape *cloneImpl() const override;
+    Shape* clone() const  override;
 };
 
 class BSpline : public Shape {
@@ -783,7 +776,7 @@ public:
 
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *cloneImpl() const override;
+    Shape* clone() const  override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -860,13 +853,13 @@ public:
     Polyline toPolyline(int segments) const;
     Polyline approximateWithArcs(double tolerance,
                                  double radiusLimit = -1) const;
-    std::vector<std::unique_ptr<Shape>> getExplodedBezier(int segments) const;
-    std::vector<std::unique_ptr<Shape>>
+    std::vector<Shape::Ptr> getExplodedBezier(int segments) const;
+    std::vector<Shape::Ptr>
     getExplodedWithSegmentLength(double segmentLength) const;
     std::vector<BSpline> getBezierSegments(const BBox &queryBox = BBox()) const;
     std::vector<BSpline> getSegments(const std::vector<Vec2d> &points) const;
     std::vector<Vec2d> getDiscontinuities() const;
-    BSpline *simplify(double tolerance);
+    BSpline* simplify(double tolerance);
 
 protected:
     void appendToExploded(const Line &line) const;

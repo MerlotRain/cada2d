@@ -78,8 +78,7 @@ public:
         XLine,
         Ray,
         Polyline,
-        BSpline,
-        Triangle
+        BSpline
     };
 
     enum DimensionType {

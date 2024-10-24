@@ -76,7 +76,7 @@ NS::ShapeType Polyline::getShapeType() const
     return NS::Polyline;
 }
 
-Shape *Polyline::cloneImpl() const
+Shape* Polyline::clone() const
 {
     Polyline *pClone = new Polyline();
     pClone->mVertices = mVertices;
@@ -427,7 +427,7 @@ void Polyline::insertVertexAt(const Vec2d &point)
 
     Vec2d p = seg1->getClosestPointOnShape(point, false);
 
-    Shape *seg2 = seg1->clone().get();
+    Shape *seg2 = seg1->clone();
 
     if (!seg1->isDirected() || !seg2->isDirected()) {
         return;

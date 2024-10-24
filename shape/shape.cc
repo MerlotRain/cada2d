@@ -24,17 +24,24 @@
 #include <assert.h>
 #include <cmath>
 
+#include "algorithm/length.h"
+#include "algorithm/boundingbox.h"
+
+using namespace cada::algorithm;
+
 namespace cada {
 namespace shape {
 
 BBox Shape::getBoundingBox() const
 {
-    return BBox();
+    BoundingBox bb(const_cast<Shape *>(this));
+    return bb.getBoundingBox();
 }
 
 double Shape::getLength() const
 {
-    return 0.0;
+    Length l(const_cast<Shape *>(this));
+    return l.getLength();
 }
 
 Vec2d Shape::getVectorTo(const Vec2d &point, bool limited,
@@ -74,12 +81,20 @@ bool Shape::isOnShape(const Vec2d &point, bool limited, double tolerance) const
 std::vector<Vec2d> Shape::filterOnShape(const std::vector<Vec2d> &pointList,
                                         bool limited, double tolerance) const
 {
-    return std::vector<Vec2d>();
+    std::vector<Vec2d> ret;
+    for (int i = 0; i < pointList.size(); i++) {
+        if (isOnShape(pointList[i], limited, tolerance)) {
+            ret.push_back(pointList[i]);
+        }
+    }
+    return ret;
 }
 
 Vec2d Shape::getVectorFromEndpointTo(const Vec2d &point) const
 {
-    return Vec2d();
+    std::vector<Vec2d> endPoints = getEndPoints();
+    Vec2d closest = point.getClosest(endPoints);
+    return point - closest;
 }
 
 std::vector<Vec2d> Shape::getPointsWithDistanceToEnd(double distance,
@@ -120,7 +135,9 @@ Vec2d Shape::getPointAtPercent(double p) const
 
 double Shape::getAngleAtPercent(double p) const
 {
-    return 0.0;
+    double length = getLength();
+    double distance = p * length;
+    return getAngleAt(distance);
 }
 
 bool Shape::intersectsWith(const Shape &other, bool limited) const
@@ -242,23 +259,16 @@ bool Shape::stretch(const std::vector<Vec2d> &vertex, const Vec2d &offset)
     return false;
 }
 
-std::vector<std::unique_ptr<Shape>>
-Shape::getOffsetShapes(double distance, int number, NS::Side side,
-                       const Vec2d &position)
+std::vector<Shape *> Shape::getOffsetShapes(double distance, int number,
+                                            NS::Side side,
+                                            const Vec2d &position)
 {
-    return std::vector<std::unique_ptr<Shape>>();
+    return std::vector<Shape *>();
 }
 
-std::vector<std::unique_ptr<Shape>>
-Shape::splitAt(const std::vector<Vec2d> &points) const
+std::vector<Shape *> Shape::splitAt(const std::vector<Vec2d> &points) const
 {
-    return std::vector<std::unique_ptr<Shape>>();
-}
-
-std::vector<std::unique_ptr<Shape>>
-Shape::roundAllCorners(const std::vector<Shape *> &shapes, double radius)
-{
-    return std::vector<std::unique_ptr<Shape>>();
+    return std::vector<Shape *>();
 }
 
 } // namespace shape

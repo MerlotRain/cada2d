@@ -24,10 +24,31 @@
 #define CADA_BOUNDINGBOX_H
 
 namespace cada {
+namespace shape {
+
+struct BBox;
+class Shape;
+
+} // namespace shape
+} // namespace cada
+
+namespace cada {
 namespace algorithm {
 
 class BoundingBox {
+    shape::Shape *mShape;
+
 public:
+    BoundingBox(shape::Shape *shape);
+    shape::BBox getBoundingBox() const;
+
+    static shape::BBox getBoundingBox(shape::Shape *shape);
+
+private:
+    shape::BBox getArcBoundingBox() const;
+    shape::BBox getCircleBoundingBox() const;
+    shape::BBox getEllipseBoundingBox() const;
+    shape::BBox getXLineBoundingBox() const;
 };
 
 } // namespace algorithm

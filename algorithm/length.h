@@ -20,70 +20,35 @@
  * IN THE SOFTWARE.
  */
 
-#include "cada_shape.h"
+#ifndef CADA_LENGTH_H
+#define CADA_LENGTH_H
 
 namespace cada {
 namespace shape {
 
-Point::Point()
-{
-}
-
-Point::Point(double x, double y) : mPosition(x, y)
-{
-}
-
-Point::Point(const Vec2d &position) : mPosition(position)
-{
-}
-
-Vec2d Point::getPosition() const
-{
-    return mPosition;
-}
-
-void Point::setPosition(const Vec2d &p)
-{
-    mPosition = p;
-}
-
-bool Point::isValid() const
-{
-    return mPosition.isValid();
-}
-
-NS::ShapeType Point::getShapeType() const
-{
-    return NS::Point;
-}
-
-Shape* Point::clone() const
-{
-    Point *pClone = new Point();
-    pClone->mPosition = mPosition;
-    return pClone;
-}
-
-std::vector<Vec2d> Point::getEndPoints() const
-{
-    std::vector<Vec2d> ret;
-    ret.push_back(mPosition);
-    return ret;
-}
-
-std::vector<Vec2d> Point::getMiddlePoints() const
-{
-    std::vector<Vec2d> ret;
-    ret.push_back(mPosition);
-    return ret;
-}
-
-std::vector<Vec2d> Point::getCenterPoints() const
-{
-    std::vector<Vec2d> ret;
-    ret.push_back(mPosition);
-    return ret;
-}
+class Shape;
 
 } // namespace shape
 } // namespace cada
+
+namespace cada {
+namespace algorithm {
+
+class Length 
+{
+    shape::Shape* mShape;
+public:
+    Length(shape::Shape *shape);
+    double getLength() const;
+
+    static double getLength(shape::Shape *shape);
+
+private:
+    double getEllipseLength() const;
+    double getEllipseSimpsonLength(double majorR, double minorR, double a1, double a2) const;
+};
+
+} // namespace algorithm
+} // namespace cada
+
+#endif
