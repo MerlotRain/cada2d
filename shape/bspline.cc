@@ -40,42 +40,6 @@ BSpline::BSpline(const std::vector<Vec2d> &controlPoints, int degree)
 {
 }
 
-std::vector<BSpline> BSpline::createSplinesFromArc(const Arc &arc)
-{
-    std::vector<BSpline> curves;
-    return curves;
-}
-
-BSpline BSpline::createBezierFromSmallArc(double r, double a1, double a2)
-{
-    double a = (a2 - a1) / 2.0; //
-
-    double x4 = r * cos(a);
-    double y4 = r * sin(a);
-    double x1 = x4;
-    double y1 = -y4;
-
-    double q1 = x1 * x1 + y1 * y1;
-    double q2 = q1 + x1 * x4 + y1 * y4;
-    double k2 = 4 / 3 * (sqrt(2 * q1 * q2) - q2) / (x1 * y4 - y1 * x4);
-
-    double x2 = x1 - k2 * y1;
-    double y2 = y1 + k2 * x1;
-    double x3 = x2;
-    double y3 = -y2;
-
-    double ar = a + a1;
-    double cos_ar = cos(ar);
-    double sin_ar = sin(ar);
-
-    std::vector<Vec2d> ctrlPts = {
-        Vec2d(r * cos(a1), r * sin(a1)),
-        Vec2d(x2 * cos_ar - y2 * sin_ar, x2 * sin_ar + y2 * cos_ar),
-        Vec2d(x3 * cos_ar - y3 * sin_ar, x3 * sin_ar + y3 * cos_ar),
-        Vec2d(r * cos(a2), r * sin(a2))};
-    return BSpline(ctrlPts, 2);
-}
-
 void BSpline::appendControlPoint(const Vec2d &point)
 {
     mControlPoints.push_back(point);
@@ -340,36 +304,32 @@ void BSpline::updateTangentsPeriodic()
     setTangents(t, t);
 }
 
-Polyline BSpline::approximateWithArcs(double tolerance,
-                                      double radiusLimit) const
+std::unique_ptr<Polyline> BSpline::approximateWithArcs(double tolerance,
+                                                       double radiusLimit) const
 {
-    return Polyline();
+    return std::unique_ptr<Polyline>();
 }
 
-Polyline BSpline::toPolyline(int segments) const
+std::unique_ptr<Polyline> BSpline::toPolyline(int segments) const
 {
-    Polyline ret;
-    return ret;
+    return std::unique_ptr<Polyline>();
 }
 
-std::vector<std::shared_ptr<Shape>>
+std::vector<std::unique_ptr<Shape>>
 BSpline::getExplodedBezier(int segments) const
 {
-    std::vector<std::shared_ptr<Shape>> ret;
+    std::vector<std::unique_ptr<Shape>> ret;
     return ret;
 }
 
-void BSpline::appendToExploded(const Line &line) const
+void BSpline::appendToExploded(const Line *line) const
 {
-    if (line.getLength() < 1.0e-6) {
-        return;
-    }
 }
 
-std::vector<std::shared_ptr<Shape>>
+std::vector<std::unique_ptr<Shape>>
 BSpline::getExplodedWithSegmentLength(double segmentLength) const
 {
-    std::vector<std::shared_ptr<Shape>> ret;
+    std::vector<std::unique_ptr<Shape>> ret;
     return ret;
 }
 
@@ -424,7 +384,7 @@ NS::ShapeType BSpline::getShapeType() const
     return NS::BSpline;
 }
 
-Shape* BSpline::clone() const
+BSpline *BSpline::cloneImpl() const
 {
     return nullptr;
 }
@@ -475,7 +435,7 @@ std::vector<Vec2d> BSpline::getDiscontinuities() const
     return ret;
 }
 
-BSpline* BSpline::simplify(double tolerance)
+BSpline *BSpline::simplify(double tolerance)
 {
     return nullptr;
 }

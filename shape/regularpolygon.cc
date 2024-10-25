@@ -194,24 +194,24 @@ std::vector<Vec2d> RegularPolygon::points() const
     return pts;
 }
 
-std::vector<Line *> RegularPolygon::toLines() const
+std::vector<std::unique_ptr<Line>> RegularPolygon::toLines() const
 {
-    return std::vector<Line *>();
+    return std::vector<std::unique_ptr<Line>>();
 }
 
-Polyline *RegularPolygon::toPolyline() const
+std::unique_ptr<Polyline> RegularPolygon::toPolyline() const
 {
-    return nullptr;
+    return std::unique_ptr<Polyline>();
 }
 
-Circle RegularPolygon::inscribedCircle() const
+std::unique_ptr<Circle> RegularPolygon::inscribedCircle() const
 {
-    return Circle(mCenter, apothem());
+    return ShapeFactory::instance()->createCircle(mCenter, apothem());
 }
 
-Circle RegularPolygon::circumscribedCircle() const
+std::unique_ptr<Circle> RegularPolygon::circumscribedCircle() const
 {
-    return Circle(mCenter, mRadius);
+    return ShapeFactory::instance()->createCircle(mCenter, mRadius);
 }
 
 double RegularPolygon::interiorAngle() const

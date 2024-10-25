@@ -23,13 +23,10 @@
 #ifndef CADA_POINTONSHAPE_H
 #define CADA_POINTONSHAPE_H
 
-
 namespace cada {
 namespace algorithm {
 
 } // namespace algorithm
 } // namespace cada
-
-
 
 #endif

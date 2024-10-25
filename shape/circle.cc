@@ -41,36 +41,6 @@ Circle::Circle(const Vec2d &center, const double radius)
 {
 }
 
-Circle Circle::createFrom2Points(const Vec2d &p1, const Vec2d &p2)
-{
-    Vec2d center = (p1 + p2) / 2.0;
-    double radius = p1.getDistanceTo(p2) / 2.0;
-    return Circle(center, radius);
-}
-
-Circle Circle::createFrom3Points(const Vec2d &p1, const Vec2d &p2,
-                                 const Vec2d &p3)
-{
-    Vec2d mp1 = Vec2d::getAverage(p1, p2);
-    double a1 = p1.getAngleTo(p2) + M_PI / 2.0;
-    Vec2d dir1 = Vec2d::createPolar(1.0, a1);
-    Vec2d mp2 = Vec2d::getAverage(p2, p3);
-    double a2 = p2.getAngleTo(p3) + M_PI / 2.0;
-    Vec2d dir2 = Vec2d::createPolar(1.0, a2);
-
-    Line midLine1(mp1, mp1 + dir1);
-    Line midLine2(mp2, mp2 + dir2);
-
-    std::vector<Vec2d> ips = midLine1.getIntersectionPoints(midLine2, false);
-    if (ips.size() != 1) {
-        return Circle();
-    }
-
-    Vec2d center = ips[0];
-    double radius = center.getDistanceTo(p3);
-    return Circle(center, radius);
-}
-
 bool Circle::isValid() const
 {
     return mCenter.isValid();
@@ -81,18 +51,18 @@ NS::ShapeType Circle::getShapeType() const
     return NS::Circle;
 }
 
-Shape* Circle::clone() const
+Circle *Circle::cloneImpl() const
 {
-    Circle* pClone = new Circle();
+    Circle *pClone = new Circle();
     pClone->mCenter = mCenter;
     pClone->mCenter = mCenter;
     return pClone;
 }
 
-Arc Circle::toArc(double startAngle) const
+std::unique_ptr<Arc> Circle::toArc(double startAngle) const
 {
-    return Arc(getCenter(), getRadius(), startAngle, startAngle + 2 * M_PI,
-               false);
+    return ShapeFactory::instance()->createArc(
+        getCenter(), getRadius(), startAngle, startAngle + 2 * M_PI, false);
 }
 
 Vec2d Circle::getCenter() const
@@ -180,9 +150,9 @@ std::vector<Vec2d> Circle::getArcRefPoints() const
 
     return ret;
 }
-std::vector<Line> Circle::getTangents(const Vec2d &point) const
+std::vector<std::unique_ptr<Line>> Circle::getTangents(const Vec2d &point) const
 {
-    std::vector<Line> ret;
+    std::vector<std::unique_ptr<Line>> ret;
 
     Vec2d thalesCenter = (point + getCenter()) / 2;
     double thalesRadius = point.getDistanceTo(thalesCenter);
@@ -193,12 +163,12 @@ std::vector<Line> Circle::getTangents(const Vec2d &point) const
 
     Circle thalesCircle(thalesCenter, thalesRadius);
 
-    std::vector<Vec2d> ips = thalesCircle.getIntersectionPoints(*this, false);
+    std::vector<Vec2d> ips = thalesCircle.getIntersectionPoints(this, false);
 
     if (ips.size() > 0) {
-        ret.push_back(Line(point, ips[0]));
+        ret.push_back(ShapeFactory::instance()->createLine(point, ips[0]));
         if (ips.size() > 1) {
-            ret.push_back(Line(point, ips[1]));
+            ret.push_back(ShapeFactory::instance()->createLine(point, ips[1]));
         }
     }
 

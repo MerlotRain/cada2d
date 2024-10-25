@@ -25,22 +25,10 @@
 namespace cada {
 namespace shape {
 
-/**
- * Creates an xline object with invalid base point and direction.
- */
 XLine::XLine() : mBasePoint(Vec2d::invalid), mDirectionVector(Vec2d::invalid)
 {
 }
 
-XLine::XLine(const Line &line)
-    : mBasePoint(line.getStartPoint()),
-      mDirectionVector(line.getEndPoint() - line.getStartPoint())
-{
-}
-
-/**
- * Creates an xline object with the given base point and direction.
- */
 XLine::XLine(const Vec2d &basePoint, const Vec2d &directionVector)
     : mBasePoint(basePoint), mDirectionVector(directionVector)
 {
@@ -62,7 +50,7 @@ NS::ShapeType XLine::getShapeType() const
     return NS::XLine;
 }
 
-Shape *XLine::clone() const
+XLine *XLine::cloneImpl() const
 {
     XLine *pClone = new XLine();
     pClone->mBasePoint = mBasePoint;

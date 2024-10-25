@@ -9,7 +9,6 @@ project(
 inc_dirs = include_directories('include')
 
 subdir('algorithm')
-subdir('include')
 subdir('shape')
 
 cada2d_lib = static_library(

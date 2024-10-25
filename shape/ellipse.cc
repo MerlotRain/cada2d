@@ -21,6 +21,7 @@
  */
 
 #include "cada_shape.h"
+#include <assert.h>
 
 namespace cada {
 namespace shape {
@@ -40,23 +41,6 @@ Ellipse::Ellipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
     correctMajorMinor();
 }
 
-Ellipse Ellipse::createInscribed(const Vec2d &p1, const Vec2d &p2,
-                                 const Vec2d &p3, const Vec2d &p4,
-                                 const Vec2d &centerHint)
-{
-    Ellipse ret;
-
-    return ret;
-}
-
-Ellipse Ellipse::createFrom4Points(const Vec2d &p1, const Vec2d &p2,
-                                   const Vec2d &p3, const Vec2d &p4)
-{
-    Ellipse ret;
-
-    return ret;
-}
-
 bool Ellipse::isValid() const
 {
     return mCenter.isValid() && mMajorPoint.isValid() && !Math::isNaN(mRatio) &&
@@ -68,7 +52,7 @@ NS::ShapeType Ellipse::getShapeType() const
     return NS::ShapeType();
 }
 
-Shape* Ellipse::clone() const
+Ellipse *Ellipse::cloneImpl() const
 {
     return nullptr;
 }
@@ -237,8 +221,9 @@ double Ellipse::angleToParam(double a) const
         normEllipse.setStartParam(0.0);
         normEllipse.setEndParam(2 * M_PI);
 
-        Line line(Vec2d(0, 0), Vec2d::createPolar(getMajorRadius() * 2, a));
-        std::vector<Vec2d> r = line.getIntersectionPoints(normEllipse, true);
+        std::unique_ptr<Line> line = ShapeFactory::instance()->createLine(
+            Vec2d(0, 0), Vec2d::createPolar(getMajorRadius() * 2, a));
+        std::vector<Vec2d> r = line->getIntersectionPoints(&normEllipse, true);
         if (r.size() != 1) {
             return std::numeric_limits<double>::quiet_NaN();
         }
@@ -438,9 +423,10 @@ double Ellipse::getSweep() const
     return ret;
 }
 
-std::vector<Line> Ellipse::getTangents(const Vec2d &point) const
+std::vector<std::unique_ptr<Line>>
+Ellipse::getTangents(const Vec2d &point) const
 {
-    std::vector<Line> ret;
+    std::vector<std::unique_ptr<Line>> ret;
 
     if (getDistanceTo(point, false) < NS::PointTolerance) {
         return ret;
@@ -450,10 +436,12 @@ std::vector<Line> Ellipse::getTangents(const Vec2d &point) const
         return ret;
     }
 
-    Line minorAxis(getCenter(), getCenter() + getMinorPoint());
-    Line majorAxis(getCenter(), getCenter() + getMajorPoint());
-    if (minorAxis.isOnShape(point, false) &&
-        !majorAxis.isOnShape(point, false)) {
+    auto minorAxis = ShapeFactory::instance()->createLine(
+        getCenter(), getCenter() + getMinorPoint());
+    auto majorAxis = ShapeFactory::instance()->createLine(
+        getCenter(), getCenter() + getMajorPoint());
+    if (minorAxis->isOnShape(point, false) &&
+        !majorAxis->isOnShape(point, false)) {
         Ellipse e2 = *this;
         e2.mMajorPoint = getMinorPoint();
         e2.mRatio = 1.0 / mRatio;
@@ -502,31 +490,33 @@ std::vector<Line> Ellipse::getTangents(const Vec2d &point) const
     s2.move(getCenter());
 
     if (s1.isValid()) {
-        ret.push_back(Line(point, s1));
+        ret.push_back(ShapeFactory::instance()->createLine(point, s1));
     }
 
     if (s2.isValid()) {
-        ret.push_back(Line(point, s2));
+        ret.push_back(ShapeFactory::instance()->createLine(point, s2));
     }
 
     return ret;
 }
 
-Vec2d Ellipse::getTangentPoint(const Line &line) const
+Vec2d Ellipse::getTangentPoint(const Line *line) const
 {
-    Line lineNeutral = line;
+    assert(line);
+    Line *lineNeutral = const_cast<Line *>(line);
+    assert(lineNeutral);
 
-    lineNeutral.move(getCenter().getNegated());
+    lineNeutral->move(getCenter().getNegated());
 
-    lineNeutral.rotate(-getAngle());
+    lineNeutral->rotate(-getAngle());
 
-    if (lineNeutral.isVertical()) {
-        if (Math::fuzzyCompare(lineNeutral.getStartPoint().x,
+    if (lineNeutral->isVertical()) {
+        if (Math::fuzzyCompare(lineNeutral->getStartPoint().x,
                                getMajorRadius())) {
             return getCenter() + getMajorPoint();
         }
 
-        if (Math::fuzzyCompare(lineNeutral.getStartPoint().x,
+        if (Math::fuzzyCompare(lineNeutral->getStartPoint().x,
                                -getMajorRadius())) {
             return getCenter() - getMajorPoint();
         }
@@ -534,12 +524,12 @@ Vec2d Ellipse::getTangentPoint(const Line &line) const
         return Vec2d::invalid;
     }
 
-    double m = (lineNeutral.getEndPoint().y - lineNeutral.getStartPoint().y) /
-               (lineNeutral.getEndPoint().x - lineNeutral.getStartPoint().x);
+    double m = (lineNeutral->getEndPoint().y - lineNeutral->getStartPoint().y) /
+               (lineNeutral->getEndPoint().x - lineNeutral->getStartPoint().x);
 
     // y-intersept:
     double c =
-        lineNeutral.getStartPoint().y - m * lineNeutral.getStartPoint().x;
+        lineNeutral->getStartPoint().y - m * lineNeutral->getStartPoint().x;
 
     double a = getMajorRadius();
     double b = getMinorRadius();
@@ -564,9 +554,9 @@ Vec2d Ellipse::getTangentPoint(const Line &line) const
     return Vec2d::invalid;
 }
 
-Polyline Ellipse::approximateWithArcs(int segments) const
+std::unique_ptr<Polyline> Ellipse::approximateWithArcs(int segments) const
 {
-    return Polyline();
+    return std::unique_ptr<Polyline>();
 }
 
 } // namespace shape

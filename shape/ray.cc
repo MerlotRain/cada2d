@@ -29,10 +29,6 @@ Ray::Ray() : XLine()
 {
 }
 
-Ray::Ray(const Line &line) : XLine(line)
-{
-}
-
 Ray::Ray(const Vec2d &basePoint, const Vec2d &directionVector)
     : XLine(basePoint, directionVector)
 {
@@ -48,7 +44,7 @@ NS::ShapeType Ray::getShapeType() const
     return NS::Ray;
 }
 
-Shape* Ray::clone() const
+Ray *Ray::cloneImpl() const
 {
     Ray *pClone = new Ray();
     pClone->mBasePoint = mBasePoint;

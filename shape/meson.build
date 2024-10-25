@@ -12,6 +12,7 @@ shape_src = files(
     'ray.cc',
     'regularpolygon.cc',
     'shape.cc',
+    'shapefactory.cc',
     'triangle.cc',
     'vec2d.cc',
     'vec3d.cc',

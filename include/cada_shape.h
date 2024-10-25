@@ -207,16 +207,21 @@ public:
     Vec3d to3d(const Vec3d &p) const;
 };
 
+class ShapeFactory;
+
 class Shape {
 public:
-    Shape() {}
+    friend class ShapeFactory;
+
     virtual ~Shape() = default;
-    typedef std::shared_ptr<Shape> Ptr;
+    std::unique_ptr<Shape> clone() const
+    {
+        return std::unique_ptr<Shape>(cloneImpl());
+    };
 
     virtual bool isValid() const = 0;
     virtual NS::ShapeType getShapeType() const = 0;
 
-    virtual Shape *clone() const = 0;
     virtual std::vector<Vec2d> getEndPoints() const = 0;
     virtual std::vector<Vec2d> getMiddlePoints() const = 0;
     virtual std::vector<Vec2d> getCenterPoints() const = 0;
@@ -231,7 +236,7 @@ public:
                       double strictRange = DBL_MAX) const;
     Vec2d getClosestPointOnShape(const Vec2d &p, bool limited = true,
                                  double strictRange = DBL_MAX) const;
-    bool equals(const Shape &other, double tolerance = DBL_EPSILON) const;
+    bool equals(const Shape *other, double tolerance = DBL_EPSILON) const;
     double getDistanceTo(const Vec2d &point, bool limited = true,
                          double strictRange = DBL_MAX) const;
     double getMaxDistanceTo(const std::vector<Vec2d> &points,
@@ -253,8 +258,8 @@ public:
     double getAngleAtPoint(const Vec2d &pos) const;
     Vec2d getPointAtPercent(double p) const;
     double getAngleAtPercent(double p) const;
-    bool intersectsWith(const Shape &other, bool limited = true) const;
-    std::vector<Vec2d> getIntersectionPoints(const Shape &other,
+    bool intersectsWith(const Shape *other, bool limited = true) const;
+    std::vector<Vec2d> getIntersectionPoints(const Shape *other,
                                              bool limited = true,
                                              bool same = false,
                                              bool force = false) const;
@@ -284,23 +289,29 @@ public:
     bool flipHorizontal();
     bool flipVertical();
     bool stretch(const std::vector<Vec2d> &vertex, const Vec2d &offset);
-    std::vector<Shape *>
+    std::vector<std::unique_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
                     const Vec2d &position = Vec2d::invalid);
-    std::vector<Shape *> splitAt(const std::vector<Vec2d> &points) const;
+    std::vector<std::unique_ptr<Shape>>
+    splitAt(const std::vector<Vec2d> &points) const;
+
+protected:
+    Shape() {}
+    virtual Shape *cloneImpl() const = 0;
 };
 
 class Point : public Shape {
     Vec2d mPosition;
 
 public:
-    Point();
-    Point(double x, double y);
-    Point(const Vec2d &position);
+    friend class ShapeFactory;
 
+    std::unique_ptr<Point> clone() const
+    {
+        return std::unique_ptr<Point>(cloneImpl());
+    }
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *clone() const override;
 
     Vec2d getPosition() const;
     void setPosition(const Vec2d &p);
@@ -308,6 +319,12 @@ public:
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
+
+protected:
+    Point();
+    Point(double x, double y);
+    Point(const Vec2d &position);
+    Point *cloneImpl() const override;
 };
 
 class Line : public Shape {
@@ -315,14 +332,14 @@ class Line : public Shape {
     Vec2d mEndPoint;
 
 public:
-    Line();
-    Line(double x1, double y1, double x2, double y2);
-    Line(const Vec2d &startPoint, const Vec2d &endPoint);
-    Line(const Vec2d &startPoint, double angle, double distance);
+    friend class ShapeFactory;
 
+    std::unique_ptr<Line> clone() const
+    {
+        return std::unique_ptr<Line>(cloneImpl());
+    }
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -339,11 +356,18 @@ public:
     double getAngle() const;
     void setAngle(double a);
 
-    bool isParallel(const Line &line) const;
+    bool isParallel(const Line *line) const;
     bool isVertical(double tolerance = DBL_EPSILON) const;
     bool isHorizontal(double tolerance = DBL_EPSILON) const;
 
     void clipTo(const BBox &box);
+
+protected:
+    Line();
+    Line(double x1, double y1, double x2, double y2);
+    Line(const Vec2d &startPoint, const Vec2d &endPoint);
+    Line(const Vec2d &startPoint, double angle, double distance);
+    Line *cloneImpl() const override;
 };
 
 class Polyline : public Shape {
@@ -354,12 +378,14 @@ class Polyline : public Shape {
     bool mClosed;
 
 public:
-    Polyline();
-    Polyline(const std::vector<Vec2d> &vertices, bool closed);
+    friend class ShapeFactory;
 
+    std::unique_ptr<Polyline> clone() const
+    {
+        return std::unique_ptr<Polyline>(cloneImpl());
+    }
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -426,10 +452,10 @@ public:
     void clear();
     void normalize(double tolerance = DBL_EPSILON);
 
-    bool prependShape(const Shape &shape);
-    bool appendShape(const Shape &shape, bool prepend = false);
-    bool appendShapeAuto(const Shape &shape);
-    bool appendShapeTrim(const Shape &shape);
+    bool prependShape(const Shape *shape);
+    bool appendShape(const Shape *shape, bool prepend = false);
+    bool appendShapeAuto(const Shape *shape);
+    bool appendShapeTrim(const Shape *shape);
     bool closeTrim();
 
     bool isGeometricallyClosed(double tolerance = DBL_EPSILON) const;
@@ -440,7 +466,7 @@ public:
     NS::Orientation getOrientation(bool implicitelyClosed = false) const;
     bool setOrientation(NS::Orientation orientation);
 
-    bool containsShape(const Shape &shape) const;
+    bool containsShape(const Shape *shape) const;
     Vec2d getPointInside() const;
 
     void moveStartPoint(const Vec2d &pos);
@@ -471,46 +497,51 @@ public:
     bool setHeight(double v);
     Vec2d getCentroid() const;
 
-    Polyline convertArcToLineSegments(int segments) const;
-    Polyline convertArcToLineSegmentsLength(double segmentLength) const;
+    std::unique_ptr<Polyline> convertArcToLineSegments(int segments) const;
+    std::unique_ptr<Polyline>
+    convertArcToLineSegmentsLength(double segmentLength) const;
 
-    std::vector<Polyline> getOutline() const;
-    std::vector<std::pair<Polyline, Polyline>> getLeftRightOutline() const;
-    std::vector<Polyline> getLeftOutline() const;
-    std::vector<Polyline> getRightOutline() const;
+    std::vector<std::unique_ptr<Polyline>> getOutline() const;
+    std::vector<std::pair<std::unique_ptr<Polyline>, std::unique_ptr<Polyline>>>
+    getLeftRightOutline() const;
+    std::vector<std::unique_ptr<Polyline>> getLeftOutline() const;
+    std::vector<std::unique_ptr<Polyline>> getRightOutline() const;
     int countSegments() const;
-    Shape *getSegmentAt(int i) const;
+    std::unique_ptr<Shape> getSegmentAt(int i) const;
     bool isArcSegmentAt(int i) const;
-    Shape *getLastSegment() const;
-    Shape *getFirstSegment() const;
+    std::unique_ptr<Shape> getLastSegment() const;
+    std::unique_ptr<Shape> getFirstSegment() const;
 
     std::vector<Vec2d> verifyTangency(double toleranceMin = NS::AngleTolerance,
                                       double toleranceMax = M_PI_4);
-    Polyline modifyPolylineCorner(const Shape &trimmedShape1,
-                                  NS::Ending ending1, int segmentIndex1,
-                                  const Shape &trimmedShape2,
-                                  NS::Ending ending2, int segmentIndex2,
-                                  const Shape *cornerShape = NULL) const;
+    std::unique_ptr<Polyline>
+    modifyPolylineCorner(const Shape *trimmedShape1, NS::Ending ending1,
+                         int segmentIndex1, const Shape *trimmedShape2,
+                         NS::Ending ending2, int segmentIndex2,
+                         const Shape *cornerShape = NULL) const;
 
     std::vector<Vec2d> getConvexVertices(bool convex = true) const;
     std::vector<Vec2d> getConcaveVertices() const;
     std::vector<Polyline> splitAtDiscontinuities(double tolerance) const;
     std::vector<Polyline> splitAtSegmentTypeChange() const;
     std::vector<Polyline>
-    morph(const Polyline &target, int steps, NS::Easing easing = NS::Linear,
+    morph(const Polyline *target, int steps, NS::Easing easing = NS::Linear,
           bool zLinear = true,
           double customFactor = std::numeric_limits<double>::quiet_NaN()) const;
-    Polyline roundAllCorners(double radius) const;
-    Polyline getPolygon(double segmentLength) const;
-    Polyline getPolygonHull(double angle, double tolerance,
-                            bool inner = false) const;
+    std::unique_ptr<Polyline> roundAllCorners(double radius) const;
+    std::unique_ptr<Polyline> getPolygon(double segmentLength) const;
+    std::unique_ptr<Polyline> getPolygonHull(double angle, double tolerance,
+                                             bool inner = false) const;
 
-    std::vector<Shape *> getExploded() const;
+    std::vector<std::unique_ptr<Shape>> getExploded() const;
     bool contains(const Vec2d &point, bool borderIsInside = false,
                   double tolerance = NS::PointTolerance) const;
 
 protected:
+    Polyline();
+    Polyline(const std::vector<Vec2d> &vertices, bool closed);
     bool isLineSegment(int i) const;
+    Polyline *cloneImpl() const override;
 };
 
 class Arc : public Shape {
@@ -521,26 +552,14 @@ class Arc : public Shape {
     bool mReversed;
 
 public:
-    Arc();
-    Arc(double cx, double cy, double radius, double startAngle, double endAngle,
-        bool reversed = false);
-    Arc(const Vec2d &center, double radius, double startAngle, double endAngle,
-        bool reversed = false);
-    static Arc createFrom3Points(const Vec2d &startPoint, const Vec2d &point,
-                                 const Vec2d &endPoint);
-    static Arc createFrom2PBulge(const Vec2d &startPoint, const Vec2d &endPoint,
-                                 double bulge);
-    static Arc createTangential(const Vec2d &startPoint, const Vec2d &pos,
-                                double direction, double radius);
-    static std::vector<Arc> createBiarc(const Vec2d &startPoint,
-                                        double startDirection,
-                                        const Vec2d &endPoint,
-                                        double endDirection,
-                                        bool secondTry = false);
+    friend class ShapeFactory;
 
+    std::unique_ptr<Arc> clone() const
+    {
+        return std::unique_ptr<Arc>(cloneImpl());
+    }
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -579,12 +598,20 @@ public:
     bool isFullCircle(double tolerance = NS::AngleTolerance) const;
     bool isAngleWithinArc(double a) const;
 
-    Polyline approximateWithLines(double segmentLength,
-                                  double angle = 0.0) const;
-    Polyline approximateWithLinesTan(double segmentLength,
-                                     double angle = 0.0) const;
-    std::vector<Line> getTangents(const Vec2d &point) const;
-    std::vector<Arc> splitAtQuadrantLines() const;
+    std::unique_ptr<Polyline> approximateWithLines(double segmentLength,
+                                                   double angle = 0.0) const;
+    std::unique_ptr<Polyline> approximateWithLinesTan(double segmentLength,
+                                                      double angle = 0.0) const;
+    std::vector<std::unique_ptr<Line>> getTangents(const Vec2d &point) const;
+    std::vector<std::unique_ptr<Arc>> splitAtQuadrantLines() const;
+
+protected:
+    Arc();
+    Arc(double cx, double cy, double radius, double startAngle, double endAngle,
+        bool reversed = false);
+    Arc(const Vec2d &center, double radius, double startAngle, double endAngle,
+        bool reversed = false);
+    Arc *cloneImpl() const override;
 };
 
 class Circle : public Shape {
@@ -592,17 +619,14 @@ class Circle : public Shape {
     double mRadius;
 
 public:
-    Circle();
-    Circle(double cx, double cy, const double radius);
-    Circle(const Vec2d &center, const double radius);
+    friend class ShapeFactory;
 
-    static Circle createFrom2Points(const Vec2d &p1, const Vec2d &p2);
-    static Circle createFrom3Points(const Vec2d &p1, const Vec2d &p2,
-                                    const Vec2d &p3);
-
+    std::unique_ptr<Circle> clone() const
+    {
+        return std::unique_ptr<Circle>(cloneImpl());
+    }
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -622,9 +646,15 @@ public:
     void setArea(double a);
     bool contains(const Vec2d &p) const;
 
-    Arc toArc(double startAngle = 0.0) const;
+    std::unique_ptr<Arc> toArc(double startAngle = 0.0) const;
     std::vector<Vec2d> getArcRefPoints() const;
-    std::vector<Line> getTangents(const Vec2d &point) const;
+    std::vector<std::unique_ptr<Line>> getTangents(const Vec2d &point) const;
+
+protected:
+    Circle();
+    Circle(double cx, double cy, const double radius);
+    Circle(const Vec2d &center, const double radius);
+    Circle *cloneImpl() const override;
 };
 
 class Ellipse : public Shape {
@@ -636,18 +666,14 @@ class Ellipse : public Shape {
     bool mReversed;
 
 public:
-    Ellipse();
-    Ellipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
-            double startParam, double endParam, bool reversed);
-    static Ellipse createInscribed(const Vec2d &p1, const Vec2d &p2,
-                                   const Vec2d &p3, const Vec2d &p4,
-                                   const Vec2d &centerHint = Vec2d::invalid);
-    static Ellipse createFrom4Points(const Vec2d &p1, const Vec2d &p2,
-                                     const Vec2d &p3, const Vec2d &p4);
+    friend class ShapeFactory;
 
+    std::unique_ptr<Ellipse> clone() const
+    {
+        return std::unique_ptr<Ellipse>(cloneImpl());
+    }
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -701,9 +727,15 @@ public:
     Vec2d getPointAt(double param) const;
     std::vector<Vec2d> getBoxCorners();
 
-    std::vector<Line> getTangents(const Vec2d &point) const;
-    Vec2d getTangentPoint(const Line &line) const;
-    Polyline approximateWithArcs(int segments) const;
+    std::vector<std::unique_ptr<Line>> getTangents(const Vec2d &point) const;
+    Vec2d getTangentPoint(const Line *line) const;
+    std::unique_ptr<Polyline> approximateWithArcs(int segments) const;
+
+protected:
+    Ellipse();
+    Ellipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
+            double startParam, double endParam, bool reversed);
+    Ellipse *cloneImpl() const override;
 };
 
 class XLine : public Shape {
@@ -712,14 +744,14 @@ protected:
     Vec2d mDirectionVector;
 
 public:
-    XLine();
-    XLine(const Line &line);
-    XLine(const Vec2d &basePoint, const Vec2d &directionVector);
-    XLine(const Vec2d &basePoint, double angle, double distance);
+    friend class ShapeFactory;
 
+    std::unique_ptr<XLine> clone() const
+    {
+        return std::unique_ptr<XLine>(cloneImpl());
+    }
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -737,17 +769,29 @@ public:
     Vec2d getStartPoint() const override;
     Vec2d getEndPoint() const override;
     Vec2d getMiddlePoint() const override;
+
+protected:
+    XLine();
+    XLine(const Vec2d &basePoint, const Vec2d &directionVector);
+    XLine(const Vec2d &basePoint, double angle, double distance);
+    XLine *cloneImpl() const override;
 };
 
 class Ray : public XLine {
 public:
+    friend class ShapeFactory;
+
+    std::unique_ptr<Ray> clone() const
+    {
+        return std::unique_ptr<Ray>(cloneImpl());
+    }
+    NS::ShapeType getShapeType() const override;
+
+protected:
     Ray();
-    Ray(const Line &line);
     Ray(const Vec2d &basePoint, const Vec2d &directionVector);
     Ray(const Vec2d &basePoint, double angle, double distance);
-
-    NS::ShapeType getShapeType() const override;
-    Shape *clone() const override;
+    Ray *cloneImpl() const override;
 };
 
 class BSpline : public Shape {
@@ -766,18 +810,18 @@ private:
     mutable bool mUpdateInProgress;
 
     mutable BBox mBoundingBox;
-    mutable std::vector<Shape::Ptr> mExploded;
+    mutable std::vector<std::unique_ptr<Shape>> mExploded;
     mutable double mLength;
 
 public:
-    BSpline();
-    BSpline(const std::vector<Vec2d> &controlPoints, int degree);
-    static std::vector<BSpline> createSplinesFromArc(const Arc &arc);
-    static BSpline createBezierFromSmallArc(double r, double a1, double a2);
+    friend class ShapeFactory;
 
+    std::unique_ptr<BSpline> clone() const
+    {
+        return std::unique_ptr<BSpline>(cloneImpl());
+    }
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
-    Shape *clone() const override;
 
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
@@ -851,11 +895,11 @@ public:
     Vec2d getPointAtDistance(double distance) const;
     Vec2d getMiddlePoint() const override;
 
-    Polyline toPolyline(int segments) const;
-    Polyline approximateWithArcs(double tolerance,
-                                 double radiusLimit = -1) const;
-    std::vector<Shape::Ptr> getExplodedBezier(int segments) const;
-    std::vector<Shape::Ptr>
+    std::unique_ptr<Polyline> toPolyline(int segments) const;
+    std::unique_ptr<Polyline>
+    approximateWithArcs(double tolerance, double radiusLimit = -1) const;
+    std::vector<std::unique_ptr<Shape>> getExplodedBezier(int segments) const;
+    std::vector<std::unique_ptr<Shape>>
     getExplodedWithSegmentLength(double segmentLength) const;
     std::vector<BSpline> getBezierSegments(const BBox &queryBox = BBox()) const;
     std::vector<BSpline> getSegments(const std::vector<Vec2d> &points) const;
@@ -863,7 +907,11 @@ public:
     BSpline *simplify(double tolerance);
 
 protected:
-    void appendToExploded(const Line &line) const;
+    BSpline();
+    BSpline(const std::vector<Vec2d> &controlPoints, int degree);
+    BSpline *cloneImpl() const override;
+
+    void appendToExploded(const Line *line) const;
     void invalidate() const;
     void updateInternal() const;
     void updateBoundingBox() const;
@@ -895,10 +943,10 @@ public:
     void setNumberSides(unsigned int numberSides);
 
     std::vector<Vec2d> points() const;
-    std::vector<Line *> toLines() const;
-    Polyline *toPolyline() const;
-    Circle inscribedCircle() const;
-    Circle circumscribedCircle() const;
+    std::vector<std::unique_ptr<Line>> toLines() const;
+    std::unique_ptr<Polyline> toPolyline() const;
+    std::unique_ptr<Circle> inscribedCircle() const;
+    std::unique_ptr<Circle> circumscribedCircle() const;
 
     double interiorAngle() const;
     double centralAngle() const;
@@ -928,8 +976,99 @@ public:
     bool isRight(double lengthTolerance = 0.0001) const;
     bool isScalene(double lengthTolerance = 0.0001) const;
 
-    Polyline *toPolyline() const;
-    std::vector<Line *> toLines() const;
+    std::unique_ptr<Polyline> toPolyline() const;
+    std::vector<std::unique_ptr<Polyline>> toLines() const;
+};
+
+class ShapeFactory {
+    friend class Shape;
+
+    ShapeFactory();
+
+public:
+    static const ShapeFactory *instance();
+
+    std::unique_ptr<Point> createPoint() const;
+    std::unique_ptr<Point> createPoint(double x, double y) const;
+    std::unique_ptr<Point> createPoint(const Vec2d &point) const;
+
+    std::unique_ptr<Line> createLine() const;
+    std::unique_ptr<Line> createLine(double x1, double y1, double x2,
+                                     double y2) const;
+    std::unique_ptr<Line> createLine(const Vec2d &startPoint,
+                                     const Vec2d &endPoint) const;
+    std::unique_ptr<Line> createLine(const Vec2d &startPoint, double angle,
+                                     double ditance) const;
+
+    std::unique_ptr<Polyline> createPolyline() const;
+    std::unique_ptr<Polyline> createPolyline(
+        std::vector<Vec2d> &&vertrices, bool closed,
+        std::vector<double> &&bulges = std::vector<double>(),
+        std::vector<double> &&endWidths = std::vector<double>(),
+        std::vector<double> &&startWidths = std::vector<double>()) const;
+
+    std::unique_ptr<Arc> createArc() const;
+    std::unique_ptr<Arc> createArc(const Vec2d &center, double radius,
+                                   double startAngle, double endAngle,
+                                   bool reversed = false) const;
+    std::unique_ptr<Arc> createArc(double cx, double xy, double radius,
+                                   double startAngle, double endAngle,
+                                   bool reversed = false) const;
+    std::unique_ptr<Arc> createArcFrom3Point(const Vec2d &startPoint,
+                                             const Vec2d &midPoint,
+                                             const Vec2d &endPoint) const;
+    std::unique_ptr<Arc> createArcFrom2PBulgs(const Vec2d &startPoint,
+                                              const Vec2d &endPoint,
+                                              double bulge) const;
+    std::unique_ptr<Arc> createArcFromTangential(const Vec2d &startPoint,
+                                                 const Vec2d &pos,
+                                                 double direction,
+                                                 double radius) const;
+    std::unique_ptr<Arc> createArcFromBiarc(const Vec2d &startPoint,
+                                            double startDirection,
+                                            const Vec2d &endPoint,
+                                            double endDirection,
+                                            bool secondTry = false) const;
+
+    std::unique_ptr<Circle> createCircle() const;
+    std::unique_ptr<Circle> createCircle(const Vec2d &center,
+                                         double radius) const;
+    std::unique_ptr<Circle> createCircle(double cx, double cy,
+                                         double radius) const;
+    std::unique_ptr<Circle> createCircleFrom2Points(const Vec2d &p1,
+                                                    const Vec2d &p2) const;
+    std::unique_ptr<Circle> createCircleFrom3Points(const Vec2d &p1,
+                                                    const Vec2d &p2,
+                                                    const Vec2d &p3) const;
+
+    std::unique_ptr<Ellipse> createEllipse() const;
+    std::unique_ptr<Ellipse>
+    createEllipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
+                  double startParam, double endParam, bool reversed) const;
+    std::unique_ptr<Ellipse>
+    createEllipseFromInscribed(const Vec2d &p1, const Vec2d &p2,
+                               const Vec2d &p3, const Vec2d &p4,
+                               const Vec2d &centerHint = Vec2d::invalid) const;
+    std::unique_ptr<Ellipse> createEllipseFrom4Points(const Vec2d &p1,
+                                                      const Vec2d &p2,
+                                                      const Vec2d &p3,
+                                                      const Vec2d &p4) const;
+
+    std::unique_ptr<XLine> createXLine() const;
+    std::unique_ptr<XLine> createXLine(const Vec2d &basePoint,
+                                       const Vec2d &directionVector) const;
+    std::unique_ptr<XLine> createXLine(const Vec2d &basePoint, double angle,
+                                       double distance) const;
+
+    std::unique_ptr<Ray> createRay() const;
+    std::unique_ptr<Ray> createRay(const Vec2d &basePoint,
+                                   const Vec2d &directionVector) const;
+    std::unique_ptr<Ray> createRay(const Vec2d &basePoint, double angle,
+                                   double distance) const;
+
+    std::unique_ptr<BSpline> createBSpline() const;
+    std::unique_ptr<BSpline> createBSpline(std::vector<Vec2d> &&controlPoints,
+                                           int degree) const;
 };
 
 } // namespace shape

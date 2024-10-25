@@ -71,10 +71,10 @@ void Line::setAngle(double a)
     mEndPoint = mStartPoint + Vec2d::createPolar(getLength(), a);
 }
 
-bool Line::isParallel(const Line &line) const
+bool Line::isParallel(const Line *line) const
 {
     double a = getAngle();
-    double oa = line.getAngle();
+    double oa = line->getAngle();
 
     return Math::isSameDirection(a, oa) || Math::isSameDirection(a, oa + M_PI);
 }
@@ -114,7 +114,7 @@ NS::ShapeType Line::getShapeType() const
     return NS::Line;
 }
 
-Shape *Line::clone() const
+Line *Line::cloneImpl() const
 {
     Line *pClone = new Line();
     pClone->mStartPoint = mStartPoint;

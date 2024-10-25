@@ -20,8 +20,6 @@
  * IN THE SOFTWARE.
  */
 
-
-
 namespace cada {
 namespace algorithm {
 

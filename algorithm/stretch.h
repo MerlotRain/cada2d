@@ -23,12 +23,10 @@
 #ifndef CADA_STRETCH_H
 #define CADA_STRETCH_H
 
-
 namespace cada {
 namespace algorithm {
 
 } // namespace algorithm
 } // namespace cada
-
 
 #endif

@@ -56,7 +56,7 @@ Vec2d Shape::getClosestPointOnShape(const Vec2d &p, bool limited,
     return Vec2d();
 }
 
-bool Shape::equals(const Shape &other, double tolerance) const
+bool Shape::equals(const Shape *other, double tolerance) const
 {
     return false;
 }
@@ -140,12 +140,12 @@ double Shape::getAngleAtPercent(double p) const
     return getAngleAt(distance);
 }
 
-bool Shape::intersectsWith(const Shape &other, bool limited) const
+bool Shape::intersectsWith(const Shape *other, bool limited) const
 {
     return false;
 }
 
-std::vector<Vec2d> Shape::getIntersectionPoints(const Shape &other,
+std::vector<Vec2d> Shape::getIntersectionPoints(const Shape *other,
                                                 bool limited, bool same,
                                                 bool force) const
 {
@@ -259,16 +259,17 @@ bool Shape::stretch(const std::vector<Vec2d> &vertex, const Vec2d &offset)
     return false;
 }
 
-std::vector<Shape *> Shape::getOffsetShapes(double distance, int number,
-                                            NS::Side side,
-                                            const Vec2d &position)
+std::vector<std::unique_ptr<Shape>>
+Shape::getOffsetShapes(double distance, int number, NS::Side side,
+                       const Vec2d &position)
 {
-    return std::vector<Shape *>();
+    return std::vector<std::unique_ptr<Shape>>();
 }
 
-std::vector<Shape *> Shape::splitAt(const std::vector<Vec2d> &points) const
+std::vector<std::unique_ptr<Shape>>
+Shape::splitAt(const std::vector<Vec2d> &points) const
 {
-    return std::vector<Shape *>();
+    return std::vector<std::unique_ptr<Shape>>();
 }
 
 } // namespace shape

@@ -23,12 +23,10 @@
 #ifndef CADA_FLIP_H
 #define CADA_FLIP_H
 
-
 namespace cada {
 namespace algorithm {
 
 } // namespace algorithm
 } // namespace cada
-
 
 #endif

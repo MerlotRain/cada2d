@@ -23,12 +23,10 @@
 #ifndef CADA_DISTANCE_H
 #define CADA_DISTANCE_H
 
-
 namespace cada {
 namespace algorithm {
 
 } // namespace algorithm
 } // namespace cada
-
 
 #endif

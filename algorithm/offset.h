@@ -23,12 +23,10 @@
 #ifndef CADA_OFFSET_H
 #define CADA_OFFSET_H
 
-
 namespace cada {
 namespace algorithm {
 
 } // namespace algorithm
 } // namespace cada
-
 
 #endif

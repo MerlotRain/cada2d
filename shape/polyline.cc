@@ -76,7 +76,7 @@ NS::ShapeType Polyline::getShapeType() const
     return NS::Polyline;
 }
 
-Shape* Polyline::clone() const
+Polyline *Polyline::cloneImpl() const
 {
     Polyline *pClone = new Polyline();
     pClone->mVertices = mVertices;
@@ -150,81 +150,88 @@ void Polyline::normalize(double tolerance)
     assert(mVertices.size() == mEndWidths.size());
 }
 
-bool Polyline::prependShape(const Shape &shape)
+bool Polyline::prependShape(const Shape *shape)
 {
     return appendShape(shape, true);
 }
 
-bool Polyline::appendShape(const Shape &shape, bool prepend)
+bool Polyline::appendShape(const Shape *shape, bool prepend)
 {
     bool ret = true;
 
     // append spline as polyline approximation:
-    if (shape.getShapeType() == NS::BSpline) {
-        const BSpline *spl = dynamic_cast<const BSpline *>(&shape);
+    if (shape->getShapeType() == NS::BSpline) {
+        const BSpline *spl = dynamic_cast<const BSpline *>(shape);
         if (spl != NULL) {
             double tol = 0.01;
-            Polyline pl = spl->approximateWithArcs(tol);
-            return appendShape(pl, prepend);
+            auto pl = spl->approximateWithArcs(tol);
+            return appendShape(pl.release(), prepend);
         }
     }
 
     // append ellipse as polyline approximation:
-    else if (shape.getShapeType() == NS::Ellipse) {
-        const Ellipse *elp = dynamic_cast<const Ellipse *>(&shape);
+    else if (shape->getShapeType() == NS::Ellipse) {
+        const Ellipse *elp = dynamic_cast<const Ellipse *>(shape);
         if (elp != NULL) {
             double seg = 32;
-            Polyline pl = elp->approximateWithArcs(seg);
-            return appendShape(pl, prepend);
+            auto pl = elp->approximateWithArcs(seg);
+            return appendShape(pl.release(), prepend);
         }
     }
 
     // append circle as polyline to empty polyline:
-    else if (shape.getShapeType() == NS::Circle && isEmpty()) {
-        const Circle *circle = dynamic_cast<const Circle *>(&shape);
+    else if (shape->getShapeType() == NS::Circle && isEmpty()) {
+        const Circle *circle = dynamic_cast<const Circle *>(shape);
         if (circle != NULL) {
-            appendShape(Arc(circle->getCenter(), circle->getRadius(), 0.0, M_PI,
-                            false));
-            appendShape(Arc(circle->getCenter(), circle->getRadius(), M_PI,
-                            2 * M_PI, false));
+            appendShape(ShapeFactory::instance()
+                            ->createArc(circle->getCenter(),
+                                        circle->getRadius(), 0.0, M_PI, false)
+                            .release());
+            appendShape(ShapeFactory::instance()
+                            ->createArc(circle->getCenter(),
+                                        circle->getRadius(), M_PI, 2 * M_PI,
+                                        false)
+                            .release());
             return true;
         }
     }
 
     // append full circle arc as circle (two arc segments) to empty polyline:
-    else if (shape.getShapeType() == NS::Arc) {
-        const Arc *arc = dynamic_cast<const Arc *>(&shape);
+    else if (shape->getShapeType() == NS::Arc) {
+        const Arc *arc = dynamic_cast<const Arc *>(shape);
         if (arc != NULL && arc->isFullCircle()) {
-            appendShape(Circle(arc->getCenter(), arc->getRadius()));
+            appendShape(ShapeFactory::instance()
+                            ->createCircle(arc->getCenter(), arc->getRadius())
+                            .release());
             return true;
         }
     }
 
     // append polyline:
-    else if (shape.getShapeType() == NS::Polyline) {
-        const Polyline *pl = dynamic_cast<const Polyline *>(&shape);
+    else if (shape->getShapeType() == NS::Polyline) {
+        const Polyline *pl = dynamic_cast<const Polyline *>(shape);
         if (pl != NULL) {
             if (prepend) {
                 for (size_t i = pl->countSegments() - 1; i >= 0; --i) {
-                    Shape *s = pl->getSegmentAt(i);
+                    auto s = pl->getSegmentAt(i);
                     if (!s) {
                         continue;
                     }
-                    ret = prependShape(*s) && ret;
+                    ret = prependShape(s.release()) && ret;
                     setStartWidthAt(0, pl->getStartWidthAt(i));
                     setEndWidthAt(0, pl->getEndWidthAt(i));
                 }
             }
             else {
                 for (size_t i = 0; i < pl->countSegments(); ++i) {
-                    Shape *s = pl->getSegmentAt(i);
+                    auto s = pl->getSegmentAt(i);
                     if (!s) {
                         continue;
                     }
                     setStartWidthAt(mVertices.size() - 1,
                                     pl->getStartWidthAt(i));
                     setEndWidthAt(mVertices.size() - 1, pl->getEndWidthAt(i));
-                    ret = appendShape(*s) && ret;
+                    ret = appendShape(s.release()) && ret;
                 }
             }
             return ret;
@@ -233,12 +240,12 @@ bool Polyline::appendShape(const Shape &shape, bool prepend)
 
     double bulge = 0.0;
 
-    const Arc *arc = dynamic_cast<const Arc *>(&shape);
+    const Arc *arc = dynamic_cast<const Arc *>(shape);
     if (arc != NULL) {
         bulge = arc->getBulge();
     }
 
-    if (!shape.isDirected()) {
+    if (!shape->isDirected()) {
         return false;
     }
 
@@ -247,8 +254,8 @@ bool Polyline::appendShape(const Shape &shape, bool prepend)
     double gap;
     if (prepend) {
         // prepend:
-        connectionPoint = shape.getEndPoint();
-        nextPoint = shape.getStartPoint();
+        connectionPoint = shape->getEndPoint();
+        nextPoint = shape->getStartPoint();
         if (mVertices.size() == 0) {
             // first point:
             appendVertex(connectionPoint);
@@ -257,8 +264,8 @@ bool Polyline::appendShape(const Shape &shape, bool prepend)
     }
     else {
         // append:
-        connectionPoint = shape.getStartPoint();
-        nextPoint = shape.getEndPoint();
+        connectionPoint = shape->getStartPoint();
+        nextPoint = shape->getEndPoint();
         if (mVertices.size() == 0) {
             // first point:
             appendVertex(connectionPoint);
@@ -286,48 +293,48 @@ bool Polyline::appendShape(const Shape &shape, bool prepend)
     return ret;
 }
 
-bool Polyline::appendShapeAuto(const Shape &shape)
+bool Polyline::appendShapeAuto(const Shape *shape)
 {
-    if (!shape.isDirected()) {
+    if (!shape->isDirected()) {
         return false;
     }
 
-    if (countVertices() > 0 && getEndPoint().equalsFuzzy(shape.getEndPoint())) {
-        std::unique_ptr<Shape> rev = std::unique_ptr<Shape>(shape.clone());
+    if (countVertices() > 0 &&
+        getEndPoint().equalsFuzzy(shape->getEndPoint())) {
+        std::unique_ptr<Shape> rev = shape->clone();
         rev->reverse();
-        return appendShape(*rev);
+        return appendShape(rev.release());
     }
 
     return appendShape(shape);
 }
 
-bool Polyline::appendShapeTrim(const Shape &shape)
+bool Polyline::appendShapeTrim(const Shape *shape)
 {
-    if (!shape.isDirected()) {
+    if (!shape->isDirected()) {
         return false;
     }
 
     if (countVertices() > 0) {
-        if (getEndPoint().equalsFuzzy(shape.getStartPoint())) {
+        if (getEndPoint().equalsFuzzy(shape->getStartPoint())) {
             return appendShape(shape);
         }
-        if (getEndPoint().equalsFuzzy(shape.getEndPoint())) {
-            std::unique_ptr<Shape> rev = std::unique_ptr<Shape>(shape.clone());
+        if (getEndPoint().equalsFuzzy(shape->getEndPoint())) {
+            std::unique_ptr<Shape> rev = shape->clone();
             rev->reverse();
-            return appendShape(*rev);
+            return appendShape(rev.release());
         }
 
-        if (shape.getShapeType() == NS::Line) {
-            Shape *lastSegment = getLastSegment();
+        if (shape->getShapeType() == NS::Line) {
+            auto lastSegment = getLastSegment();
             std::vector<Vec2d> ips =
                 lastSegment->getIntersectionPoints(shape, false);
             if (ips.size() == 1) {
                 Vec2d ip = ips[0];
                 moveEndPoint(ip);
-                std::unique_ptr<Shape> trimmed =
-                    std::unique_ptr<Shape>(shape.clone());
+                std::unique_ptr<Shape> trimmed = shape->clone();
                 trimmed->trimStartPoint(ip);
-                return appendShape(*trimmed);
+                return appendShape(trimmed.release());
             }
         }
     }
@@ -342,8 +349,8 @@ bool Polyline::closeTrim()
     }
 
     if (countSegments() > 1) {
-        Shape *firstSegment = getFirstSegment();
-        Shape *lastSegment = getLastSegment();
+        auto firstSegment = getFirstSegment();
+        auto lastSegment = getLastSegment();
 
         if (!firstSegment || !lastSegment) {
             return false;
@@ -351,8 +358,8 @@ bool Polyline::closeTrim()
 
         if (firstSegment->getShapeType() == NS::Line &&
             lastSegment->getShapeType() == NS::Line) {
-            std::vector<Vec2d> ips =
-                lastSegment->getIntersectionPoints(*firstSegment, false);
+            std::vector<Vec2d> ips = lastSegment->getIntersectionPoints(
+                firstSegment.release(), false);
             if (ips.size() == 1) {
                 Vec2d ip = ips[0];
                 moveStartPoint(ip);
@@ -420,14 +427,14 @@ void Polyline::insertVertexAt(const Vec2d &point)
         return;
     }
 
-    Shape *seg1 = getSegmentAt(index);
+    auto seg1 = getSegmentAt(index);
     if (!seg1) {
         return;
     }
 
     Vec2d p = seg1->getClosestPointOnShape(point, false);
 
-    Shape *seg2 = seg1->clone();
+    std::unique_ptr<Shape> seg2 = seg1->clone();
 
     if (!seg1->isDirected() || !seg2->isDirected()) {
         return;
@@ -438,8 +445,8 @@ void Polyline::insertVertexAt(const Vec2d &point)
 
     insertVertex(index + 1, p);
 
-    Arc *arc1 = dynamic_cast<Arc *>(seg1);
-    Arc *arc2 = dynamic_cast<Arc *>(seg2);
+    Arc *arc1 = dynamic_cast<Arc *>(seg1.get());
+    Arc *arc2 = dynamic_cast<Arc *>(seg2.get());
     if (!arc1) {
         setBulgeAt(index, 0.0);
     }
@@ -675,8 +682,8 @@ double Polyline::getVertexAngle(int i, NS::Orientation orientation) const
         return 0.0;
     }
 
-    Shape *prevSegment = getSegmentAt(Math::absmod(i - 1, countSegments()));
-    Shape *nextSegment = getSegmentAt(i % countSegments());
+    auto prevSegment = getSegmentAt(Math::absmod(i - 1, countSegments()));
+    auto nextSegment = getSegmentAt(i % countSegments());
 
     // angle from vertex to next segment:
     double aNext = nextSegment->getDirection1();
@@ -845,18 +852,18 @@ NS::Orientation Polyline::getOrientation(bool implicitelyClosed) const
     }
 
     if (hasArcSegments()) {
-        Polyline plSegmented = convertArcToLineSegments(16);
-        return plSegmented.getOrientation(implicitelyClosed);
+        auto plSegmented = convertArcToLineSegments(16);
+        return plSegmented->getOrientation(implicitelyClosed);
     }
 
     Vec2d minV = Vec2d::invalid;
-    Shape *shapeBefore;
-    Shape *shapeAfter;
-    Shape *shape;
-    Shape *previousShape = getSegmentAt(countSegments() - 1);
+    std::unique_ptr<Shape> shapeBefore;
+    std::unique_ptr<Shape> shapeAfter;
+    std::unique_ptr<Shape> shape;
+    std::unique_ptr<Shape> previousShape = getSegmentAt(countSegments() - 1);
 
     // find minimum vertex (lower left corner):
-    std::vector<Shape *> segments = getExploded();
+    std::vector<std::unique_ptr<Shape>> segments = getExploded();
     for (size_t i = 0; i < segments.size(); i++) {
         shape = getSegmentAt(i);
         if (!shape) {
@@ -871,11 +878,11 @@ NS::Orientation Polyline::getOrientation(bool implicitelyClosed) const
         if (!minV.isValid() || v.x < minV.x ||
             (v.x == minV.x && v.y < minV.y)) {
             minV = v;
-            shapeBefore = previousShape;
-            shapeAfter = shape;
+            shapeBefore = std::move(previousShape);
+            shapeAfter = std::move(shape);
         }
 
-        previousShape = shape;
+        previousShape = std::move(shape);
     }
 
     // TODO: fails for large arc (>180d) at bottom left corner, creating round
@@ -936,46 +943,44 @@ bool Polyline::setOrientation(NS::Orientation orientation)
     return false;
 }
 
-Polyline Polyline::convertArcToLineSegments(int segments) const
+std::unique_ptr<Polyline> Polyline::convertArcToLineSegments(int segments) const
 {
-    Polyline ret;
+    std::unique_ptr<Polyline> ret = ShapeFactory::instance()->createPolyline();
 
-    std::vector<Shape *> segs = getExploded();
-    for (size_t i = 0; i < segs.size(); i++) {
-        Shape *seg = segs[i];
+    std::vector<std::unique_ptr<Shape>> segs = getExploded();
+    for (auto &&seg : segs) {
         if (seg->getShapeType() == NS::Arc) {
-            Arc *arc = dynamic_cast<Arc *>(seg);
-            Polyline pl =
-                arc->approximateWithLinesTan(arc->getLength() / segments);
-            ret.appendShape(pl);
+            Arc *arc = dynamic_cast<Arc *>(seg.get());
+            auto pl = arc->approximateWithLinesTan(arc->getLength() / segments);
+            ret->appendShape(pl.release());
         }
         else {
-            ret.appendShape(*seg);
+            ret->appendShape(seg.release());
         }
     }
 
-    ret.autoClose();
+    ret->autoClose();
     return ret;
 }
 
-Polyline Polyline::convertArcToLineSegmentsLength(double segmentLength) const
+std::unique_ptr<Polyline>
+Polyline::convertArcToLineSegmentsLength(double segmentLength) const
 {
-    Polyline ret;
+    std::unique_ptr<Polyline> ret = ShapeFactory::instance()->createPolyline();
 
-    std::vector<Shape *> segs = getExploded();
-    for (size_t i = 0; i < segs.size(); i++) {
-        Shape *seg = segs[i];
+    std::vector<std::unique_ptr<Shape>> segs = getExploded();
+    for (auto &&seg : segs) {
         if (seg->getShapeType() == NS::Arc) {
-            Arc *arc = dynamic_cast<Arc *>(seg);
-            Polyline pl = arc->approximateWithLinesTan(segmentLength);
-            ret.appendShape(pl);
+            Arc *arc = dynamic_cast<Arc *>(seg.get());
+            auto pl = arc->approximateWithLinesTan(segmentLength);
+            ret->appendShape(pl.release());
         }
         else {
-            ret.appendShape(*seg);
+            ret->appendShape(seg.release());
         }
     }
 
-    ret.autoClose();
+    ret->autoClose();
     return ret;
 }
 
@@ -1043,9 +1048,9 @@ bool Polyline::convertToOpen()
         return true;
     }
 
-    Shape *last = getLastSegment();
+    auto last = getLastSegment();
     setClosed(false);
-    appendShape(*last);
+    appendShape(last.release());
     return true;
 }
 
@@ -1063,9 +1068,9 @@ bool Polyline::isStraight(double bulge) const
     return fabs(bulge) < 1.0e-6;
 }
 
-std::vector<Shape *> Polyline::getExploded() const
+std::vector<std::unique_ptr<Shape>> Polyline::getExploded() const
 {
-    std::vector<Shape *> ret;
+    std::vector<std::unique_ptr<Shape>> ret;
 
     if (mVertices.size() <= 1) {
         return ret;
@@ -1076,12 +1081,11 @@ std::vector<Shape *> Polyline::getExploded() const
             break;
         }
 
-        Shape *subShape = getSegmentAt(i);
+        auto subShape = getSegmentAt(i);
         if (!subShape) {
             continue;
         }
-
-        ret.push_back(subShape);
+        ret.emplace_back(subShape.release());
     }
 
     return ret;
@@ -1093,24 +1097,26 @@ bool Polyline::contains(const Vec2d &point, bool borderIsInside,
     return false;
 }
 
-std::vector<Polyline> Polyline::getOutline() const
+std::vector<std::unique_ptr<Polyline>> Polyline::getOutline() const
 {
-    return std::vector<Polyline>();
+    return std::vector<std::unique_ptr<Polyline>>();
 }
 
-std::vector<std::pair<Polyline, Polyline>> Polyline::getLeftRightOutline() const
+std::vector<std::pair<std::unique_ptr<Polyline>, std::unique_ptr<Polyline>>>
+Polyline::getLeftRightOutline() const
 {
-    return std::vector<std::pair<Polyline, Polyline>>();
+    return std::vector<
+        std::pair<std::unique_ptr<Polyline>, std::unique_ptr<Polyline>>>();
 }
 
-std::vector<Polyline> Polyline::getLeftOutline() const
+std::vector<std::unique_ptr<Polyline>> Polyline::getLeftOutline() const
 {
-    return std::vector<Polyline>();
+    return std::vector<std::unique_ptr<Polyline>>();
 }
 
-std::vector<Polyline> Polyline::getRightOutline() const
+std::vector<std::unique_ptr<Polyline>> Polyline::getRightOutline() const
 {
-    return std::vector<Polyline>();
+    return std::vector<std::unique_ptr<Polyline>>();
 }
 
 int Polyline::countSegments() const
@@ -1125,7 +1131,7 @@ int Polyline::countSegments() const
     return ret;
 }
 
-Shape *Polyline::getSegmentAt(int i) const
+std::unique_ptr<Shape> Polyline::getSegmentAt(int i) const
 {
     if (i < 0 || i >= mVertices.size() || i >= mBulges.size()) {
         return nullptr;
@@ -1135,7 +1141,7 @@ Shape *Polyline::getSegmentAt(int i) const
     Vec2d p2 = mVertices.at((i + 1) % mVertices.size());
 
     if (Polyline::isStraight(mBulges.at(i))) {
-        return new Line(p1, p2);
+        return ShapeFactory::instance()->createLine(p1, p2);
     }
 
     else {
@@ -1144,7 +1150,7 @@ Shape *Polyline::getSegmentAt(int i) const
         double alpha = atan(bulge) * 4.0;
 
         if (fabs(alpha) > 2 * M_PI - NS::PointTolerance) {
-            return new Line(p1, p2);
+            return ShapeFactory::instance()->createLine(p1, p2);
         }
 
         double radius;
@@ -1183,7 +1189,8 @@ Shape *Polyline::getSegmentAt(int i) const
         a1 = center.getAngleTo(p1);
         a2 = center.getAngleTo(p2);
 
-        return new Arc(center, radius, a1, a2, reversed);
+        return ShapeFactory::instance()->createArc(center, radius, a1, a2,
+                                                   reversed);
     }
 }
 
@@ -1195,7 +1202,7 @@ bool Polyline::isArcSegmentAt(int i) const
     return !Polyline::isStraight(mBulges[i]);
 }
 
-Shape *Polyline::getLastSegment() const
+std::unique_ptr<Shape> Polyline::getLastSegment() const
 {
     if (countSegments() == 0) {
         return nullptr;
@@ -1203,7 +1210,7 @@ Shape *Polyline::getLastSegment() const
     return getSegmentAt(countSegments() - 1);
 }
 
-Shape *Polyline::getFirstSegment() const
+std::unique_ptr<Shape> Polyline::getFirstSegment() const
 {
     if (countSegments() == 0) {
         return nullptr;
@@ -1211,11 +1218,11 @@ Shape *Polyline::getFirstSegment() const
     return getSegmentAt(0);
 }
 
-bool Polyline::containsShape(const Shape &shape) const
+bool Polyline::containsShape(const Shape *shape) const
 {
     // check if the shape intersects with any of the polygon edges:
     bool gotIntersection = false;
-    if (shape.intersectsWith(*this)) {
+    if (shape->intersectsWith(this)) {
         gotIntersection = true;
     }
 
@@ -1225,18 +1232,18 @@ bool Polyline::containsShape(const Shape &shape) const
         return false;
     }
 
-    if (shape.getShapeType() == NS::Polyline) {
-        const Polyline &pl = dynamic_cast<const Polyline &>(shape);
+    if (shape->getShapeType() == NS::Polyline) {
+        const Polyline *pl = dynamic_cast<const Polyline *>(shape);
 
-        BBox bbOuter = pl.getBoundingBox();
-        BBox bbInner = shape.getBoundingBox();
+        BBox bbOuter = pl->getBoundingBox();
+        BBox bbInner = shape->getBoundingBox();
 
         if (!bbOuter.contains(bbInner)) {
             return false;
         }
 
-        for (size_t i = 0; i < pl.countVertices() && i < 5; i++) {
-            if (!contains(pl.getVertexAt(i))) {
+        for (size_t i = 0; i < pl->countVertices() && i < 5; i++) {
+            if (!contains(pl->getVertexAt(i))) {
                 return false;
             }
         }
@@ -1246,15 +1253,16 @@ bool Polyline::containsShape(const Shape &shape) const
     // check if the shape is completely inside the polygon.
     // this is the case if one point on the entity is inside the polygon
     // and the entity does not intersect with the polygon.
-    else if (shape.isDirected()) {
-        return contains(shape.getStartPoint()) && contains(shape.getEndPoint());
+    else if (shape->isDirected()) {
+        return contains(shape->getStartPoint()) &&
+               contains(shape->getEndPoint());
     }
     else {
         // circle:
-        if (shape.getShapeType() == NS::Circle) {
-            const Circle &circle = dynamic_cast<const Circle &>(shape);
-            Vec2d p1 = circle.getCenter() + Vec2d(circle.getRadius(), 0);
-            Vec2d p2 = circle.getCenter() + Vec2d(-circle.getRadius(), 0);
+        if (shape->getShapeType() == NS::Circle) {
+            const Circle *circle = dynamic_cast<const Circle *>(shape);
+            Vec2d p1 = circle->getCenter() + Vec2d(circle->getRadius(), 0);
+            Vec2d p2 = circle->getCenter() + Vec2d(-circle->getRadius(), 0);
             if (contains(p1) || contains(p2)) {
                 return true;
             }
@@ -1262,7 +1270,7 @@ bool Polyline::containsShape(const Shape &shape) const
         }
         else {
             // other shapes:
-            Vec2d pointOnShape = shape.getPointOnShape();
+            Vec2d pointOnShape = shape->getPointOnShape();
             if (contains(pointOnShape, true)) {
                 return true;
             }
@@ -1270,8 +1278,6 @@ bool Polyline::containsShape(const Shape &shape) const
         }
     }
 
-    // unsupported shape:
-    assert(false);
     return false;
 }
 
@@ -1367,7 +1373,7 @@ double Polyline::getLengthTo(const Vec2d &p, bool limited) const
         }
     }
 
-    Shape *seg = getSegmentAt(segIdx);
+    auto seg = getSegmentAt(segIdx);
     bool lim = limited;
     if (segIdx != 0 && segIdx != countSegments() - 1) {
         lim = true;
@@ -1383,7 +1389,7 @@ double Polyline::getSegmentsLength(int fromIndex, int toIndex) const
 {
     double len = 0.0;
     for (size_t i = fromIndex; i < toIndex; i++) {
-        Shape *segment = getSegmentAt(i);
+        auto segment = getSegmentAt(i);
         len += segment->getLength();
     }
     return len;
@@ -1398,8 +1404,8 @@ std::vector<Vec2d> Polyline::getMiddlePoints() const
 {
     std::vector<Vec2d> ret;
 
-    std::vector<Shape *> sub = getExploded();
-    std::vector<Shape *>::iterator it;
+    std::vector<std::unique_ptr<Shape>> sub = getExploded();
+    std::vector<std::unique_ptr<Shape>>::iterator it;
     for (it = sub.begin(); it != sub.end(); ++it) {
         auto vt = (*it)->getMiddlePoints();
         ret.insert(ret.begin(), vt.begin(), vt.end());
@@ -1412,8 +1418,8 @@ std::vector<Vec2d> Polyline::getCenterPoints() const
 {
     std::vector<Vec2d> ret;
 
-    std::vector<Shape *> sub = getExploded();
-    std::vector<Shape *>::iterator it;
+    std::vector<std::unique_ptr<Shape>> sub = getExploded();
+    std::vector<std::unique_ptr<Shape>>::iterator it;
     for (it = sub.begin(); it != sub.end(); ++it) {
         auto vt = (*it)->getCenterPoints();
         ret.insert(ret.begin(), vt.begin(), vt.end());
@@ -1428,7 +1434,7 @@ int Polyline::getClosestSegment(const Vec2d &point) const
     double minDist = -1;
 
     for (size_t i = 0; i < countSegments(); i++) {
-        Shape *segment = getSegmentAt(i);
+        auto segment = getSegmentAt(i);
         if (!segment) {
             break;
         }
@@ -1462,86 +1468,92 @@ std::vector<Vec2d> Polyline::verifyTangency(double toleranceMin,
     return std::vector<Vec2d>();
 }
 
-Polyline Polyline::modifyPolylineCorner(const Shape &trimmedShape1,
-                                        NS::Ending ending1, int segmentIndex1,
-                                        const Shape &trimmedShape2,
-                                        NS::Ending ending2, int segmentIndex2,
-                                        const Shape *cornerShape) const
+std::unique_ptr<Polyline>
+Polyline::modifyPolylineCorner(const Shape *trimmedShape1, NS::Ending ending1,
+                               int segmentIndex1, const Shape *trimmedShape2,
+                               NS::Ending ending2, int segmentIndex2,
+                               const Shape *cornerShape) const
 {
-    Shape *segment;
+    std::unique_ptr<Shape> segment;
 
-    Polyline pl;
+    std::unique_ptr<Polyline> pl = ShapeFactory::instance()->createPolyline();
 
     if (segmentIndex1 < segmentIndex2 && ending1 == NS::EndingEnd &&
         ending2 == NS::EndingStart) {
         for (size_t i = 0; i < segmentIndex1; i++) {
             segment = getSegmentAt(i);
-            pl.appendShape(*segment);
-            pl.setStartWidthAt(pl.mStartWidths.size() - 2, getStartWidthAt(i));
-            pl.setEndWidthAt(pl.mEndWidths.size() - 2, getEndWidthAt(i));
+            pl->appendShape(segment.release());
+            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
+                                getStartWidthAt(i));
+            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
 
-        pl.appendShapeAuto(trimmedShape1);
+        pl->appendShapeAuto(trimmedShape1);
         if (cornerShape != NULL) {
-            pl.appendShapeAuto(*cornerShape);
+            pl->appendShapeAuto(cornerShape);
         }
-        pl.appendShapeAuto(trimmedShape2);
+        pl->appendShapeAuto(trimmedShape2);
 
         for (size_t i = segmentIndex2 + 1; i < countSegments(); i++) {
             segment = getSegmentAt(i);
-            pl.appendShape(*segment);
-            pl.setStartWidthAt(pl.mStartWidths.size() - 2, getStartWidthAt(i));
-            pl.setEndWidthAt(pl.mEndWidths.size() - 2, getEndWidthAt(i));
+            pl->appendShape(segment.release());
+            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
+                                getStartWidthAt(i));
+            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
     }
     else if (segmentIndex1 > segmentIndex2 && ending1 == NS::EndingStart &&
              ending2 == NS::EndingEnd) {
         for (size_t i = 0; i < segmentIndex2; i++) {
             segment = getSegmentAt(i);
-            pl.appendShape(*segment);
-            pl.setStartWidthAt(pl.mStartWidths.size() - 2, getStartWidthAt(i));
-            pl.setEndWidthAt(pl.mEndWidths.size() - 2, getEndWidthAt(i));
+            pl->appendShape(segment.release());
+            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
+                                getStartWidthAt(i));
+            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
 
-        pl.appendShapeAuto(trimmedShape2);
+        pl->appendShapeAuto(trimmedShape2);
         if (cornerShape != NULL) {
-            pl.appendShapeAuto(*cornerShape);
+            pl->appendShapeAuto(cornerShape);
         }
-        pl.appendShapeAuto(trimmedShape1);
+        pl->appendShapeAuto(trimmedShape1);
 
         for (size_t i = segmentIndex1 + 1; i < countSegments(); i++) {
             segment = getSegmentAt(i);
-            pl.appendShape(*segment);
-            pl.setStartWidthAt(pl.mStartWidths.size() - 2, getStartWidthAt(i));
-            pl.setEndWidthAt(pl.mEndWidths.size() - 2, getEndWidthAt(i));
+            pl->appendShape(segment.release());
+            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
+                                getStartWidthAt(i));
+            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
     }
     else if (segmentIndex1 < segmentIndex2 && ending1 == NS::EndingStart &&
              ending2 == NS::EndingEnd) {
-        pl.appendShapeAuto(trimmedShape1);
+        pl->appendShapeAuto(trimmedShape1);
         for (size_t i = segmentIndex1 + 1; i < segmentIndex2; i++) {
             segment = getSegmentAt(i);
-            pl.appendShape(*segment);
-            pl.setStartWidthAt(pl.mStartWidths.size() - 2, getStartWidthAt(i));
-            pl.setEndWidthAt(pl.mEndWidths.size() - 2, getEndWidthAt(i));
+            pl->appendShape(segment.release());
+            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
+                                getStartWidthAt(i));
+            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
-        pl.appendShapeAuto(trimmedShape2);
+        pl->appendShapeAuto(trimmedShape2);
         if (cornerShape != NULL) {
-            pl.appendShapeAuto(*cornerShape);
+            pl->appendShapeAuto(cornerShape);
         }
     }
     else if (segmentIndex1 > segmentIndex2 && ending1 == NS::EndingEnd &&
              ending2 == NS::EndingStart) {
-        pl.appendShapeAuto(trimmedShape2);
+        pl->appendShapeAuto(trimmedShape2);
         for (size_t i = segmentIndex2 + 1; i < segmentIndex1; i++) {
             segment = getSegmentAt(i);
-            pl.appendShape(*segment);
-            pl.setStartWidthAt(pl.mStartWidths.size() - 2, getStartWidthAt(i));
-            pl.setEndWidthAt(pl.mEndWidths.size() - 2, getEndWidthAt(i));
+            pl->appendShape(segment.release());
+            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
+                                getStartWidthAt(i));
+            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
-        pl.appendShapeAuto(trimmedShape1);
+        pl->appendShapeAuto(trimmedShape1);
         if (cornerShape != NULL) {
-            pl.appendShapeAuto(*cornerShape);
+            pl->appendShapeAuto(cornerShape);
         }
     }
 
@@ -1559,17 +1571,17 @@ std::vector<Vec2d> Polyline::getConvexVertices(bool convex) const
         return std::vector<Vec2d>();
     }
 
-    Polyline pl = *this;
-    pl.autoClose();
+    std::unique_ptr<Polyline> pl = clone();
+    pl->autoClose();
 
-    NS::Orientation ori = pl.getOrientation();
+    NS::Orientation ori = pl->getOrientation();
 
     std::vector<Vec2d> ret;
 
-    for (size_t i = 0; i < pl.mVertices.size(); i++) {
-        int iPrev = Math::absmod(i - 1, pl.mVertices.size());
-        Shape *segmentPrev = pl.getSegmentAt(iPrev);
-        Shape *segmentNext = pl.getSegmentAt(i);
+    for (size_t i = 0; i < pl->mVertices.size(); i++) {
+        int iPrev = Math::absmod(i - 1, pl->mVertices.size());
+        std::unique_ptr<Shape> segmentPrev = pl->getSegmentAt(iPrev);
+        std::unique_ptr<Shape> segmentNext = pl->getSegmentAt(i);
 
         double aPrev = segmentPrev->getDirection2() + M_PI;
         double aNext = segmentNext->getDirection1();
@@ -1581,12 +1593,12 @@ std::vector<Vec2d> Polyline::getConvexVertices(bool convex) const
 
         if (convex) {
             if (ori == NS::CW && cp < 0.0 || ori == NS::CCW && cp > 0.0) {
-                ret.push_back(pl.mVertices[i]);
+                ret.push_back(pl->mVertices[i]);
             }
         }
         else {
             if (ori == NS::CCW && cp < 0.0 || ori == NS::CW && cp > 0.0) {
-                ret.push_back(pl.mVertices[i]);
+                ret.push_back(pl->mVertices[i]);
             }
         }
     }
@@ -1665,27 +1677,27 @@ bool Polyline::setHeight(double v)
     return false;
 }
 
-std::vector<Polyline> Polyline::morph(const Polyline &target, int steps,
+std::vector<Polyline> Polyline::morph(const Polyline *target, int steps,
                                       NS::Easing easing, bool zLinear,
                                       double customFactor) const
 {
     return std::vector<Polyline>();
 }
 
-Polyline Polyline::roundAllCorners(double radius) const
+std::unique_ptr<Polyline> Polyline::roundAllCorners(double radius) const
 {
-    return *this;
+    return std::unique_ptr<Polyline>();
 }
 
-Polyline Polyline::getPolygon(double segmentLength) const
+std::unique_ptr<Polyline> Polyline::getPolygon(double segmentLength) const
 {
-    return *this;
+    return std::unique_ptr<Polyline>();
 }
 
-Polyline Polyline::getPolygonHull(double angle, double tolerance,
-                                  bool inner) const
+std::unique_ptr<Polyline>
+Polyline::getPolygonHull(double angle, double tolerance, bool inner) const
 {
-    return *this;
+    return std::unique_ptr<Polyline>();
 }
 
 } // namespace shape

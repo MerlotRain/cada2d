@@ -20,20 +20,15 @@
  * IN THE SOFTWARE.
  */
 
- #ifndef CADA_POINTSTOBSPLINE_H
- #define CADA_POINTSTOBSPLINE_H
+#ifndef CADA_POINTSTOBSPLINE_H
+#define CADA_POINTSTOBSPLINE_H
 
 namespace cada {
 namespace algorithm {
 
-
-class PointsToBSpline
-{
-
-};
-
+class PointsToBSpline {};
 
 } // namespace algorithm
 } // namespace cada
 
- #endif
+#endif

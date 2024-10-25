@@ -57,7 +57,7 @@ NS::ShapeType Point::getShapeType() const
     return NS::Point;
 }
 
-Shape* Point::clone() const
+Point *Point::cloneImpl() const
 {
     Point *pClone = new Point();
     pClone->mPosition = mPosition;

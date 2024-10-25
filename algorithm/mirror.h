@@ -29,5 +29,4 @@ namespace algorithm {
 } // namespace algorithm
 } // namespace cada
 
-
 #endif
