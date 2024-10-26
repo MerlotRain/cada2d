@@ -48,7 +48,25 @@ Vec2d ShortestTo::getShortestTo(const shape::Vec2d &point) const
     case NS::Line: {
         return getLineShortestTo(point);
     }
+    case NS::Arc: {
+        return getArcShortestTo(point);
     }
+    case NS::Circle: {
+        return getCircleShortestTo(point);
+    }
+    case NS::Ellipse:
+        break;
+    case NS::XLine: {
+        return getXLineShortestTo(point);
+    }
+    case NS::Ray: {
+        return getRayShortestTo(point);
+    }
+    case NS::Polyline:
+    case NS::BSpline:
+        break;
+    }
+    return Vec2d::invalid;
 }
 
 Vec2d ShortestTo::getLineShortestTo(const shape::Vec2d &point) const
@@ -82,6 +100,66 @@ Vec2d ShortestTo::getLineShortestTo(const shape::Vec2d &point) const
     Vec2d closestPoint = l->getStartPoint() + ae * b;
 
     return point - closestPoint;
+}
+
+shape::Vec2d ShortestTo::getArcShortestTo(const shape::Vec2d &point) const
+{
+    Arc *a = dynamic_cast<Arc *>(mShape);
+    assert(a);
+
+    double angle = a->getCenter().getAngleTo(point);
+    if (mLimited && !Math::isAngleBetween(angle, a->getStartAngle(),
+                                          a->getEndAngle(), a->isReversed())) {
+        return Vec2d::invalid;
+    }
+
+    Vec2d v = point - a->getCenter();
+    return Vec2d::createPolar(v.getMagnitude() - a->getRadius(), v.getAngle());
+}
+
+shape::Vec2d ShortestTo::getCircleShortestTo(const shape::Vec2d &point) const
+{
+    Circle *c = dynamic_cast<Circle *>(mShape);
+    assert(c);
+
+    Vec2d v = point - c->getCenter();
+
+    // point is at the center of the circle, infinite solutions:
+    if (v.getMagnitude() < NS::PointTolerance) {
+        return Vec2d::invalid;
+    }
+
+    return Vec2d::createPolar(v.getMagnitude() - c->getRadius(), v.getAngle());
+}
+
+shape::Vec2d ShortestTo::getXLineShortestTo(const shape::Vec2d &point) const
+{
+    XLine *xl = dynamic_cast<XLine *>(mShape);
+    assert(xl);
+
+    auto l = ShapeFactory::instance()->createLine(xl->getStartPoint(),
+                                                  xl->getEndPoint());
+    return l->getVectorTo(point, mLimited, mStrictRange);
+}
+
+shape::Vec2d ShortestTo::getRayShortestTo(const shape::Vec2d &point) const
+{
+    Ray *r = dynamic_cast<Ray *>(mShape);
+    assert(r);
+
+    if (!mLimited) {
+        auto l = ShapeFactory::instance()->createLine(r->getStartPoint(),
+                                                      r->getEndPoint());
+        return l->getVectorTo(point, mLimited, mStrictRange);
+    }
+    else {
+        Vec2d p = r->getClosestPointOnShape(point, false);
+        if (fabs(Math::getAngleDifference180(
+                r->getDirection1(), r->getStartPoint().getAngleTo(p))) < 0.1) {
+            return point - p;
+        }
+        return Vec2d::invalid;
+    }
 }
 
 } // namespace algorithm

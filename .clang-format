@@ -22,3 +22,4 @@ IfMacros:
 MacroBlockBegin: GNO_BEGIN
 MacroBlockEnd: GNO_END
 SortIncludes: Never
+ColumnLimit: 80

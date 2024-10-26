@@ -46,6 +46,10 @@ public:
 
 private:
     shape::Vec2d getLineShortestTo(const shape::Vec2d &point) const;
+    shape::Vec2d getArcShortestTo(const shape::Vec2d &point) const;
+    shape::Vec2d getCircleShortestTo(const shape::Vec2d &point) const;
+    shape::Vec2d getXLineShortestTo(const shape::Vec2d &point) const;
+    shape::Vec2d getRayShortestTo(const shape::Vec2d &point) const;
 };
 
 } // namespace algorithm

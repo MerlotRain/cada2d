@@ -53,7 +53,11 @@ Vec2d Shape::getVectorTo(const Vec2d &point, bool limited,
 Vec2d Shape::getClosestPointOnShape(const Vec2d &p, bool limited,
                                     double strictRange) const
 {
-    return Vec2d();
+    Vec2d dv = getVectorTo(p, limited, strictRange);
+    if (!dv.isValid()) {
+        return Vec2d::invalid;
+    }
+    return p - dv;
 }
 
 bool Shape::equals(const Shape *other, double tolerance) const
