@@ -20,8 +20,69 @@
  * IN THE SOFTWARE.
  */
 
+#include "scale.h"
+#include <cada_shape.h>
+#include <assert.h>
+
+using namespace cada::shape;
+
 namespace cada {
 namespace algorithm {
+
+Scale::Scale(Shape *shape) : mShape(shape)
+{
+}
+
+bool Scale::operator()(const shape::Vec2d &scaleFactor,
+                       const shape::Vec2d &c) const
+{
+    assert(mShape);
+
+    switch (mShape->getShapeType()) {
+    case NS::Point: {
+        auto pt = dynamic_cast<Point *>(mShape);
+        pt->setPosition(pt->getPosition().scale(scaleFactor, c));
+        return true;
+    }
+    case NS::Line: {
+        auto l = dynamic_cast<Line *>(mShape);
+        l->setStartPoint(l->getStartPoint().scale(scaleFactor, c));
+        l->setEndPoint(l->getEndPoint().scale(scaleFactor, c));
+        return true;
+    }
+    case NS::Arc: {
+        auto a = dynamic_cast<Arc *>(mShape);
+        double radius = a->getRadius();
+        Vec2d center = a->getCenter();
+        if (scaleFactor.x < 0.0) {
+            a->mirror(center, center + Vec2d(0.0, 1.0));
+        }
+        if (scaleFactor.y < 0.0) {
+            a->mirror(center, center + Vec2d(1.0, 0.0));
+        }
+
+        a->setCenter(center.scale(scaleFactor, c));
+        radius *= scaleFactor.x;
+        if (radius < 0.0) {
+            a->setRadius(radius *= -1.0);
+        }
+        else {
+            a->setRadius(radius);
+        }
+
+        return true;
+    }
+    case NS::Circle:
+    case NS::Ellipse:
+    case NS::XLine:
+    case NS::Ray:
+    case NS::Polyline:
+    case NS::BSpline:
+        break;
+    default:
+        break;
+    };
+}
 
 } // namespace algorithm
 } // namespace cada

@@ -281,12 +281,12 @@ Vec2d Vec2d::getMirrored(const Vec2d &v1, const Vec2d &v2) const
 
 Vec2d Vec2d::flipHorizontal()
 {
-    return mirror(Vec2d(0, 0, 0), Vec2d(0, 1, 0));
+    return mirror(Vec2d(0, 0), Vec2d(0, 1));
 }
 
 Vec2d Vec2d::flipVertical()
 {
-    return mirror(Vec2d(0, 0, 0), Vec2d(1, 0, 0));
+    return mirror(Vec2d(0, 0), Vec2d(1, 0));
 }
 
 Vec2d Vec2d::operator+(const Vec2d &v) const

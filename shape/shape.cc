@@ -74,7 +74,13 @@ double Shape::getDistanceTo(const Vec2d &point, bool limited,
 double Shape::getMaxDistanceTo(const std::vector<Vec2d> &points, bool limited,
                                double strictRange) const
 {
-    return 0.0;
+    double ret = 0.0;
+    for (size_t i = 0; i < points.size(); i++) {
+        double d = getDistanceTo(points[i], limited, strictRange);
+        ret = std::max(ret, d);
+    }
+
+    return ret;
 }
 
 bool Shape::isOnShape(const Vec2d &point, bool limited, double tolerance) const
@@ -250,12 +256,12 @@ bool Shape::mirror(const Vec2d &v1, const Vec2d &v2)
 
 bool Shape::flipHorizontal()
 {
-    return false;
+    return mirror(Vec2d(0, 0), Vec2d(0, 1));
 }
 
 bool Shape::flipVertical()
 {
-    return false;
+    return mirror(Vec2d(0, 0), Vec2d(1, 0));
 }
 
 bool Shape::stretch(const std::vector<Vec2d> &vertex, const Vec2d &offset)

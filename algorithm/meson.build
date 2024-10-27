@@ -1,7 +1,6 @@
 algorithm_src = files(
     'boundingbox.cc',
     'distance.cc',
-    'flip.cc',
     'intcurvecurve.cc',
     'length.cc',
     'mirror.cc',

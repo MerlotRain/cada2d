@@ -24,7 +24,25 @@
 #define CADA_SCALE_H
 
 namespace cada {
+namespace shape {
+class Shape;
+struct Vec2d;
+} // namespace shape
+} // namespace cada
+
+namespace cada {
 namespace algorithm {
+
+class Scale {
+public:
+    Scale(shape::Shape *shape);
+
+    bool operator()(const shape::Vec2d &scaleFactor,
+                    const shape::Vec2d &center) const;
+
+private:
+    shape::Shape *mShape;
+};
 
 } // namespace algorithm
 } // namespace cada

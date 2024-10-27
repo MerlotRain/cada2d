@@ -23,8 +23,33 @@
 #ifndef CADA_DISTANCE_H
 #define CADA_DISTANCE_H
 
+#include <vector>
+
+namespace cada {
+namespace shape {
+
+class Shape;
+struct Vec2d;
+
+} // namespace shape
+} // namespace cada
+
 namespace cada {
 namespace algorithm {
+
+class DistanceTo {
+    shape::Shape *mShape;
+    bool mLimited;
+    double mStrictRange;
+
+public:
+    DistanceTo(shape::Shape *shape, bool limited = false,
+               double strictRange = 0.0);
+    double operator()(const shape::Vec2d &point) const;
+
+private:
+    double distance(const shape::Vec2d &point) const;
+};
 
 } // namespace algorithm
 } // namespace cada
