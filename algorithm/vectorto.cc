@@ -20,7 +20,7 @@
  * IN THE SOFTWARE.
  */
 
-#include "shortest_to.h"
+#include "vectorto.h"
 #include <assert.h>
 #include <cmath>
 #include <limits>

@@ -1,6 +1,9 @@
 algorithm_src = files(
+    'angle.cc',
     'boundingbox.cc',
     'distance.cc',
+    'equal.cc',
+    'flip.cc',
     'intcurvecurve.cc',
     'length.cc',
     'mirror.cc',
@@ -8,10 +11,11 @@ algorithm_src = files(
     'offset.cc',
     'pointonshape.cc',
     'pointstobspline.cc',
+    'rotate.cc',
     'roundallcorners.cc',
     'scale.cc',
-    'shortest_to.cc',
     'split.cc',
     'stretch.cc',
     'trim.cc',
+    'vectorto.cc',
 )
