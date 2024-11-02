@@ -20,7 +20,6 @@
  * IN THE SOFTWARE.
  */
 
-#include "length.h"
 #include <assert.h>
 #include <cada_shape.h>
 #include <cmath>
@@ -32,54 +31,46 @@ using namespace cada::shape;
 namespace cada {
 namespace algorithm {
 
-Length::Length(shape::Shape *shape) : mShape(shape)
+double cada_getLength(const shape::Shape *shape);
+double cada_getEllipseSimpsonLength(double majorR, double minorR, double a1,
+                                    double a2);
+double cada_getEllipseLength(const shape::Shape *shape);
+double cada_getPolylineLength(const shape::Shape *shape);
+
+/* ----------------------------- Implementation ----------------------------- */
+
+double cada_getEllipseSimpsonLength(double majorR, double minorR, double a1,
+                                    double a2)
 {
+    int interval = 20;
+    double df = (a2 - a1) / interval;
+    double sum = 0.0;
+    double q = 1.0;
+
+    for (int i = 0; i <= interval; ++i) {
+        double y = std::sqrt(std::pow(majorR * std::sin(a1 + i * df), 2) +
+                             std::pow(minorR * std::cos(a1 + i * df), 2));
+        if (i == 0 || i == interval) {
+            q = 1.0;
+        }
+        else {
+            if (i % 2 == 0) {
+                q = 2.0;
+            }
+            else {
+                q = 4.0;
+            }
+        }
+
+        sum += q * y;
+    }
+
+    return (df / 3.0) * sum;
 }
 
-double Length::getLength() const
+double cada_getEllipseLength(const shape::Shape *shape)
 {
-    assert(mShape);
-    switch (mShape->getShapeType()) {
-    case NS::Point: {
-        return 0.0;
-    }
-    case NS::Line: {
-        auto line = dynamic_cast<Line *>(mShape);
-        return line->getStartPoint().getDistanceTo(line->getEndPoint());
-    }
-    case NS::Arc: {
-        auto arc = dynamic_cast<Arc *>(mShape);
-        return std::fabs(arc->getAngleLength(false)) * arc->getRadius();
-    }
-    case NS::Circle: {
-        auto circle = dynamic_cast<Circle *>(mShape);
-        return 2 * circle->getRadius() * M_PI;
-    }
-    case NS::Ellipse: {
-        return getEllipseLength();
-    }
-    case NS::XLine:
-    case NS::Ray: {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    case NS::Polyline:
-    case NS::BSpline:
-        break;
-    default:
-        break;
-    }
-    return 0.0;
-}
-
-double Length::getLength(shape::Shape *shape)
-{
-    Length l(shape);
-    return l.getLength();
-}
-
-double Length::getEllipseLength() const
-{
-    Ellipse *ellipse = dynamic_cast<Ellipse *>(mShape);
+    const Ellipse *ellipse = dynamic_cast<const Ellipse *>(shape);
     assert(ellipse);
 
     double a1, a2;
@@ -120,63 +111,87 @@ double Length::getEllipseLength() const
 
     if (a1 < a2) {
         if (a1 < M_PI && a2 <= M_PI) {
-            return getEllipseSimpsonLength(a, b, a1, a2);
+            return cada_getEllipseSimpsonLength(a, b, a1, a2);
         }
         if (a1 < M_PI && a2 > M_PI) {
-            return getEllipseSimpsonLength(a, b, a1, M_PI) +
-                   getEllipseSimpsonLength(a, b, M_PI, a2);
+            return cada_getEllipseSimpsonLength(a, b, a1, M_PI) +
+                   cada_getEllipseSimpsonLength(a, b, M_PI, a2);
         }
         if (a1 >= M_PI && a2 > M_PI) {
-            return getEllipseSimpsonLength(a, b, a1, a2);
+            return cada_getEllipseSimpsonLength(a, b, a1, a2);
         }
     }
     else {
         if (a1 > M_PI && a2 < M_PI) {
-            return getEllipseSimpsonLength(a, b, a1, 2 * M_PI) +
-                   getEllipseSimpsonLength(a, b, 0, a2);
+            return cada_getEllipseSimpsonLength(a, b, a1, 2 * M_PI) +
+                   cada_getEllipseSimpsonLength(a, b, 0, a2);
         }
         if (a1 > M_PI && a2 > M_PI) {
-            return getEllipseSimpsonLength(a, b, a1, 2 * M_PI) +
-                   getEllipseSimpsonLength(a, b, 0, M_PI) +
-                   getEllipseSimpsonLength(a, b, M_PI, a2);
+            return cada_getEllipseSimpsonLength(a, b, a1, 2 * M_PI) +
+                   cada_getEllipseSimpsonLength(a, b, 0, M_PI) +
+                   cada_getEllipseSimpsonLength(a, b, M_PI, a2);
         }
         if (a1 < M_PI && a2 < M_PI) {
-            return getEllipseSimpsonLength(a, b, a1, M_PI) +
-                   getEllipseSimpsonLength(a, b, M_PI, 2 * M_PI) +
-                   getEllipseSimpsonLength(a, b, 0, a2);
+            return cada_getEllipseSimpsonLength(a, b, a1, M_PI) +
+                   cada_getEllipseSimpsonLength(a, b, M_PI, 2 * M_PI) +
+                   cada_getEllipseSimpsonLength(a, b, 0, a2);
         }
     }
 
     return std::numeric_limits<double>::quiet_NaN();
 }
 
-double Length::getEllipseSimpsonLength(double majorR, double minorR, double a1,
-                                       double a2) const
+double cada_getPolylineLength(const shape::Shape *shape)
 {
-    int interval = 20;
-    double df = (a2 - a1) / interval;
-    double sum = 0.0;
-    double q = 1.0;
+    assert(shape);
+    return 0.0;
 
-    for (int i = 0; i <= interval; ++i) {
-        double y = sqrt(::pow(majorR * sin(a1 + i * df), 2) +
-                        ::pow(minorR * cos(a1 + i * df), 2));
-        if (i == 0 || i == interval) {
-            q = 1.0;
-        }
-        else {
-            if (i % 2 == 0) {
-                q = 2.0;
-            }
-            else {
-                q = 4.0;
-            }
-        }
+    const shape::Polyline *polyline =
+        dynamic_cast<const shape::Polyline *>(shape);
 
-        sum += q * y;
+    double ret = 0.0;
+
+    std::vector<std::unique_ptr<shape::Shape>> sub = polyline->getExploded();
+    for (auto it = sub.begin(); it != sub.end(); ++it) {
+        double l = cada_getLength(it->release());
+        if (Math::isNormal(l)) {
+            ret += l;
+        }
     }
 
-    return (df / 3.0) * sum;
+    return ret;
+}
+
+double cada_getLength(const shape::Shape *shape)
+{
+    assert(shape);
+    switch (shape->getShapeType()) {
+    case NS::Point:
+        return 0.0;
+    case NS::Line: {
+        auto line = dynamic_cast<const Line *>(shape);
+        return line->getStartPoint().getDistanceTo(line->getEndPoint());
+    }
+    case NS::Arc: {
+        auto arc = dynamic_cast<const Arc *>(shape);
+        return std::fabs(arc->getAngleLength(false)) * arc->getRadius();
+    }
+    case NS::Circle: {
+        auto circle = dynamic_cast<const Circle *>(shape);
+        return 2 * circle->getRadius() * M_PI;
+    }
+    case NS::Ellipse:
+        return cada_getEllipseLength(shape);
+    case NS::XLine:
+    case NS::Ray:
+        return std::numeric_limits<double>::quiet_NaN();
+    case NS::Polyline:
+    case NS::BSpline:
+        break;
+    default:
+        break;
+    }
+    return 0.0;
 }
 
 } // namespace algorithm

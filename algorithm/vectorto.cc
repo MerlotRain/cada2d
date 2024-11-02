@@ -20,7 +20,6 @@
  * IN THE SOFTWARE.
  */
 
-#include "vectorto.h"
 #include <assert.h>
 #include <cmath>
 #include <limits>
@@ -32,135 +31,139 @@ using namespace cada::shape;
 namespace cada {
 namespace algorithm {
 
-ShortestTo::ShortestTo(shape::Shape *shape, bool limited, double strictRange)
-    : mShape(shape), mLimited(limited), mStrictRange(strictRange)
-{
-}
+// VectorTo::VectorTo(shape::Shape *shape, bool limited, double strictRange)
+//     : mShape(shape), mLimited(limited), mStrictRange(strictRange)
+// {
+// }
 
-Vec2d ShortestTo::getShortestTo(const shape::Vec2d &point) const
-{
-    assert(mShape);
-    switch (mShape->getShapeType()) {
-    case NS::Point: {
-        Point *pt = dynamic_cast<Point *>(mShape);
-        return point - pt->getPosition();
-    }
-    case NS::Line: {
-        return getLineShortestTo(point);
-    }
-    case NS::Arc: {
-        return getArcShortestTo(point);
-    }
-    case NS::Circle: {
-        return getCircleShortestTo(point);
-    }
-    case NS::Ellipse:
-        break;
-    case NS::XLine: {
-        return getXLineShortestTo(point);
-    }
-    case NS::Ray: {
-        return getRayShortestTo(point);
-    }
-    case NS::Polyline:
-    case NS::BSpline:
-        break;
-    }
-    return Vec2d::invalid;
-}
+// Vec2d VectorTo::getVectorTo(const shape::Vec2d &point) const
+// {
+//     assert(mShape);
+//     switch (mShape->getShapeType()) {
+//     case NS::Point: {
+//         Point *pt = dynamic_cast<Point *>(mShape);
+//         return point - pt->getPosition();
+//     }
+//     case NS::Line: {
+//         return getLineVectorTo(point);
+//     }
+//     case NS::Arc: {
+//         return getArcVectorTo(point);
+//     }
+//     case NS::Circle: {
+//         return getCircleVectorTo(point);
+//     }
+//     case NS::Ellipse:
+//         break;
+//     case NS::XLine: {
+//         return getXLineVectorTo(point);
+//     }
+//     case NS::Ray: {
+//         return getRayVectorTo(point);
+//     }
+//     case NS::Polyline:
+//     case NS::BSpline:
+//         break;
+//     }
+//     return Vec2d::invalid;
+// }
 
-Vec2d ShortestTo::getLineShortestTo(const shape::Vec2d &point) const
-{
-    Line *l = dynamic_cast<Line *>(mShape);
-    assert(l);
+// Vec2d VectorTo::getLineVectorTo(const shape::Vec2d &point) const
+// {
+//     Line *l = dynamic_cast<Line *>(mShape);
+//     assert(l);
 
-    Vec2d ae = l->getEndPoint() - l->getStartPoint();
-    Vec2d ap = point - l->getStartPoint();
+//     Vec2d ae = l->getEndPoint() - l->getStartPoint();
+//     Vec2d ap = point - l->getStartPoint();
 
-    if (ae.getMagnitude() < 1.0e-6) {
-        return Vec2d::invalid;
-    }
-    if (ap.getMagnitude() < 1.0e-6) {
-        return Vec2d(0, 0);
-    }
-    double b = Vec2d::getDotProduct(ap, ae) / Vec2d::getDotProduct(ae, ae);
+//     if (ae.getMagnitude() < 1.0e-6) {
+//         return Vec2d::invalid;
+//     }
+//     if (ap.getMagnitude() < 1.0e-6) {
+//         return Vec2d(0, 0);
+//     }
+//     double b = Vec2d::getDotProduct(ap, ae) / Vec2d::getDotProduct(ae, ae);
 
-    if (mLimited && (b < 0 || b > 1.0)) {
-        // orthogonal to line does not cross line, use distance to end point:
-        Vec2d ret = l->getVectorFromEndpointTo(point);
-        if (ret.getMagnitude() < mStrictRange) {
-            return ret;
-        }
-        else {
-            // not within given range:
-            return Vec2d::invalid;
-        }
-    }
+//     if (mLimited && (b < 0 || b > 1.0)) {
+//         // orthogonal to line does not cross line, use distance to end point:
+//         Vec2d ret = l->getVectorFromEndpointTo(point);
+//         if (ret.getMagnitude() < mStrictRange) {
+//             return ret;
+//         }
+//         else {
+//             // not within given range:
+//             return Vec2d::invalid;
+//         }
+//     }
 
-    Vec2d closestPoint = l->getStartPoint() + ae * b;
+//     Vec2d closestPoint = l->getStartPoint() + ae * b;
 
-    return point - closestPoint;
-}
+//     return point - closestPoint;
+// }
 
-shape::Vec2d ShortestTo::getArcShortestTo(const shape::Vec2d &point) const
-{
-    Arc *a = dynamic_cast<Arc *>(mShape);
-    assert(a);
+// shape::Vec2d VectorTo::getArcVectorTo(const shape::Vec2d &point) const
+// {
+//     Arc *a = dynamic_cast<Arc *>(mShape);
+//     assert(a);
 
-    double angle = a->getCenter().getAngleTo(point);
-    if (mLimited && !Math::isAngleBetween(angle, a->getStartAngle(),
-                                          a->getEndAngle(), a->isReversed())) {
-        return Vec2d::invalid;
-    }
+//     double angle = a->getCenter().getAngleTo(point);
+//     if (mLimited && !Math::isAngleBetween(angle, a->getStartAngle(),
+//                                           a->getEndAngle(), a->isReversed()))
+//                                           {
+//         return Vec2d::invalid;
+//     }
 
-    Vec2d v = point - a->getCenter();
-    return Vec2d::createPolar(v.getMagnitude() - a->getRadius(), v.getAngle());
-}
+//     Vec2d v = point - a->getCenter();
+//     return Vec2d::createPolar(v.getMagnitude() - a->getRadius(),
+//     v.getAngle());
+// }
 
-shape::Vec2d ShortestTo::getCircleShortestTo(const shape::Vec2d &point) const
-{
-    Circle *c = dynamic_cast<Circle *>(mShape);
-    assert(c);
+// shape::Vec2d VectorTo::getCircleVectorTo(const shape::Vec2d &point) const
+// {
+//     Circle *c = dynamic_cast<Circle *>(mShape);
+//     assert(c);
 
-    Vec2d v = point - c->getCenter();
+//     Vec2d v = point - c->getCenter();
 
-    // point is at the center of the circle, infinite solutions:
-    if (v.getMagnitude() < NS::PointTolerance) {
-        return Vec2d::invalid;
-    }
+//     // point is at the center of the circle, infinite solutions:
+//     if (v.getMagnitude() < NS::PointTolerance) {
+//         return Vec2d::invalid;
+//     }
 
-    return Vec2d::createPolar(v.getMagnitude() - c->getRadius(), v.getAngle());
-}
+//     return Vec2d::createPolar(v.getMagnitude() - c->getRadius(),
+//     v.getAngle());
+// }
 
-shape::Vec2d ShortestTo::getXLineShortestTo(const shape::Vec2d &point) const
-{
-    XLine *xl = dynamic_cast<XLine *>(mShape);
-    assert(xl);
+// shape::Vec2d VectorTo::getXLineVectorTo(const shape::Vec2d &point) const
+// {
+//     XLine *xl = dynamic_cast<XLine *>(mShape);
+//     assert(xl);
 
-    auto l = ShapeFactory::instance()->createLine(xl->getStartPoint(),
-                                                  xl->getEndPoint());
-    return l->getVectorTo(point, mLimited, mStrictRange);
-}
+//     auto l = ShapeFactory::instance()->createLine(xl->getStartPoint(),
+//                                                   xl->getEndPoint());
+//     return l->getVectorTo(point, mLimited, mStrictRange);
+// }
 
-shape::Vec2d ShortestTo::getRayShortestTo(const shape::Vec2d &point) const
-{
-    Ray *r = dynamic_cast<Ray *>(mShape);
-    assert(r);
+// shape::Vec2d VectorTo::getRayVectorTo(const shape::Vec2d &point) const
+// {
+//     Ray *r = dynamic_cast<Ray *>(mShape);
+//     assert(r);
 
-    if (!mLimited) {
-        auto l = ShapeFactory::instance()->createLine(r->getStartPoint(),
-                                                      r->getEndPoint());
-        return l->getVectorTo(point, mLimited, mStrictRange);
-    }
-    else {
-        Vec2d p = r->getClosestPointOnShape(point, false);
-        if (fabs(Math::getAngleDifference180(
-                r->getDirection1(), r->getStartPoint().getAngleTo(p))) < 0.1) {
-            return point - p;
-        }
-        return Vec2d::invalid;
-    }
-}
+//     if (!mLimited) {
+//         auto l = ShapeFactory::instance()->createLine(r->getStartPoint(),
+//                                                       r->getEndPoint());
+//         return l->getVectorTo(point, mLimited, mStrictRange);
+//     }
+//     else {
+//         Vec2d p = r->getClosestPointOnShape(point, false);
+//         if (fabs(Math::getAngleDifference180(
+//                 r->getDirection1(), r->getStartPoint().getAngleTo(p))) < 0.1)
+//                 {
+//             return point - p;
+//         }
+//         return Vec2d::invalid;
+//     }
+// }
 
 } // namespace algorithm
 } // namespace cada

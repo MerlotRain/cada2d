@@ -567,6 +567,11 @@ std::vector<Vec2d> Polyline::getVertices() const
     return mVertices;
 }
 
+std::vector<Vec2d> &Polyline::getVertices()
+{
+    return mVertices;
+}
+
 Vec2d Polyline::getVertexAt(int i) const
 {
     if (i < 0 || i >= mVertices.size()) {
@@ -628,6 +633,11 @@ void Polyline::setBulges(const std::vector<double> &b)
 }
 
 std::vector<double> Polyline::getBulges() const
+{
+    return mBulges;
+}
+
+std::vector<double> &Polyline::getBulges()
 {
     return mBulges;
 }
@@ -774,6 +784,11 @@ std::vector<double> Polyline::getStartWidths() const
     return mStartWidths;
 }
 
+std::vector<double> &Polyline::getStartWidths()
+{
+    return mStartWidths;
+}
+
 void Polyline::setEndWidths(const std::vector<double> &ew)
 {
     mEndWidths = ew;
@@ -782,6 +797,11 @@ void Polyline::setEndWidths(const std::vector<double> &ew)
 std::vector<double> Polyline::getEndWidths() const
 {
     return mEndWidths;
+}
+
+std::vector<double> &Polyline::getEndWidths()
+{
+     return mEndWidths;
 }
 
 void Polyline::setClosed(bool on)

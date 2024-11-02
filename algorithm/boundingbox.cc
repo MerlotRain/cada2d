@@ -20,7 +20,6 @@
  * IN THE SOFTWARE.
  */
 
-#include "boundingbox.h"
 #include <cada_shape.h>
 #include <assert.h>
 
@@ -29,56 +28,9 @@ using namespace cada::shape;
 namespace cada {
 namespace algorithm {
 
-BoundingBox::BoundingBox(shape::Shape *shape) : mShape(shape)
+shape::BBox cada_getArcBoundingBox(const shape::Shape *shape)
 {
-}
-
-shape::BBox BoundingBox::getBoundingBox() const
-{
-    assert(mShape);
-    switch (mShape->getShapeType()) {
-    case NS::Point: {
-        auto point = dynamic_cast<Point *>(mShape);
-        return BBox(point->getPosition(), point->getPosition());
-    }
-    case NS::Line: {
-        auto line = dynamic_cast<Line *>(mShape);
-        return BBox(
-            Vec2d::getMinimum(line->getStartPoint(), line->getEndPoint()),
-            Vec2d::getMaximum(line->getStartPoint(), line->getEndPoint()));
-    }
-    case NS::Arc: {
-        return getArcBoundingBox();
-    }
-    case NS::Circle: {
-        return getCircleBoundingBox();
-    }
-    case NS::Ellipse: {
-        return getEllipseBoundingBox();
-    }
-    case NS::XLine:
-    case NS::Ray: {
-        return getXLineBoundingBox();
-    }
-    case NS::Polyline:
-    case NS::BSpline:
-        break;
-
-    default:
-        break;
-    }
-    return shape::BBox();
-}
-
-shape::BBox BoundingBox::getBoundingBox(shape::Shape *shape)
-{
-    BoundingBox bb(shape);
-    return bb.getBoundingBox();
-}
-
-shape::BBox BoundingBox::getArcBoundingBox() const
-{
-    Arc *arc = dynamic_cast<Arc *>(mShape);
+    const Arc *arc = dynamic_cast<const Arc *>(shape);
     assert(arc);
 
     if (!arc->isValid())
@@ -137,9 +89,9 @@ shape::BBox BoundingBox::getArcBoundingBox() const
     return BBox(minV, maxV);
 }
 
-shape::BBox BoundingBox::getCircleBoundingBox() const
+shape::BBox cada_getCircleBoundingBox(const shape::Shape *shape)
 {
-    Circle *circle = dynamic_cast<Circle *>(mShape);
+    const Circle *circle = dynamic_cast<const Circle *>(shape);
     assert(circle);
 
     return BBox(
@@ -147,9 +99,9 @@ shape::BBox BoundingBox::getCircleBoundingBox() const
         circle->getCenter() + Vec2d(circle->getRadius(), circle->getRadius()));
 }
 
-shape::BBox BoundingBox::getEllipseBoundingBox() const
+shape::BBox cada_getEllipseBoundingBox(const shape::Shape *shape)
 {
-    Ellipse *ellipse = dynamic_cast<Ellipse *>(mShape);
+    const Ellipse *ellipse = dynamic_cast<const Ellipse *>(shape);
     assert(ellipse);
 
     double radius1 = ellipse->getMajorRadius();
@@ -185,14 +137,51 @@ shape::BBox BoundingBox::getEllipseBoundingBox() const
     return BBox(Vec2d(minX, minY), Vec2d(maxX, maxY));
 }
 
-shape::BBox BoundingBox::getXLineBoundingBox() const
+shape::BBox cada_getXLineBoundingBox(const shape::Shape *shape)
 {
-    XLine *xline = dynamic_cast<XLine *>(mShape);
+    const XLine *xline = dynamic_cast<const XLine *>(shape);
     assert(xline);
 
     return BBox(
         Vec2d::getMinimum(xline->getStartPoint(), xline->getEndPoint()),
         Vec2d::getMaximum(xline->getStartPoint(), xline->getEndPoint()));
+}
+
+shape::BBox cada_getBoundingBox(const shape::Shape *shape)
+{
+    assert(shape);
+    switch (shape->getShapeType()) {
+    case NS::Point: {
+        auto point = dynamic_cast<const Point *>(shape);
+        return BBox(point->getPosition(), point->getPosition());
+    }
+    case NS::Line: {
+        auto line = dynamic_cast<const Line *>(shape);
+        return BBox(
+            Vec2d::getMinimum(line->getStartPoint(), line->getEndPoint()),
+            Vec2d::getMaximum(line->getStartPoint(), line->getEndPoint()));
+    }
+    case NS::Arc: {
+        return cada_getArcBoundingBox(shape);
+    }
+    case NS::Circle: {
+        return cada_getCircleBoundingBox(shape);
+    }
+    case NS::Ellipse: {
+        return cada_getEllipseBoundingBox(shape);
+    }
+    case NS::XLine:
+    case NS::Ray: {
+        return cada_getXLineBoundingBox(shape);
+    }
+    case NS::Polyline:
+    case NS::BSpline:
+        break;
+
+    default:
+        break;
+    }
+    return shape::BBox();
 }
 
 } // namespace algorithm

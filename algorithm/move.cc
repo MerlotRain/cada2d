@@ -20,8 +20,67 @@
  * IN THE SOFTWARE.
  */
 
+#include <cada_shape.h>
+#include <assert.h>
+
+using namespace cada::shape;
+
 namespace cada {
 namespace algorithm {
+
+bool cada_move(shape::Shape *shape, const shape::Vec2d &offset)
+{
+    assert(shape);
+    if (!offset.isValid() || offset.getMagnitude() < NS::PointTolerance) {
+        return false;
+    }
+    switch (shape->getShapeType()) {
+    case NS::Point: {
+        auto point = dynamic_cast<Point *>(shape);
+        point->setPosition(point->getPosition().move(offset));
+        return true;
+    }
+    case NS::Line: {
+        auto l = dynamic_cast<Line *>(shape);
+        l->setStartPoint(l->getStartPoint().move(offset));
+        l->setEndPoint(l->getEndPoint().move(offset));
+        return true;
+    }
+    case NS::Arc: {
+        auto a = dynamic_cast<Arc *>(shape);
+        a->setCenter(a->getCenter().move(offset));
+    }
+    case NS::Circle: {
+        auto c = dynamic_cast<Circle *>(shape);
+        c->setCenter(c->getCenter().move(offset));
+        return true;
+    }
+    case NS::Ellipse: {
+        auto e = dynamic_cast<Ellipse *>(shape);
+        e->setCenter(e->getCenter().move(offset));
+        e->setMajorPoint(e->getMajorPoint().move(offset));
+        return true;
+    }
+    case NS::XLine:
+    case NS::Ray: {
+        auto l = dynamic_cast<XLine *>(shape);
+        l->setBasePoint(l->getBasePoint().move(offset));
+        return true;
+    }
+    case NS::Polyline: {
+        auto p = dynamic_cast<Polyline *>(shape);
+        auto &vertices = p->getVertices();
+        for (auto &v : vertices) {
+            v.move(offset);
+        }
+        return true;
+    }
+    case NS::BSpline:
+    default:
+        break;
+    }
+    return false;
+}
 
 } // namespace algorithm
 } // namespace cada

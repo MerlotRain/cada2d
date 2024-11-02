@@ -20,6 +20,10 @@
  * IN THE SOFTWARE.
  */
 
+#include <cada_shape.h>
+
+using namespace cada::shape;
+
 namespace cada {
 namespace algorithm {
 

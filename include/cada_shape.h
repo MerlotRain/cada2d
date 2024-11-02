@@ -381,6 +381,8 @@ public:
 
     void setVertices(const std::vector<Vec2d> &vertices);
     std::vector<Vec2d> getVertices() const;
+    std::vector<Vec2d> &getVertices();
+
     void setVertexAt(int i, const Vec2d &v);
     void moveVertexAt(int i, const Vec2d &offset);
     Vec2d getVertexAt(int i) const;
@@ -390,6 +392,7 @@ public:
 
     void setBulges(const std::vector<double> &b);
     std::vector<double> getBulges() const;
+    std::vector<double> &getBulges();
     double getBulgeAt(int i) const;
     void setBulgeAt(int i, double b);
     bool hasArcSegments() const;
@@ -407,8 +410,10 @@ public:
     bool hasWidths() const;
     void setStartWidths(const std::vector<double> &sw);
     std::vector<double> getStartWidths() const;
+    std::vector<double> &getStartWidths();
     void setEndWidths(const std::vector<double> &ew);
     std::vector<double> getEndWidths() const;
+    std::vector<double> &getEndWidths();
 
     void setClosed(bool on);
     bool isClosed() const;
