@@ -131,15 +131,6 @@ struct Vec2d {
     static const Vec2d nanVector;
 };
 
-struct Vec3d {
-    double x, y, z;
-
-    Vec3d(double x, double y, double z);
-    Vec3d operator-(const Vec3d &rhs) const;
-    Vec3d operator*(double s) const;
-    Vec3d operator+(const Vec3d &rhs) const;
-};
-
 struct BBox {
     Vec2d c1;
     Vec2d c2;
@@ -183,28 +174,6 @@ struct BBox {
 
     bool operator==(const BBox &other) const;
     bool operator!=(const BBox &other) const { return !operator==(other); }
-};
-
-class Plane {
-    std::array<double, 4> mRep;
-
-public:
-    Plane(const Vec3d &p1, const Vec3d &p2, const Vec3d &p3);
-    Plane(const double &a, const double &b, const double &c, const double &d);
-
-    double a() const;
-    double b() const;
-    double c() const;
-    double d() const;
-
-    Vec3d point() const;
-    Vec3d base1() const;
-    Vec3d base2() const;
-    Vec3d orthogonalVector() const;
-    bool on(const Vec3d &p) const;
-    Vec3d projection(const Vec3d &p) const;
-    Vec2d to2d(const Vec3d &p) const;
-    Vec3d to3d(const Vec3d &p) const;
 };
 
 class ShapeFactory;

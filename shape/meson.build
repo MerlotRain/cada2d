@@ -6,7 +6,6 @@ shape_src = files(
     'ellipse.cc',
     'line.cc',
     'math.cc',
-    'plane.cc',
     'point.cc',
     'polyline.cc',
     'ray.cc',
@@ -15,6 +14,5 @@ shape_src = files(
     'shapefactory.cc',
     'triangle.cc',
     'vec2d.cc',
-    'vec3d.cc',
     'xline.cc',
 )
