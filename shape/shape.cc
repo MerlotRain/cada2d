@@ -50,7 +50,11 @@ Vec2d Shape::getVectorTo(const Vec2d &point, bool limited,
 Vec2d Shape::getClosestPointOnShape(const Vec2d &p, bool limited,
                                     double strictRange) const
 {
-    return cada_getClosestPointOnShape(this, p, limited, strictRange);
+    Vec2d dv = getVectorTo(p, limited, strictRange);
+    if (!dv.isValid()) {
+        return Vec2d::invalid;
+    }
+    return p - dv;
 }
 
 bool Shape::equals(const Shape *other, double tolerance) const
@@ -67,23 +71,41 @@ double Shape::getDistanceTo(const Vec2d &point, bool limited,
 double Shape::getMaxDistanceTo(const std::vector<Vec2d> &points, bool limited,
                                double strictRange) const
 {
-    return cada_getMaxDistanceTo(this, points, limited, strictRange);
+    double ret = 0.0;
+    for (int i = 0; i < points.size(); i++) {
+        double d = getDistanceTo(points[i], limited, strictRange);
+        ret = std::max(ret, d);
+    }
+    return ret;
 }
 
 bool Shape::isOnShape(const Vec2d &point, bool limited, double tolerance) const
 {
-    return cada_isOnShape(this, point, limited, tolerance);
+    double d = getDistanceTo(point, limited);
+    if (Math::isNaN(d)) {
+        return false;
+    }
+    // much more tolerance here (e.g. for ellipses):
+    return d < tolerance;
 }
 
 std::vector<Vec2d> Shape::filterOnShape(const std::vector<Vec2d> &pointList,
                                         bool limited, double tolerance) const
 {
-    return cada_filterOnShape(this, pointList, limited, tolerance);
+    std::vector<Vec2d> ret;
+    for (int i = 0; i < pointList.size(); i++) {
+        if (isOnShape(pointList[i], limited, tolerance)) {
+            ret.emplace_back(pointList[i]);
+        }
+    }
+    return ret;
 }
 
 Vec2d Shape::getVectorFromEndpointTo(const Vec2d &point) const
 {
-    return cada_getVectorFromEndpointTo(this, point);
+    std::vector<Vec2d> endPoints = getEndPoints();
+    Vec2d closest = point.getClosest(endPoints);
+    return point - closest;
 }
 
 std::vector<Vec2d> Shape::getPointsWithDistanceToEnd(double distance,
@@ -99,12 +121,22 @@ Vec2d Shape::getPointOnShape() const
 
 Vec2d Shape::getPointWithDistanceToStart(double distance) const
 {
-    return cada_getPointWithDistanceToStart(this, distance);
+    std::vector<Vec2d> res =
+        getPointsWithDistanceToEnd(distance, NS::FromStart | NS::AlongPolyline);
+    if (res.empty()) {
+        return Vec2d::invalid;
+    }
+    return res[0];
 }
 
 Vec2d Shape::getPointWithDistanceToEnd(double distance) const
 {
-    return cada_getPointWithDistanceToEnd(this, distance);
+    std::vector<Vec2d> res =
+        getPointsWithDistanceToEnd(distance, NS::FromEnd | NS::AlongPolyline);
+    if (res.empty()) {
+        return Vec2d::invalid;
+    }
+    return res[0];
 }
 
 double Shape::getAngleAt(double distance, NS::From from) const
@@ -114,22 +146,34 @@ double Shape::getAngleAt(double distance, NS::From from) const
 
 double Shape::getAngleAtPoint(const Vec2d &pos) const
 {
-    return cada_getAngleAtPoint(this, pos);
+    double d = getDistanceFromStart(pos);
+    return getAngleAt(d);
 }
 
 Vec2d Shape::getPointAtPercent(double p) const
 {
-    return cada_getPointAtPercent(this, p);
+    double length = getLength();
+    double distance = p * length;
+    std::vector<Vec2d> candidates = getPointsWithDistanceToEnd(
+        distance, getShapeType() == NS::Polyline
+                      ? (NS::FromStart | NS::AlongPolyline)
+                      : (NS::FromStart));
+    if (candidates.size() != 1) {
+        return Vec2d::invalid;
+    }
+    return candidates.at(0);
 }
 
 double Shape::getAngleAtPercent(double p) const
 {
-    return cada_getAngleAtPercent(this, p);
+    double length = getLength();
+    double distance = p * length;
+    return getAngleAt(distance);
 }
 
 bool Shape::intersectsWith(const Shape *other, bool limited) const
 {
-    return cada_intersectsWith(this, other, limited);
+    return !getIntersectionPoints(other, limited).empty();
 }
 
 std::vector<Vec2d> Shape::getIntersectionPoints(const Shape *other,
@@ -146,7 +190,13 @@ std::vector<Vec2d> Shape::getSelfIntersectionPoints(double tolerance) const
 
 bool Shape::isDirected() const
 {
-    return cada_isDirected(this);
+    auto type = getShapeType();
+    if (type == NS::Arc || type == NS::Line || type == NS::Ellipse ||
+        type == NS::Polyline || type == NS::XLine || type == NS::BSpline ||
+        type == NS::Ray) {
+        return true;
+    }
+    return false;
 }
 
 double Shape::getDirection1() const

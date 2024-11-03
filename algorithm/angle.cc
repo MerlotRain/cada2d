@@ -21,6 +21,7 @@
  */
 
 #include <cada_shape.h>
+#include <assert.h>
 
 using namespace cada::shape;
 
@@ -31,32 +32,92 @@ namespace algorithm {
 
 double cada_getAngleAt(const shape::Shape *shape, double distance,
                        NS::From from);
-double cada_getAngleAtPoint(const shape::Shape *shape, const shape::Vec2d &pos);
-shape::Vec2d cada_getPointAtPercent(const shape::Shape *shape, double p);
-double cada_getAngleAtPercent(const shape::Shape *shape, double p);
+double cada_polyline_getAngleAt(const shape::Polyline *polyline,
+                                double distance, NS::From from);
 
 /* ---------------------------------- impl ---------------------------------- */
 
 double cada_getAngleAt(const shape::Shape *shape, double distance,
                        NS::From from)
 {
+    assert(shape != nullptr);
+    switch (shape->getShapeType()) {
+    case NS::Point:
+        return std::numeric_limits<double>::quiet_NaN();
+    case NS::Line: {
+        auto l = dynamic_cast<const Line *>(shape);
+        return l->getAngle();
+    }
+    case NS::Arc: {
+        auto a = dynamic_cast<const Arc *>(shape);
+        std::vector<Vec2d> points =
+            shape->getPointsWithDistanceToEnd(distance, from);
+        if (points.size() != 1) {
+            return std::numeric_limits<double>::quiet_NaN();
+        }
+        return a->getCenter().getAngleTo(points[0]) +
+               (a->isReversed() ? -M_PI / 2 : M_PI / 2);
+    }
+    case NS::Circle:
+        return std::numeric_limits<double>::quiet_NaN();
+    case NS::Ellipse:
+        // TODO
+        break;
+    case NS::XLine:
+    case NS::Ray: {
+        auto xl = dynamic_cast<const XLine *>(shape);
+        return xl->getAngle();
+    }
+    case NS::Polyline:
+        return cada_polyline_getAngleAt(dynamic_cast<const Polyline *>(shape),
+                                        distance, from);
+    case NS::BSpline:
+        // TODO
+    default:
+        break;
+    }
     return 0.0;
 }
 
-double cada_getAngleAtPoint(const shape::Shape *shape, const shape::Vec2d &pos)
+double cada_polyline_getAngleAt(const shape::Polyline *polyline,
+                                double distance, NS::From from)
 {
-    return 0.0;
+    auto &&sub = polyline->getExploded();
+
+    if (from & NS::AlongPolyline) {
+        double remainingDist;
+        double len;
+
+        if (from & NS::FromStart) {
+            remainingDist = distance;
+            for (int i = 0; i < sub.size(); i++) {
+                len = sub[i]->getLength();
+                if (remainingDist > len) {
+                    remainingDist -= len;
+                }
+                else {
+                    return sub[i]->getAngleAt(remainingDist, NS::FromStart);
+                }
+            }
+        }
+
+        if (from & NS::FromEnd) {
+            remainingDist = distance;
+            for (int i = sub.size() - 1; i >= 0; i--) {
+                len = sub[i]->getLength();
+                if (remainingDist > len) {
+                    remainingDist -= len;
+                }
+                else {
+                    return sub[i]->getAngleAt(remainingDist, NS::FromEnd);
+                }
+            }
+        }
+    }
+
+    return std::numeric_limits<double>::quiet_NaN();
 }
 
-shape::Vec2d cada_getPointAtPercent(const shape::Shape *shape, double p)
-{
-    return shape::Vec2d();
-}
-
-double cada_getAngleAtPercent(const shape::Shape *shape, double p)
-{
-    return 0.0;
-}
 
 } // namespace algorithm
 } // namespace cada
