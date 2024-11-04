@@ -300,7 +300,7 @@ shape::Vec2d cada_ray_getVectorTo(const shape::Ray *r,
                                       point, limited, strictRange);
     }
     else {
-        Vec2d p = XLine::getClosestPointOnShape(point, false);
+        Vec2d p = r->getClosestPointOnShape(point, false);
         if (fabs(Math::getAngleDifference180(
                 r->getDirection1(), r->getStartPoint().getAngleTo(p))) < 0.1) {
             return point - p;

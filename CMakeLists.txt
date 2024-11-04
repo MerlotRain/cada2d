@@ -27,7 +27,9 @@ set(cada_srcs
     shape/vec2d.cc
     shape/xline.cc
 
+    algorithm/algorithm.cc
     algorithm/angle.cc
+    algorithm/apollonius.cc
     algorithm/boundingbox.cc
     algorithm/distance.cc
     algorithm/equal.cc
