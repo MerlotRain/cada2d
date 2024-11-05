@@ -47,6 +47,21 @@ public:
     }
 };
 
+class UnsupportedOperationException: public Exception {
+public:
+    UnsupportedOperationException()
+        :
+        Exception("UnsupportedOperationException", "")
+    {}
+
+    UnsupportedOperationException(const std::string& msg)
+        :
+        Exception("UnsupportedOperationException", msg)
+    {}
+
+    ~UnsupportedOperationException() noexcept override {}
+};
+
 } // namespace cada
 
 #endif
