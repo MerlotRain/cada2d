@@ -70,7 +70,6 @@ void XLine::setAngle(double a)
 
 void XLine::setLength(double l)
 {
-    return;
 }
 
 Vec2d XLine::getStartPoint() const
@@ -121,6 +120,11 @@ std::vector<Vec2d> XLine::getMiddlePoints() const
 std::vector<Vec2d> XLine::getCenterPoints() const
 {
     return std::vector<Vec2d>();
+}
+
+std::unique_ptr<Line> XLine::getLineShape() const
+{
+    return ShapeFactory::instance()->createLine(mBasePoint, mDirectionVector);
 }
 
 } // namespace shape

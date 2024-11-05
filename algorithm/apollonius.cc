@@ -54,47 +54,61 @@ inline bool cada_is_line_shape(const Shape *shape)
     return false;
 }
 
+std::unique_ptr<shape::Point> make_apollonius_point(const shape::Shape *shp);
+std::unique_ptr<shape::Line> make_apollonius_line(const shape::Shape *shp);
+std::unique_ptr<shape::Circle> make_apollonius_circle(const shape::Shape *shp);
+
 /* ---------------------------- static functions ---------------------------- */
 
 std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PPP(const Shape *point1, const Shape *point2,
-                                  const Shape *point3);
+cada_apollonius_solution_from_PPP(const shape::Point *point1,
+                                  const shape::Point *point2,
+                                  const shape::Point *point3);
 
 std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PPC(const Shape *point1, const Shape *point2,
-                                  const Shape *circle);
+cada_apollonius_solution_from_PPC(const shape::Point *point1,
+                                  const shape::Point *point2,
+                                  const shape::Circle *circle);
 
 std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PPL(const Shape *point1, const Shape *point2,
-                                  const Shape *line);
+cada_apollonius_solution_from_PPL(const shape::Point *point1,
+                                  const shape::Point *point2,
+                                  const shape::Line *line);
 
 std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PCC(const Shape *point, const Shape *circle1,
-                                  const Shape *circle2);
+cada_apollonius_solution_from_PCC(const shape::Point *point,
+                                  const shape::Circle *circle1,
+                                  const shape::Circle *circle2);
 
 std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PLL(const Shape *point, const Shape *line1,
-                                  const Shape *line2);
+cada_apollonius_solution_from_PLL(const shape::Point *point,
+                                  const shape::Line *line1,
+                                  const shape::Line *line2);
 
 std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PLC(const Shape *point, const Shape *line,
-                                  const Shape *circle);
+cada_apollonius_solution_from_PLC(const shape::Point *point,
+                                  const shape::Line *line,
+                                  const shape::Circle *circle);
 
 std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_LLL(const Shape *line1, const Shape *line2,
-                                  const Shape *line3);
+cada_apollonius_solution_from_LLL(const shape::Line *line1,
+                                  const shape::Line *line2,
+                                  const shape::Line *line3);
 
 std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_LLC(const Shape *line1, const Shape *line2,
-                                  const Shape *circle);
+cada_apollonius_solution_from_LLC(const shape::Line *line1,
+                                  const shape::Line *line2,
+                                  const shape::Circle *circle);
 
 std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_LCC(const Shape *line, const Shape *circle2,
-                                  const Shape *circle3);
+cada_apollonius_solution_from_LCC(const shape::Line *line,
+                                  const shape::Circle *circle2,
+                                  const shape::Circle *circle3);
 
 std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_CCC(const Shape *circle1, const Shape *circle2,
-                                  const Shape *circle3);
+cada_apollonius_solution_from_CCC(const shape::Circle *circle1,
+                                  const shape::Circle *circle2,
+                                  const shape::Circle *circle3);
 
 /* ---------------------------------- impls --------------------------------- */
 
@@ -102,9 +116,9 @@ std::vector<std::unique_ptr<Circle>> apollonius_solutions(const Shape *shape1,
                                                           const Shape *shape2,
                                                           const Shape *shape3)
 {
-    std::vector<const Shape *> points;
-    std::vector<const Shape *> lines;
-    std::vector<const Shape *> circles;
+    std::vector<std::unique_ptr<Point>> points;
+    std::vector<std::unique_ptr<Line>> lines;
+    std::vector<std::unique_ptr<Circle>> circles;
 
     std::vector<const Shape *> shapes;
     shapes.push_back(shape1);
@@ -115,74 +129,68 @@ std::vector<std::unique_ptr<Circle>> apollonius_solutions(const Shape *shape1,
         auto &&s = shapes[i];
 
         if (cada_is_point_shape(s)) {
-            points.push_back(s);
+            points.push_back(make_apollonius_point(s));
             continue;
         }
         if (cada_is_line_shape(s)) {
-            lines.push_back(s);
-            continue;
-        }
-        if (s->getShapeType() == NS::Arc) {
-            auto arc = dynamic_cast<const Arc *>(s);
-            circles.push_back(
-                ShapeFactory::instance()
-                    ->createCircle(arc->getCenter(), arc->getRadius())
-                    .release());
+            lines.push_back(make_apollonius_line(s));
             continue;
         }
         if (cada_is_circle_shape(s)) {
-            circles.push_back(s);
+            circles.push_back(make_apollonius_circle(s));
             continue;
         }
     }
 
     if (points.size() == 3) {
-        return cada_apollonius_solution_from_PPP(points[0], points[1],
-                                                 points[2]);
+        return cada_apollonius_solution_from_PPP(
+            points[0].release(), points[1].release(), points[2].release());
     }
 
     else if (points.size() == 2) {
         if (circles.size() == 1) {
-            return cada_apollonius_solution_from_PPC(points[0], points[1],
-                                                     circles[0]);
+            return cada_apollonius_solution_from_PPC(
+                points[0].release(), points[1].release(), circles[0].release());
         }
         else if (lines.size() == 1) {
-            return cada_apollonius_solution_from_PPL(points[0], points[1],
-                                                     lines[0]);
+            return cada_apollonius_solution_from_PPL(
+                points[0].release(), points[1].release(), lines[0].release());
         }
     }
 
     else if (points.size() == 1) {
         if (circles.size() == 2) {
-            return cada_apollonius_solution_from_PCC(points[0], circles[0],
-                                                     circles[1]);
+            return cada_apollonius_solution_from_PCC(points[0].release(),
+                                                     circles[0].release(),
+                                                     circles[1].release());
         }
         else if (lines.size() == 2) {
-            return cada_apollonius_solution_from_PLL(points[0], lines[0],
-                                                     lines[1]);
+            return cada_apollonius_solution_from_PLL(
+                points[0].release(), lines[0].release(), lines[1].release());
         }
         else if (circles.size() == 1 && lines.size() == 1) {
-            return cada_apollonius_solution_from_PLC(points[0], lines[0],
-                                                     circles[0]);
+            return cada_apollonius_solution_from_PLC(
+                points[0].release(), lines[0].release(), circles[0].release());
         }
     }
 
     else if (points.size() == 0) {
         if (lines.size() == 3) {
-            return cada_apollonius_solution_from_LLL(lines[0], lines[1],
-                                                     lines[2]);
+            return cada_apollonius_solution_from_LLL(
+                lines[0].release(), lines[1].release(), lines[2].release());
         }
         else if (lines.size() == 2 && circles.size() == 1) {
-            return cada_apollonius_solution_from_LLC(lines[0], lines[1],
-                                                     circles[0]);
+            return cada_apollonius_solution_from_LLC(
+                lines[0].release(), lines[1].release(), circles[0].release());
         }
         else if (lines.size() == 1 && circles.size() == 2) {
-            return cada_apollonius_solution_from_LCC(lines[0], circles[0],
-                                                     circles[1]);
+            return cada_apollonius_solution_from_LCC(
+                lines[0].release(), circles[0].release(), circles[1].release());
         }
         else if (circles.size() == 3) {
-            return cada_apollonius_solution_from_CCC(circles[0], circles[1],
-                                                     circles[2]);
+            return cada_apollonius_solution_from_CCC(circles[0].release(),
+                                                     circles[1].release(),
+                                                     circles[2].release());
         }
     }
 
@@ -190,84 +198,6 @@ std::vector<std::unique_ptr<Circle>> apollonius_solutions(const Shape *shape1,
 }
 
 /* -------------------------- static function impls ------------------------- */
-
-std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PPP(const Shape *point1, const Shape *point2,
-                                  const Shape *point3)
-{
-    assert(point1);
-    assert(point2);
-    assert(point3);
-    std::vector<std::unique_ptr<Circle>> circles;
-    circles.emplace_back(ShapeFactory::instance()->createCircleFrom3Points(
-        dynamic_cast<const Point *>(point1)->getPosition(),
-        dynamic_cast<const Point *>(point2)->getPosition(),
-        dynamic_cast<const Point *>(point3)->getPosition()));
-    return circles;
-}
-
-std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PPC(const Shape *point1, const Shape *point2,
-                                  const Shape *circle)
-{
-    return std::vector<std::unique_ptr<Circle>>();
-}
-
-std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PPL(const Shape *point1, const Shape *point2,
-                                  const Shape *line)
-{
-    return std::vector<std::unique_ptr<Circle>>();
-}
-
-std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PCC(const Shape *point, const Shape *circle1,
-                                  const Shape *circle2)
-{
-    return std::vector<std::unique_ptr<Circle>>();
-}
-
-std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PLL(const Shape *point, const Shape *line1,
-                                  const Shape *line2)
-{
-    return std::vector<std::unique_ptr<Circle>>();
-}
-
-std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_PLC(const Shape *point, const Shape *line,
-                                  const Shape *circle)
-{
-    return std::vector<std::unique_ptr<Circle>>();
-}
-
-std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_LLL(const Shape *line1, const Shape *line2,
-                                  const Shape *line3)
-{
-    return std::vector<std::unique_ptr<Circle>>();
-}
-
-std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_LLC(const Shape *line1, const Shape *line2,
-                                  const Shape *circle)
-{
-    return std::vector<std::unique_ptr<Circle>>();
-}
-
-std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_LCC(const Shape *line, const Shape *circle2,
-                                  const Shape *circle3)
-{
-    return std::vector<std::unique_ptr<Circle>>();
-}
-
-std::vector<std::unique_ptr<Circle>>
-cada_apollonius_solution_from_CCC(const Shape *circle1, const Shape *circle2,
-                                  const Shape *circle3)
-{
-    return std::vector<std::unique_ptr<Circle>>();
-}
 
 } // namespace algorithm
 } // namespace cada

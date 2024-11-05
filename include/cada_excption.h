@@ -47,17 +47,17 @@ public:
     }
 };
 
-class UnsupportedOperationException: public Exception {
+class UnsupportedOperationException : public Exception {
 public:
     UnsupportedOperationException()
-        :
-        Exception("UnsupportedOperationException", "")
-    {}
+        : Exception("UnsupportedOperationException", "")
+    {
+    }
 
-    UnsupportedOperationException(const std::string& msg)
-        :
-        Exception("UnsupportedOperationException", msg)
-    {}
+    UnsupportedOperationException(const std::string &msg)
+        : Exception("UnsupportedOperationException", msg)
+    {
+    }
 
     ~UnsupportedOperationException() noexcept override {}
 };

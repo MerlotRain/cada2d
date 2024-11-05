@@ -20,19 +20,13 @@
  * IN THE SOFTWARE.
  */
 
-#include <stdexcept>
 #include <cada_shape.h>
+#include <assert.h>
 
 using namespace cada::shape;
 
 namespace cada {
 namespace algorithm {
-
-static double ellipse2tr(double x, double y, double AA, double BB, double CC,
-                         double DD, double EE, double FF)
-{
-    return (AA * x * x + BB * x * y + CC * y * y + DD * x + EE * y + FF);
-}
 
 } // namespace algorithm
 } // namespace cada

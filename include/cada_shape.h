@@ -744,6 +744,8 @@ public:
     Vec2d getEndPoint() const override;
     Vec2d getMiddlePoint() const override;
 
+    std::unique_ptr<Line> getLineShape() const;
+
 protected:
     XLine();
     XLine(const Vec2d &basePoint, const Vec2d &directionVector);

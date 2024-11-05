@@ -22,6 +22,7 @@
 
 #include "cada_shape.h"
 #include <cmath>
+#include <mutex>
 #include <Eigen/Dense>
 
 namespace cada {
