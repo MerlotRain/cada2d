@@ -195,7 +195,15 @@ std::vector<std::unique_ptr<Circle>>
 cada_apollonius_solution_from_PPP(const Shape *point1, const Shape *point2,
                                   const Shape *point3)
 {
-    return std::vector<std::unique_ptr<Circle>>();
+    assert(point1);
+    assert(point2);
+    assert(point3);
+    std::vector<std::unique_ptr<Circle>> circles;
+    circles.emplace_back(ShapeFactory::instance()->createCircleFrom3Points(
+        dynamic_cast<const Point *>(point1)->getPosition(),
+        dynamic_cast<const Point *>(point2)->getPosition(),
+        dynamic_cast<const Point *>(point3)->getPosition()));
+    return circles;
 }
 
 std::vector<std::unique_ptr<Circle>>
