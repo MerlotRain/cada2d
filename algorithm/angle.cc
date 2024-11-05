@@ -90,7 +90,7 @@ double cada_polyline_getAngleAt(const shape::Polyline *polyline,
 
         if (from & NS::FromStart) {
             remainingDist = distance;
-            for (int i = 0; i < sub.size(); i++) {
+            for (size_t i = 0; i < sub.size(); i++) {
                 len = sub[i]->getLength();
                 if (remainingDist > len) {
                     remainingDist -= len;
@@ -117,7 +117,6 @@ double cada_polyline_getAngleAt(const shape::Polyline *polyline,
 
     return std::numeric_limits<double>::quiet_NaN();
 }
-
 
 } // namespace algorithm
 } // namespace cada

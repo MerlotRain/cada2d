@@ -54,9 +54,51 @@ inline bool cada_is_line_shape(const Shape *shape)
     return false;
 }
 
-std::unique_ptr<shape::Point> make_apollonius_point(const shape::Shape *shp);
-std::unique_ptr<shape::Line> make_apollonius_line(const shape::Shape *shp);
-std::unique_ptr<shape::Circle> make_apollonius_circle(const shape::Shape *shp);
+static std::unique_ptr<shape::Point>
+make_apollonius_point(const shape::Shape *shp)
+{
+    assert(shp);
+    if (shp->getShapeType() == NS::Point) {
+        auto p = dynamic_cast<const Point *>(shp);
+        return p->clone();
+    }
+}
+
+static std::unique_ptr<shape::Line>
+make_apollonius_line(const shape::Shape *shp)
+{
+    assert(shp);
+    if (shp->getShapeType() == NS::Line) {
+        auto l = dynamic_cast<const Line *>(shp);
+        return l->clone();
+    }
+    else if (shp->getShapeType() == NS::Ray ||
+             shp->getShapeType() == NS::XLine) {
+        auto l = dynamic_cast<const XLine *>(shp);
+        return l->getLineShape();
+    }
+    else {
+        return nullptr;
+    }
+}
+
+static std::unique_ptr<shape::Circle>
+make_apollonius_circle(const shape::Shape *shp)
+{
+    assert(shp);
+    if (shp->getShapeType() == NS::Circle) {
+        auto c = dynamic_cast<const Circle *>(shp);
+        return c->clone();
+    }
+    else if (shp->getShapeType() == NS::Arc) {
+        auto a = dynamic_cast<const Arc *>(shp);
+        return ShapeFactory::instance()->createCircle(a->getCenter(),
+                                                      a->getRadius());
+    }
+    else {
+        return nullptr;
+    }
+}
 
 /* ---------------------------- static functions ---------------------------- */
 
@@ -198,6 +240,94 @@ std::vector<std::unique_ptr<Circle>> apollonius_solutions(const Shape *shape1,
 }
 
 /* -------------------------- static function impls ------------------------- */
+
+std::vector<std::unique_ptr<Circle>>
+cada_apollonius_solution_from_PPP(const shape::Point *point1,
+                                  const shape::Point *point2,
+                                  const shape::Point *point3)
+{
+    assert(point1);
+    assert(point2);
+    assert(point3);
+
+    std::vector<std::unique_ptr<Circle>> res;
+    auto c = ShapeFactory::instance()->createCircleFrom3Points(
+        point1->getPosition(), point2->getPosition(), point3->getPosition());
+    res.emplace_back(c);
+    return res;
+}
+
+std::vector<std::unique_ptr<Circle>>
+cada_apollonius_solution_from_PPC(const shape::Point *point1,
+                                  const shape::Point *point2,
+                                  const shape::Circle *circle)
+{
+    return std::vector<std::unique_ptr<Circle>>();
+}
+
+std::vector<std::unique_ptr<Circle>>
+cada_apollonius_solution_from_PPL(const shape::Point *point1,
+                                  const shape::Point *point2,
+                                  const shape::Line *line)
+{
+    return std::vector<std::unique_ptr<Circle>>();
+}
+
+std::vector<std::unique_ptr<Circle>>
+cada_apollonius_solution_from_PCC(const shape::Point *point,
+                                  const shape::Circle *circle1,
+                                  const shape::Circle *circle2)
+{
+    return std::vector<std::unique_ptr<Circle>>();
+}
+
+std::vector<std::unique_ptr<Circle>>
+cada_apollonius_solution_from_PLL(const shape::Point *point,
+                                  const shape::Line *line1,
+                                  const shape::Line *line2)
+{
+    return std::vector<std::unique_ptr<Circle>>();
+}
+
+std::vector<std::unique_ptr<Circle>>
+cada_apollonius_solution_from_PLC(const shape::Point *point,
+                                  const shape::Line *line,
+                                  const shape::Circle *circle)
+{
+    return std::vector<std::unique_ptr<Circle>>();
+}
+
+std::vector<std::unique_ptr<Circle>>
+cada_apollonius_solution_from_LLL(const shape::Line *line1,
+                                  const shape::Line *line2,
+                                  const shape::Line *line3)
+{
+    return std::vector<std::unique_ptr<Circle>>();
+}
+
+std::vector<std::unique_ptr<Circle>>
+cada_apollonius_solution_from_LLC(const shape::Line *line1,
+                                  const shape::Line *line2,
+                                  const shape::Circle *circle)
+{
+    return std::vector<std::unique_ptr<Circle>>();
+}
+
+std::vector<std::unique_ptr<Circle>>
+cada_apollonius_solution_from_LCC(const shape::Line *line,
+                                  const shape::Circle *circle2,
+                                  const shape::Circle *circle3)
+{
+    return std::vector<std::unique_ptr<Circle>>();
+}
+
+std::vector<std::unique_ptr<Circle>>
+cada_apollonius_solution_from_CCC(const shape::Circle *circle1,
+                                  const shape::Circle *circle2,
+                                  const shape::Circle *circle3)
+{
+    return std::vector<std::unique_ptr<Circle>>();
+}
 
 } // namespace algorithm
 } // namespace cada
