@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.29)
 
-project(cada2d LANGUAGES CXX)
+project(cada2d LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
@@ -34,7 +34,7 @@ set(cada_srcs
     algorithm/distance.cc
     algorithm/equal.cc
     algorithm/flip.cc
-    algorithm/intcurvecurve.cc
+    algorithm/intersection.cc
     algorithm/length.cc
     algorithm/mirror.cc
     algorithm/move.cc
@@ -44,10 +44,13 @@ set(cada_srcs
     algorithm/rotate.cc
     algorithm/roundallcorners.cc
     algorithm/scale.cc
+    algorithm/self-intersection.cc
     algorithm/split.cc
     algorithm/stretch.cc
     algorithm/trim.cc
     algorithm/vectorto.cc
+
+    index/rtree.c
 )
 
 add_library(cada2d STATIC ${cada_srcs}) 
@@ -62,5 +65,3 @@ target_include_directories(cada2d PRIVATE
 )
 
 target_link_libraries(cada2d Eigen3::Eigen)
-
-target_compile_definitions(cada2d PUBLIC -D_USE_MATH_DEFINES)

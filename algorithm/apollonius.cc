@@ -253,7 +253,7 @@ cada_apollonius_solution_from_PPP(const shape::Point *point1,
     std::vector<std::unique_ptr<Circle>> res;
     auto c = ShapeFactory::instance()->createCircleFrom3Points(
         point1->getPosition(), point2->getPosition(), point3->getPosition());
-    res.emplace_back(c);
+    res.emplace_back(std::move(c));
     return res;
 }
 
