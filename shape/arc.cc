@@ -480,5 +480,82 @@ std::vector<std::unique_ptr<Arc>> Arc::splitAtQuadrantLines() const
     return ret;
 }
 
+void Arc::moveStartPoint(const Vec2d &pos, bool keepRadius)
+{
+    if (!keepRadius) {
+        auto a = ShapeFactory::instance()->createArcFrom3Point(
+            pos, getMiddlePoint(), getEndPoint());
+        if (a->isReversed() != isReversed()) {
+            a->reverse();
+        }
+        mCenter = a->getCenter();
+        mRadius = a->getRadius();
+        mStartAngle = a->getStartAngle();
+        mEndAngle = a->getEndAngle();
+        mReversed = a->isReversed();
+    }
+    else {
+        double bulge = getBulge();
+
+        // full circle: trim instead of move:
+        if (bulge < 1.0e-6 || bulge > 1.0e6) {
+            mStartAngle = mCenter.getAngleTo(pos);
+        }
+        else {
+            auto a = ShapeFactory::instance()->createArcFrom2PBulge(
+                pos, getEndPoint(), bulge);
+            mCenter = a->getCenter();
+            mRadius = a->getRadius();
+            mStartAngle = a->getStartAngle();
+            mEndAngle = a->getEndAngle();
+            mReversed = a->isReversed();
+        }
+    }
+}
+
+void Arc::moveEndPoint(const Vec2d &pos, bool keepRadius)
+{
+    if (!keepRadius) {
+        auto a = ShapeFactory::instance()->createArcFrom3Point(
+            pos, getMiddlePoint(), getStartPoint());
+        if (a->isReversed() != isReversed()) {
+            a->reverse();
+        }
+        mCenter = a->getCenter();
+        mRadius = a->getRadius();
+        mStartAngle = a->getStartAngle();
+        mEndAngle = a->getEndAngle();
+        mReversed = a->isReversed();
+    }
+    else {
+        double bulge = getBulge();
+
+        // full circle: trim instead of move:
+        if (bulge < 1.0e-6 || bulge > 1.0e6) {
+            mEndAngle = mCenter.getAngleTo(pos);
+        }
+        else {
+            auto a = ShapeFactory::instance()->createArcFrom2PBulge(
+                getStartPoint(), pos, bulge);
+            mCenter = a->getCenter();
+            mRadius = a->getRadius();
+            mStartAngle = a->getStartAngle();
+            mEndAngle = a->getEndAngle();
+            mReversed = a->isReversed();
+        }
+    }
+}
+
+void Arc::moveMiddlePoint(const Vec2d &pos)
+{
+    auto a = ShapeFactory::instance()->createArcFrom3Point(getStartPoint(), pos,
+                                                           getEndPoint());
+    mCenter = a->getCenter();
+    mRadius = a->getRadius();
+    mStartAngle = a->getStartAngle();
+    mEndAngle = a->getEndAngle();
+    mReversed = a->isReversed();
+}
+
 } // namespace shape
 } // namespace cada

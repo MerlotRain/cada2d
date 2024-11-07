@@ -8,6 +8,7 @@ project(
 )
 
 eigen_dep = dependency('eigen3', required: true)
+gtest_dep = dependency('gtest', required: true)
 
 inc_dirs = include_directories('include')
 

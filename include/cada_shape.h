@@ -257,7 +257,7 @@ public:
     bool mirror(const Vec2d &v1, const Vec2d &v2);
     bool flipHorizontal();
     bool flipVertical();
-    bool stretch(const std::vector<Vec2d> &vertex, const Vec2d &offset);
+    bool stretch(std::vector<Vec2d> &&vertex, const Vec2d &offset);
     std::vector<std::unique_ptr<Shape>>
     getOffsetShapes(double distance, int number, NS::Side side,
                     const Vec2d &position = Vec2d::invalid);
@@ -455,7 +455,6 @@ public:
     int getClosestVertex(const Vec2d &point) const;
 
     bool isStraight(double bulge) const;
-    bool simplify(double tolerance = DBL_EPSILON);
     void stripWidths();
     void setMinimumWidth(double w);
     int getSegmentAtDist(double dist);
@@ -464,11 +463,6 @@ public:
     bool convertToClosed();
     bool convertToOpen();
     bool isConcave() const;
-    double getBaseAngle() const;
-    double getWidth() const;
-    bool setWidth(double v);
-    double getHeight() const;
-    bool setHeight(double v);
     Vec2d getCentroid() const;
 
     std::unique_ptr<Polyline> convertArcToLineSegments(int segments) const;
@@ -485,9 +479,6 @@ public:
     bool isArcSegmentAt(int i) const;
     std::unique_ptr<Shape> getLastSegment() const;
     std::unique_ptr<Shape> getFirstSegment() const;
-
-    std::vector<Vec2d> verifyTangency(double toleranceMin = NS::AngleTolerance,
-                                      double toleranceMax = M_PI_4);
     std::unique_ptr<Polyline>
     modifyPolylineCorner(const Shape *trimmedShape1, NS::Ending ending1,
                          int segmentIndex1, const Shape *trimmedShape2,
@@ -496,16 +487,6 @@ public:
 
     std::vector<Vec2d> getConvexVertices(bool convex = true) const;
     std::vector<Vec2d> getConcaveVertices() const;
-    std::vector<Polyline> splitAtDiscontinuities(double tolerance) const;
-    std::vector<Polyline> splitAtSegmentTypeChange() const;
-    std::vector<Polyline>
-    morph(const Polyline *target, int steps, NS::Easing easing = NS::Linear,
-          bool zLinear = true,
-          double customFactor = std::numeric_limits<double>::quiet_NaN()) const;
-    std::unique_ptr<Polyline> roundAllCorners(double radius) const;
-    std::unique_ptr<Polyline> getPolygon(double segmentLength) const;
-    std::unique_ptr<Polyline> getPolygonHull(double angle, double tolerance,
-                                             bool inner = false) const;
 
     std::vector<std::unique_ptr<Shape>> getExploded() const;
     bool contains(const Vec2d &point, bool borderIsInside = false,
@@ -578,6 +559,10 @@ public:
                                                       double angle = 0.0) const;
     std::vector<std::unique_ptr<Line>> getTangents(const Vec2d &point) const;
     std::vector<std::unique_ptr<Arc>> splitAtQuadrantLines() const;
+
+    void moveStartPoint(const Vec2d &pos, bool keepRadius = true);
+    void moveEndPoint(const Vec2d &pos, bool keepRadius = true);
+    void moveMiddlePoint(const Vec2d &pos);
 
 protected:
     Arc();
@@ -994,7 +979,7 @@ public:
     auto createArcFrom3Point(const Vec2d &startPoint, const Vec2d &point,
                              const Vec2d &endPoint) const
         -> std::unique_ptr<Arc>;
-    auto createArcFrom2PBulgs(const Vec2d &startPoint, const Vec2d &endPoint,
+    auto createArcFrom2PBulge(const Vec2d &startPoint, const Vec2d &endPoint,
                               double bulge) const -> std::unique_ptr<Arc>;
     auto createArcFromTangential(const Vec2d &startPoint, const Vec2d &pos,
                                  double direction, double radius) const

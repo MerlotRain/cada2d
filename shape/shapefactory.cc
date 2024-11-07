@@ -162,7 +162,7 @@ auto ShapeFactory::createArcFrom3Point(const Vec2d &startPoint,
     return createArc(center, radius, angle1, angle2, reversed);
 }
 
-auto ShapeFactory::createArcFrom2PBulgs(const Vec2d &startPoint,
+auto ShapeFactory::createArcFrom2PBulge(const Vec2d &startPoint,
                                         const Vec2d &endPoint,
                                         double bulge) const
     -> std::unique_ptr<Arc>

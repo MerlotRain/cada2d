@@ -3,6 +3,7 @@ test_executable = executable(
     'shape/arcTest.cpp',
     include_directories: inc_dirs,
     link_with: [cada2d_lib],
+    dependencies: [gtest_dep],
 )
 
 test(

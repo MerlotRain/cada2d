@@ -48,9 +48,30 @@ extern std::vector<std::unique_ptr<shape::Line>>
 calculate_common_tangent_between_two_circles(const shape::Circle *c1,
                                              const shape::Circle *c2);
 
-extern std::vector<shape::Line>
-calculate_orthogonal_tangent_between_shape_and_line(shape::Line *line,
-                                                    shape::Shape *shape);
+extern std::vector<std::unique_ptr<shape::Line>>
+calculate_orthogonal_tangent_between_shape_and_line(const shape::Line *line,
+                                                    const shape::Shape *shape);
+
+extern std::vector<std::unique_ptr<shape::Shape>>
+auto_split(const shape::Vec2d &pos, const shape::Shape *shape,
+           const std::vector<shape::Shape *> &intersecting_shapes, bool extend);
+
+extern bool break_out_gap(const shape::Vec2d &pos, const shape::Shape *shape,
+                          std::vector<shape::Shape *> &additional);
+
+extern std::vector<std::unique_ptr<shape::Shape>>
+bevel_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
+             const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
+             double distance1, double distance2);
+
+extern std::vector<std::unique_ptr<shape::Shape>>
+round_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
+             const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
+             double radius, const shape::Vec2d &pos);
+
+extern std::unique_ptr<shape::Shape> lengthen(const shape::Shape *shape,
+                                              const shape::Vec2d &position,
+                                              bool trim_start, double amount);
 
 extern std::vector<std::unique_ptr<shape::Circle>>
 apollonius_solutions(const shape::Shape *shape1, const shape::Shape *shape2,

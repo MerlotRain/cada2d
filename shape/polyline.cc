@@ -37,35 +37,6 @@ Polyline::Polyline(const std::vector<Vec2d> &vertices, bool closed)
     setVertices(vertices);
 }
 
-// Polyline::Polyline(const std::vector<std::unique_ptr<Shape>> &segments)
-//     : mClosed(false)
-// {
-//     std::vector<std::unique_ptr<Shape>>::const_iterator it;
-//     for (it = segments.begin(); it != segments.end(); ++it) {
-//         std::unique_ptr<Shape> segment = *it;
-
-//         if (segment->isDirected()) {
-//             if (mVertices.size() == 0) {
-//                 appendVertex(segment->getStartPoint(), 0.0);
-//             }
-//             appendVertex(segment->getEndPoint(), 0.0);
-//         }
-
-//         std::unique_ptr<Arc> arc = std::dynamic_pointer_cast<Arc>(segment);
-//         if (arc) {
-//             if (mBulges.size() > 1) {
-//                 mBulges[mBulges.size() - 2] = arc->getBulge();
-//             }
-//         }
-//     }
-
-//     assert(mVertices.size() == mBulges.size());
-//     assert(mVertices.size() == mStartWidths.size());
-//     assert(mVertices.size() == mEndWidths.size());
-
-//     autoClose();
-// }
-
 bool Polyline::isValid() const
 {
     return true;
@@ -801,7 +772,7 @@ std::vector<double> Polyline::getEndWidths() const
 
 std::vector<double> &Polyline::getEndWidths()
 {
-     return mEndWidths;
+    return mEndWidths;
 }
 
 void Polyline::setClosed(bool on)
@@ -1476,18 +1447,6 @@ int Polyline::getClosestVertex(const Vec2d &point) const
     return point.getClosestIndex(getVertices());
 }
 
-bool Polyline::simplify(double tolerance)
-{
-    return false;
-}
-
-std::vector<Vec2d> Polyline::verifyTangency(double toleranceMin,
-                                            double toleranceMax)
-{
-
-    return std::vector<Vec2d>();
-}
-
 std::unique_ptr<Polyline>
 Polyline::modifyPolylineCorner(const Shape *trimmedShape1, NS::Ending ending1,
                                int segmentIndex1, const Shape *trimmedShape2,
@@ -1660,64 +1619,6 @@ Vec2d Polyline::getCentroid() const
     double centroidY = ySum / (6.0 * signedArea);
 
     return Vec2d(centroidX, centroidY);
-}
-
-std::vector<Polyline> Polyline::splitAtDiscontinuities(double tolerance) const
-{
-    return std::vector<Polyline>();
-}
-
-std::vector<Polyline> Polyline::splitAtSegmentTypeChange() const
-{
-    return std::vector<Polyline>();
-}
-
-double Polyline::getBaseAngle() const
-{
-    return 0.0;
-}
-
-double Polyline::getWidth() const
-{
-    return 0.0;
-}
-
-bool Polyline::setWidth(double v)
-{
-    return false;
-}
-
-double Polyline::getHeight() const
-{
-    return 0.0;
-}
-
-bool Polyline::setHeight(double v)
-{
-    return false;
-}
-
-std::vector<Polyline> Polyline::morph(const Polyline *target, int steps,
-                                      NS::Easing easing, bool zLinear,
-                                      double customFactor) const
-{
-    return std::vector<Polyline>();
-}
-
-std::unique_ptr<Polyline> Polyline::roundAllCorners(double radius) const
-{
-    return std::unique_ptr<Polyline>();
-}
-
-std::unique_ptr<Polyline> Polyline::getPolygon(double segmentLength) const
-{
-    return std::unique_ptr<Polyline>();
-}
-
-std::unique_ptr<Polyline>
-Polyline::getPolygonHull(double angle, double tolerance, bool inner) const
-{
-    return std::unique_ptr<Polyline>();
 }
 
 } // namespace shape

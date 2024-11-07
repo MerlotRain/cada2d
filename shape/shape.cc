@@ -72,7 +72,7 @@ double Shape::getMaxDistanceTo(const std::vector<Vec2d> &points, bool limited,
                                double strictRange) const
 {
     double ret = 0.0;
-    for (int i = 0; i < points.size(); i++) {
+    for (size_t i = 0; i < points.size(); i++) {
         double d = getDistanceTo(points[i], limited, strictRange);
         ret = std::max(ret, d);
     }
@@ -93,7 +93,7 @@ std::vector<Vec2d> Shape::filterOnShape(const std::vector<Vec2d> &pointList,
                                         bool limited, double tolerance) const
 {
     std::vector<Vec2d> ret;
-    for (int i = 0; i < pointList.size(); i++) {
+    for (size_t i = 0; i < pointList.size(); i++) {
         if (isOnShape(pointList[i], limited, tolerance)) {
             ret.emplace_back(pointList[i]);
         }
@@ -227,7 +227,8 @@ bool Shape::trimStartPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
 
 bool Shape::trimStartPoint(double trimDist)
 {
-    return cada_trimEndPoint(this, trimDist);
+    Vec2d p = getPointWithDistanceToStart(trimDist);
+    return trimStartPoint(p);
 }
 
 bool Shape::trimEndPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
@@ -238,7 +239,8 @@ bool Shape::trimEndPoint(const Vec2d &trimPoint, const Vec2d &clickPoint,
 
 bool Shape::trimEndPoint(double trimDist)
 {
-    return cada_trimEndPoint(this, trimDist);
+    Vec2d p = getPointWithDistanceToStart(trimDist);
+    return trimEndPoint(p);
 }
 
 NS::Ending Shape::getTrimEnd(const Vec2d &trimPoint, const Vec2d &clickPoint)
@@ -291,9 +293,9 @@ bool Shape::flipVertical()
     return mirror(Vec2d(0, 0), Vec2d(1, 0));
 }
 
-bool Shape::stretch(const std::vector<Vec2d> &vertex, const Vec2d &offset)
+bool Shape::stretch(std::vector<Vec2d> &&vertex, const Vec2d &offset)
 {
-    return cada_stretch(this, vertex, offset);
+    return cada_stretch(this, std::move(vertex), offset);
 }
 
 std::vector<std::unique_ptr<Shape>>

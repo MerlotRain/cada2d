@@ -27,15 +27,6 @@
 namespace cada {
 namespace shape {
 class Shape;
-class Point;
-class Line;
-class Arc;
-class Circle;
-class Ellipse;
-class Polyline;
-class XLine;
-class Ray;
-class BSpline;
 struct Vec2d;
 struct BBox;
 } // namespace shape
@@ -61,9 +52,7 @@ extern double cada_getDirection2(const shape::Shape *shape);
 extern cada::NS::Side cada_getSideOfPoint(const shape::Shape *shape, const shape::Vec2d &point);
 extern bool cada_reverse(shape::Shape *shape);
 extern bool cada_trimStartPoint(shape::Shape *shape, const shape::Vec2d &trimPoint, const shape::Vec2d &clickPoint, bool extend);
-extern bool cada_trimStartPoint(shape::Shape *shape, double trimDist);
 extern bool cada_trimEndPoint(shape::Shape *shape, const shape::Vec2d &trimPoint, const shape::Vec2d &clickPoint, bool extend);
-extern bool cada_trimEndPoint(shape::Shape *shape, double trimDist);
 extern NS::Ending cada_getTrimEnd(shape::Shape *shape, const shape::Vec2d &trimPoint, const shape::Vec2d &clickPoint);
 extern double cada_getDistanceFromStart(const shape::Shape *shape, const shape::Vec2d &p);
 extern std::vector<double> cada_getDistancesFromStart(const shape::Shape *shape, const shape::Vec2d &p);
@@ -71,7 +60,7 @@ extern bool cada_move(shape::Shape *shape, const shape::Vec2d &offset);
 extern bool cada_rotate(shape::Shape *shape, double rotation, const shape::Vec2d &center);
 extern bool cada_scale(shape::Shape *shape, const shape::Vec2d &scaleFactors, const shape::Vec2d &center);
 extern bool cada_mirror(shape::Shape *shape, const shape::Vec2d &v1, const shape::Vec2d &v2);
-extern bool cada_stretch(shape::Shape *shape, const std::vector<shape::Vec2d> &vertex, const shape::Vec2d &offset);
+extern bool cada_stretch(shape::Shape *shape, std::vector<shape::Vec2d> &&vertex, const shape::Vec2d &offset);
 extern std::vector<std::unique_ptr<shape::Shape>> cada_getOffsetShapes(const shape::Shape *shape, double distance, int number, NS::Side side, const shape::Vec2d &position);
 extern std::vector<std::unique_ptr<shape::Shape>> cada_splitAt(const shape::Shape *shape, const std::vector<shape::Vec2d> &points);
 
