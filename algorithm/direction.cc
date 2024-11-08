@@ -28,41 +28,33 @@ using namespace cada::shape;
 namespace cada {
 namespace algorithm {
 
-static double cada_line_getDirection(const shape::Line* l, bool first)
+static double cada_line_getDirection(const shape::Line *l, bool first)
 {
     assert(l);
-    if(first)
-    {
+    if (first) {
         return l->getStartPoint().getAngleTo(l->getEndPoint());
     }
-    else
-    {
+    else {
         return l->getEndPoint().getAngleTo(l->getStartPoint());
     }
 }
 
-static double cada_arc_getDirection(const shape::Arc* a, bool first)
+static double cada_arc_getDirection(const shape::Arc *a, bool first)
 {
     assert(a);
-    if(first)
-    {
-        if(a->isReversed())
-        {
+    if (first) {
+        if (a->isReversed()) {
             return Math::getNormalizedAngle(a->getStartAngle() - M_PI_2);
         }
-        else
-        {
+        else {
             return Math::getNormalizedAngle(a->getStartAngle() + M_PI_2);
         }
     }
-    else
-    {
-        if(a->isReversed())
-        {
+    else {
+        if (a->isReversed()) {
             return Math::getNormalizedAngle(a->getEndAngle() + M_PI_2);
         }
-        else
-        {
+        else {
             return Math::getNormalizedAngle(a->getEndAngle() - M_PI_2);
         }
     }
@@ -71,54 +63,44 @@ static double cada_arc_getDirection(const shape::Arc* a, bool first)
 double cada_getDirection1(const shape::Shape *shape)
 {
     assert(shape);
-    switch (shape->getShapeType())
-    {
-    case NS::Line:
-    {
-        auto l = dynamic_cast<const shape::Line*>(shape);
+    switch (shape->getShapeType()) {
+    case NS::Line: {
+        auto l = dynamic_cast<const shape::Line *>(shape);
         return cada_line_getDirection(l, true);
     }
-    case NS::Arc:
-    {
-        auto a = dynamic_cast<const shape::Arc*>(shape);
+    case NS::Arc: {
+        auto a = dynamic_cast<const shape::Arc *>(shape);
         return cada_arc_getDirection(a, true);
     }
-    case NS::Ellipse:
-    {
-        auto e = dynamic_cast<const shape::Ellipse*>(shape);
+    case NS::Ellipse: {
+        auto e = dynamic_cast<const shape::Ellipse *>(shape);
         return e->getAngleAtPoint(e->getStartPoint());
     }
     case NS::XLine:
-    case NS::Ray:
-    {
-        auto xl = dynamic_cast<const shape::XLine*>(shape);
+    case NS::Ray: {
+        auto xl = dynamic_cast<const shape::XLine *>(shape);
         return xl->getDirectionVector().getAngle();
     }
-    case NS::Polyline:
-    {
-        auto poly = dynamic_cast<const shape::Polyline*>(shape);
-        if(poly->countVertices() == 0)
-        {
+    case NS::Polyline: {
+        auto poly = dynamic_cast<const shape::Polyline *>(shape);
+        if (poly->countVertices() == 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
         auto seg = poly->getSegmentAt(0);
-        if(!seg)
-        {
+        if (!seg) {
             return std::numeric_limits<double>::quiet_NaN();
         }
-        else
-        {
-            if(seg->getShapeType() == NS::Line)
-            {
-                return cada_line_getDirection(dynamic_cast<Line*>(seg.release()), true);
+        else {
+            if (seg->getShapeType() == NS::Line) {
+                return cada_line_getDirection(
+                    dynamic_cast<Line *>(seg.release()), true);
             }
-            else if(seg->getShapeType() == NS::Arc)
-            {
-                return cada_arc_getDirection(dynamic_cast<Arc*>(seg.release()), true);
+            else if (seg->getShapeType() == NS::Arc) {
+                return cada_arc_getDirection(dynamic_cast<Arc *>(seg.release()),
+                                             true);
             }
-            else
-            {
+            else {
                 return std::numeric_limits<double>::quiet_NaN();
             }
         }
@@ -134,35 +116,29 @@ double cada_getDirection1(const shape::Shape *shape)
 double cada_getDirection2(const shape::Shape *shape)
 {
     assert(shape);
-    switch (shape->getShapeType())
-    {
-    case NS::Line:
-    {
-        auto l = dynamic_cast<const shape::Line*>(shape);
+    switch (shape->getShapeType()) {
+    case NS::Line: {
+        auto l = dynamic_cast<const shape::Line *>(shape);
         return cada_line_getDirection(l, false);
     }
-    case NS::Arc:
-    {
-        auto a = dynamic_cast<const shape::Arc*>(shape);
+    case NS::Arc: {
+        auto a = dynamic_cast<const shape::Arc *>(shape);
         return cada_arc_getDirection(a, false);
     }
-    case NS::Ellipse:
-    {
-        auto e = dynamic_cast<const shape::Ellipse*>(shape);
-        return Math::getNormalizedAngle(e->getAngleAtPoint(e->getEndPoint()) + M_PI);
+    case NS::Ellipse: {
+        auto e = dynamic_cast<const shape::Ellipse *>(shape);
+        return Math::getNormalizedAngle(e->getAngleAtPoint(e->getEndPoint()) +
+                                        M_PI);
     }
     case NS::XLine:
-    case NS::Ray:
-    {
-        auto xl = dynamic_cast<const shape::XLine*>(shape);
+    case NS::Ray: {
+        auto xl = dynamic_cast<const shape::XLine *>(shape);
         Vec2d second_point = xl->getBasePoint() + xl->getDirectionVector();
         return second_point.getAngleTo(xl->getBasePoint());
     }
-    case NS::Polyline:
-    {
-        auto poly = dynamic_cast<const shape::Polyline*>(shape);
-        if(poly->countVertices() == 0)
-        {
+    case NS::Polyline: {
+        auto poly = dynamic_cast<const shape::Polyline *>(shape);
+        if (poly->countVertices() == 0) {
             return std::numeric_limits<double>::quiet_NaN();
         }
 
@@ -172,22 +148,19 @@ double cada_getDirection2(const shape::Shape *shape)
         }
 
         auto seg = poly->getSegmentAt(i);
-        if(!seg)
-        {
+        if (!seg) {
             return std::numeric_limits<double>::quiet_NaN();
         }
-        else
-        {
-            if(seg->getShapeType() == NS::Line)
-            {
-                return cada_line_getDirection(dynamic_cast<Line*>(seg.release()), false);
+        else {
+            if (seg->getShapeType() == NS::Line) {
+                return cada_line_getDirection(
+                    dynamic_cast<Line *>(seg.release()), false);
             }
-            else if(seg->getShapeType() == NS::Arc)
-            {
-                return cada_arc_getDirection(dynamic_cast<Arc*>(seg.release()), false);
+            else if (seg->getShapeType() == NS::Arc) {
+                return cada_arc_getDirection(dynamic_cast<Arc *>(seg.release()),
+                                             false);
             }
-            else
-            {
+            else {
                 return std::numeric_limits<double>::quiet_NaN();
             }
         }

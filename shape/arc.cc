@@ -76,7 +76,7 @@ bool Arc::isFullCircle(double tolerance) const
 
 bool Arc::isAngleWithinArc(double a) const
 {
-    return false;
+    return Math::isAngleBetween(a, mStartAngle, mEndAngle, mReversed);
 }
 
 double Arc::getBulge() const

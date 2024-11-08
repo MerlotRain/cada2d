@@ -67,7 +67,7 @@ bevel_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
 extern std::vector<std::unique_ptr<shape::Shape>>
 round_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
              const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
-             double radius, const shape::Vec2d &pos);
+             bool same_polyline, double radius, const shape::Vec2d &pos);
 
 extern std::unique_ptr<shape::Shape> lengthen(const shape::Shape *shape,
                                               const shape::Vec2d &position,

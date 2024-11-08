@@ -54,13 +54,35 @@ NS::ShapeType Ellipse::getShapeType() const
 
 Ellipse *Ellipse::cloneImpl() const
 {
-    return nullptr;
+    Ellipse *pclone = new Ellipse();
+    pclone->mCenter = mCenter;
+    pclone->mMajorPoint = mMajorPoint;
+    pclone->mRatio = mRatio;
+    pclone->mStartParam = mStartParam;
+    pclone->mEndParam = mEndParam;
+    pclone->mReversed = mReversed;
+    return pclone;
 }
 
 std::vector<Vec2d> Ellipse::getFoci() const
 {
     Vec2d vp(getMajorPoint() * sqrt(1.0 - getRatio() * getRatio()));
     return std::vector<Vec2d>{getCenter() + vp, getCenter() - vp};
+}
+
+bool Ellipse::switchMajorMinor()
+{
+    if (fabs(mRatio) < NS::PointTolerance) {
+        return false;
+    }
+    Vec2d vp_start = getStartPoint();
+    Vec2d vp_end = getStartPoint();
+    Vec2d vp = getMajorPoint();
+    setMajorPoint(Vec2d(-mRatio * vp.y, mRatio * vp.x));
+    setRatio(1.0 / mRatio);
+    setStartParam(getParamTo(vp_start));
+    setEndParam(getParamTo(vp_end));
+    return true;
 }
 
 double Ellipse::getParamTo(const Vec2d &pos) const
@@ -127,21 +149,6 @@ void Ellipse::setMinorPoint(const Vec2d &p)
     double angle = Math::getNormalizedAngle(p.getAngle() - M_PI / 2.0);
     mMajorPoint.setPolar(getMajorRadius(), angle);
     setRatio(p.getMagnitude() / getMajorRadius());
-}
-
-bool Ellipse::switchMajorMinor()
-{
-    if (fabs(mRatio) < NS::PointTolerance) {
-        return false;
-    }
-    Vec2d vp_start = getStartPoint();
-    Vec2d vp_end = getStartPoint();
-    Vec2d vp = getMajorPoint();
-    setMajorPoint(Vec2d(-mRatio * vp.y, mRatio * vp.x));
-    setRatio(1.0 / mRatio);
-    setStartParam(getParamTo(vp_start));
-    setEndParam(getParamTo(vp_end));
-    return true;
 }
 
 double Ellipse::getRatio() const
@@ -292,12 +299,18 @@ Vec2d Ellipse::getEndPoint() const
 
 bool Ellipse::isAngleWithinArc(double a) const
 {
-    return false;
+    if (isFullEllipse()) {
+        return true;
+    }
+    return Math::isAngleBetween(a, getStartAngle(), getEndAngle(), mReversed);
 }
 
 bool Ellipse::isParamWithinArc(double a) const
 {
-    return false;
+    if (isFullEllipse()) {
+        return true;
+    }
+    return Math::isAngleBetween(a, getStartParam(), getEndParam(), mReversed);
 }
 
 double Ellipse::getMajorRadius() const
@@ -363,9 +376,7 @@ std::vector<Vec2d> Ellipse::getEndPoints() const
 
 std::vector<Vec2d> Ellipse::getMiddlePoints() const
 {
-    std::vector<Vec2d> ret;
-    // ret.push_back(getMiddlePoint());
-    return ret;
+    return std::vector<Vec2d>();
 }
 
 std::vector<Vec2d> Ellipse::getCenterPoints() const
@@ -557,6 +568,62 @@ Vec2d Ellipse::getTangentPoint(const Line *line) const
 std::unique_ptr<Polyline> Ellipse::approximateWithArcs(int segments) const
 {
     return std::unique_ptr<Polyline>();
+}
+
+void Ellipse::moveStartPoint(const Vec2d &pos, bool changeAngleOnly)
+{
+    if (changeAngleOnly) {
+        mStartParam = getParamTo(pos);
+    }
+    else {
+        Vec2d ep = getEndPoint();
+        double distOri = ep.getDistanceTo(getStartPoint());
+        double angleOri = ep.getAngleTo(getStartPoint());
+        if (distOri < NS::PointTolerance) {
+            return;
+        }
+
+        double distNew = ep.getDistanceTo(pos);
+        double angleNew = ep.getAngleTo(pos);
+        double factor = distNew / distOri;
+        if (factor < NS::PointTolerance) {
+            return;
+        }
+        double angleDelta = angleNew - angleOri;
+
+        mCenter.scale(factor, ep);
+        mCenter.rotate(angleDelta, ep);
+        mMajorPoint.scale(factor);
+        mMajorPoint.rotate(angleDelta);
+    }
+}
+
+void Ellipse::moveEndPoint(const Vec2d &pos, bool changeAngleOnly)
+{
+    if (changeAngleOnly) {
+        mEndParam = getParamTo(pos);
+    }
+    else {
+        Vec2d sp = getStartPoint();
+        double distOri = sp.getDistanceTo(getEndPoint());
+        double angleOri = sp.getAngleTo(getEndPoint());
+        if (distOri < NS::PointTolerance) {
+            return;
+        }
+
+        double distNew = sp.getDistanceTo(pos);
+        double angleNew = sp.getAngleTo(pos);
+        double factor = distNew / distOri;
+        if (factor < NS::PointTolerance) {
+            return;
+        }
+        double angleDelta = angleNew - angleOri;
+
+        mCenter.scale(factor, sp);
+        mCenter.rotate(angleDelta, sp);
+        mMajorPoint.scale(factor);
+        mMajorPoint.rotate(angleDelta);
+    }
 }
 
 } // namespace shape

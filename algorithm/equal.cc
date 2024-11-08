@@ -42,7 +42,8 @@ bool cada_equalsLine(const shape::Line *line1, const shape::Line *line2,
 {
     assert(line1);
     assert(line2);
-    return line1->getStartPoint().equalsFuzzy(line2->getStartPoint(), tolerance) &&
+    return line1->getStartPoint().equalsFuzzy(line2->getStartPoint(),
+                                              tolerance) &&
            line1->getEndPoint().equalsFuzzy(line2->getEndPoint(), tolerance);
 }
 
@@ -52,9 +53,12 @@ bool cada_equalsArc(const shape::Arc *arc1, const shape::Arc *arc2,
     assert(arc1);
     assert(arc2);
     return arc1->getCenter().equalsFuzzy(arc2->getCenter(), tolerance) &&
-           Math::fuzzyCompare(arc1->getRadius(), arc2->getRadius(), tolerance) &&
-           Math::fuzzyCompare(arc1->getStartAngle(), arc2->getStartAngle(), tolerance) &&
-           Math::fuzzyCompare(arc1->getEndAngle(), arc2->getEndAngle(), tolerance) &&
+           Math::fuzzyCompare(arc1->getRadius(), arc2->getRadius(),
+                              tolerance) &&
+           Math::fuzzyCompare(arc1->getStartAngle(), arc2->getStartAngle(),
+                              tolerance) &&
+           Math::fuzzyCompare(arc1->getEndAngle(), arc2->getEndAngle(),
+                              tolerance) &&
            (arc1->isReversed() == arc2->isReversed());
 }
 
@@ -64,7 +68,8 @@ bool cada_equalsCircle(const shape::Circle *circle1,
     assert(circle1);
     assert(circle2);
     return circle1->getCenter().equalsFuzzy(circle2->getCenter(), tolerance) &&
-           Math::fuzzyCompare(circle1->getRadius(), circle2->getRadius(), tolerance);
+           Math::fuzzyCompare(circle1->getRadius(), circle2->getRadius(),
+                              tolerance);
 }
 
 bool cada_equalsEllipse(const shape::Ellipse *ellipse1,
@@ -72,12 +77,14 @@ bool cada_equalsEllipse(const shape::Ellipse *ellipse1,
 {
     assert(ellipse1);
     assert(ellipse2);
-    return ellipse1->getCenter().equalsFuzzy(ellipse2->getCenter(), tolerance) &&
-           ellipse1->getMajorPoint().equalsFuzzy(ellipse2->getMajorPoint(), tolerance) &&
+    return ellipse1->getCenter().equalsFuzzy(ellipse2->getCenter(),
+                                             tolerance) &&
+           ellipse1->getMajorPoint().equalsFuzzy(ellipse2->getMajorPoint(),
+                                                 tolerance) &&
            Math::fuzzyCompare(ellipse1->getStartParam(),
                               ellipse2->getStartParam(), tolerance) &&
-           Math::fuzzyCompare(ellipse1->getEndParam(),
-                              ellipse2->getEndParam(), tolerance) &&
+           Math::fuzzyCompare(ellipse1->getEndParam(), ellipse2->getEndParam(),
+                              tolerance) &&
            (ellipse1->isReversed() == ellipse2->isReversed());
 }
 
@@ -86,7 +93,8 @@ bool cada_equalsXLine(const shape::XLine *xline1, const shape::XLine *xline2,
 {
     assert(xline1);
     assert(xline2);
-    return xline1->getBasePoint().equalsFuzzy(xline2->getBasePoint(), tolerance) &&
+    return xline1->getBasePoint().equalsFuzzy(xline2->getBasePoint(),
+                                              tolerance) &&
            xline1->getDirectionVector().equalsFuzzy(
                xline2->getDirectionVector(), tolerance);
 }
@@ -97,7 +105,8 @@ bool cada_equalsRay(const shape::Ray *ray1, const shape::Ray *ray2,
     assert(ray1);
     assert(ray2);
     return ray1->getBasePoint().equalsFuzzy(ray2->getBasePoint(), tolerance) &&
-           ray1->getDirectionVector().equalsFuzzy(ray2->getDirectionVector(), tolerance);
+           ray1->getDirectionVector().equalsFuzzy(ray2->getDirectionVector(),
+                                                  tolerance);
 }
 
 bool cada_equalsPolyline(const shape::Polyline *polyline1,
@@ -138,7 +147,8 @@ bool cada_equalsPolyline(const shape::Polyline *polyline1,
     }
 
     for (size_t i = 0; i < poly_start_width1.size(); ++i) {
-        if (!Math::fuzzyCompare(poly_start_width1[i], poly_start_width2[i], tolerance)) {
+        if (!Math::fuzzyCompare(poly_start_width1[i], poly_start_width2[i],
+                                tolerance)) {
             return false;
         }
     }
@@ -150,7 +160,8 @@ bool cada_equalsPolyline(const shape::Polyline *polyline1,
     }
 
     for (size_t i = 0; i < poly_end_width1.size(); ++i) {
-        if (!Math::fuzzyCompare(poly_end_width1[i], poly_end_width2[i], tolerance)) {
+        if (!Math::fuzzyCompare(poly_end_width1[i], poly_end_width2[i],
+                                tolerance)) {
             return false;
         }
     }

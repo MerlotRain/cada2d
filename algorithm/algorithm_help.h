@@ -20,8 +20,8 @@
  * IN THE SOFTWARE.
  */
 
- #ifndef CADA_ALGORITHM_HELP_H
- #define CADA_ALGORITHM_HELP_H
+#ifndef CADA_ALGORITHM_HELP_H
+#define CADA_ALGORITHM_HELP_H
 
 #include <cada_shape.h>
 #include <assert.h>
@@ -35,37 +35,37 @@ inline bool isPointShape(const shape::Shape *shape)
     return shape->getShapeType() == NS::Point;
 }
 
-inline bool isLineShape(const shape::Shape* shape)
+inline bool isLineShape(const shape::Shape *shape)
 {
     assert(shape);
     return shape->getShapeType() == NS::Line;
 }
 
-inline bool isArcShape(const shape::Shape* shape)
+inline bool isArcShape(const shape::Shape *shape)
 {
     assert(shape);
     return shape->getShapeType() == NS::Arc;
 }
 
-inline bool isCircleShape(const shape::Shape* shape)
+inline bool isCircleShape(const shape::Shape *shape)
 {
     assert(shape);
     return shape->getShapeType() == NS::Circle;
 }
 
-inline bool isEllipseShape(const shape::Shape* shape)
+inline bool isEllipseShape(const shape::Shape *shape)
 {
     assert(shape);
     return shape->getShapeType() == NS::Ellipse;
 }
 
-inline bool isPolylineShape(const shape::Shape* shape)
+inline bool isPolylineShape(const shape::Shape *shape)
 {
     assert(shape);
     return shape->getShapeType() == NS::Polyline;
 }
 
-inline bool isSplineShape(const shape::Shape* shape)
+inline bool isSplineShape(const shape::Shape *shape)
 {
     assert(shape);
     return shape->getShapeType() == NS::BSpline;
@@ -74,21 +74,21 @@ inline bool isSplineShape(const shape::Shape* shape)
 inline bool isFullEllipseShape(const shape::Shape *shape)
 {
     assert(shape);
-    return shape->getShapeType()==NS::Ellipse && dynamic_cast<const shape::Ellipse*>(shape)->isFullEllipse();
+    return shape->getShapeType() == NS::Ellipse &&
+           dynamic_cast<const shape::Ellipse *>(shape)->isFullEllipse();
 }
 
-inline bool isRayShape(const shape::Shape* shape)
+inline bool isRayShape(const shape::Shape *shape)
 {
     assert(shape);
     return shape->getShapeType() == NS::Ray;
 }
 
-inline bool isXLineShape(const shape::Shape* shape)
+inline bool isXLineShape(const shape::Shape *shape)
 {
     assert(shape);
     return shape->getShapeType() == NS::XLine;
 }
-
 
 inline shape::Vec2d centerOfACE(const shape::Shape *shape)
 {

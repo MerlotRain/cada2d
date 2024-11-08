@@ -117,7 +117,7 @@ bevel_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
 std::vector<std::unique_ptr<shape::Shape>>
 round_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
              const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
-             double radius, const shape::Vec2d &pos);
+             bool same_polyline, double radius, const shape::Vec2d &pos);
 
 std::unique_ptr<shape::Shape> lengthen(const shape::Shape *shape,
                                        const shape::Vec2d &position,
@@ -455,6 +455,35 @@ auto_split(const shape::Vec2d &pos, const shape::Shape *shape,
     auto tmp = cada_get_closest_intersection_point_distances(
         mutable_shape.release(), ips, pos, cutDistances);
     mutable_shape.reset(tmp.release());
+}
+
+bool break_out_gap(const shape::Vec2d &pos, const shape::Shape *shape,
+                   std::vector<shape::Shape *> &additional)
+{
+    return false;
+}
+
+std::vector<std::unique_ptr<shape::Shape>>
+bevel_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
+             const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
+             double distance1, double distance2)
+{
+    return std::vector<std::unique_ptr<shape::Shape>>();
+}
+
+std::vector<std::unique_ptr<shape::Shape>>
+round_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
+             const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
+             bool same_polyline, double radius, const shape::Vec2d &pos)
+{
+    return std::vector<std::unique_ptr<shape::Shape>>();
+}
+
+std::unique_ptr<shape::Shape> lengthen(const shape::Shape *shape,
+                                       const shape::Vec2d &position,
+                                       bool trim_start, double amount)
+{
+    return nullptr;
 }
 
 /* ------------------------- inner static functions ------------------------- */

@@ -673,7 +673,6 @@ public:
     bool isCircular() const;
 
     bool contains(const Vec2d &p) const;
-
     double getParamTo(const Vec2d &pos) const;
     double getRadiusAt(double param) const;
     void correctMajorMinor();
@@ -689,6 +688,8 @@ public:
     std::vector<std::unique_ptr<Line>> getTangents(const Vec2d &point) const;
     Vec2d getTangentPoint(const Line *line) const;
     std::unique_ptr<Polyline> approximateWithArcs(int segments) const;
+    void moveStartPoint(const Vec2d &pos, bool changeAngleOnly = false);
+    void moveEndPoint(const Vec2d &pos, bool changeAngleOnly = false);
 
 protected:
     Ellipse();
@@ -878,72 +879,10 @@ protected:
     void updateBoundingBox() const;
 };
 
-class RegularPolygon {
-    Vec2d mCenter;
-    Vec2d mFirstVertex;
-    unsigned int mNumberSides;
-    double mRadius;
-
-public:
-    RegularPolygon();
-    RegularPolygon(const Vec2d &center, double radius, double azimuth,
-                   unsigned int numberSides, NS::RegularPolygonOption option);
-    RegularPolygon(const Vec2d &center, const Vec2d &pt1,
-                   unsigned int numberSides, NS::RegularPolygonOption option);
-    RegularPolygon(const Vec2d &pt1, const Vec2d &pt2,
-                   unsigned int numberSides);
-
-    Vec2d center() const;
-    double radius() const;
-    Vec2d firstVertex() const;
-    double apothem() const;
-    unsigned int numberSides() const;
-    void setCenter(const Vec2d &center);
-    void setRadius(double radius);
-    void setFirstVertex(const Vec2d &firstVertex);
-    void setNumberSides(unsigned int numberSides);
-
-    std::vector<Vec2d> points() const;
-    std::vector<std::unique_ptr<Line>> toLines() const;
-    std::unique_ptr<Polyline> toPolyline() const;
-    std::unique_ptr<Circle> inscribedCircle() const;
-    std::unique_ptr<Circle> circumscribedCircle() const;
-
-    double interiorAngle() const;
-    double centralAngle() const;
-    double area() const;
-    double perimeter() const;
-    double length() const;
-
-private:
-    double apothemToRadius(double apothm, unsigned int numberSides) const;
-    double interiorAngle(unsigned int nbSides) const;
-    double centralAngle(unsigned int nbSides) const;
-};
-
-class Triangle {
-    Vec2d mVertex[3];
-
-public:
-    Triangle();
-    Triangle(const Vec2d &p1, const Vec2d &p2, const Vec2d &p3);
-
-    Vec2d vertexAt(int index) const;
-    std::vector<double> lengths() const;
-    std::vector<double> angles() const;
-    bool isDegenerate() const;
-    bool isIsocele(double lengthTolerance = 0.0001) const;
-    bool isEquilateral(double lengthTolerance = 0.0001) const;
-    bool isRight(double lengthTolerance = 0.0001) const;
-    bool isScalene(double lengthTolerance = 0.0001) const;
-
-    std::unique_ptr<Polyline> toPolyline() const;
-    std::vector<std::unique_ptr<Polyline>> toLines() const;
-};
-
 class ShapeFactory {
     friend class Shape;
 
+protected:
     ShapeFactory();
 
 public:
@@ -1028,6 +967,11 @@ public:
     auto createBSpline() const -> std::unique_ptr<BSpline>;
     auto createBSpline(std::vector<Vec2d> &&controlPoints, int degree) const
         -> std::unique_ptr<BSpline>;
+
+    auto createPolygon(const Vec2d &position1, const Vec2d &position2,
+                       NS::PolygonOption option, bool createPolyline,
+                       bool useRadius, double radius, int numberOfCorners)
+        -> std::vector<std::unique_ptr<Shape>>;
 };
 
 } // namespace shape

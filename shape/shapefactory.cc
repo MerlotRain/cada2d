@@ -21,6 +21,7 @@
  */
 
 #include "cada_shape.h"
+#include "cada_algorithm.h"
 #include <cmath>
 #include <mutex>
 #include <Eigen/Dense>
@@ -35,6 +36,8 @@ bool threePointCollinear(const Vec2d &A, const Vec2d &B, const Vec2d &C)
 }
 
 ShapeFactory *g_shapefactory = nullptr;
+
+ShapeFactory::ShapeFactory() = default;
 
 auto ShapeFactory::instance() -> const ShapeFactory *
 {
@@ -511,6 +514,156 @@ auto ShapeFactory::createBSpline(std::vector<Vec2d> &&controlPoints,
 {
     return std::unique_ptr<BSpline>(
         new BSpline(std::move(controlPoints), degree));
+}
+
+auto ShapeFactory::createPolygon(const Vec2d &position1, const Vec2d &position2,
+                                 NS::PolygonOption option, bool create_polyline,
+                                 bool useRadius, double radius,
+                                 int numberOfCorners)
+    -> std::vector<std::unique_ptr<Shape>>
+{
+    assert(numberOfCorners > 2);
+
+    std::vector<Vec2d> corners;
+    switch (option) {
+    case NS::WithCenterCorner: {
+        Vec2d center = position1;
+        Vec2d corner = position2;
+        for (size_t n = 1; n <= numberOfCorners; ++n) {
+            Vec2d c = corner;
+            c.rotate((M_PI * 2.0) / numberOfCorners * n, center);
+            corners.push_back(c);
+        }
+        goto inner_create_shapes;
+    }
+    case NS::With2PointsOfSide: {
+        Vec2d corner1 = position1;
+        Vec2d corner2 = position2;
+
+        Vec2d c = corner1;
+        double len = corner1.getDistanceTo(corner2);
+        double ang1 = corner1.getAngleTo(corner2);
+        double ang = ang1;
+
+        for (size_t n = 1; n <= numberOfCorners; ++n) {
+            Vec2d edge;
+            edge.setPolar(len, ang);
+
+            corners.push_back(Vec2d(c.x, c.y, c.valid));
+            c = c + edge;
+
+            ang = ang1 + (2 * M_PI) / numberOfCorners * n;
+        }
+        goto inner_create_shapes;
+    }
+    case NS::WithCenterSide: {
+        Vec2d center = position1;
+        Vec2d middleOfSide = position2;
+
+        double angle = M_PI / numberOfCorners;
+        double dist = center.getDistanceTo(middleOfSide);
+        double opp = std::tan(angle) * dist;
+        double hyp = std::sqrt((dist * dist) + (opp * opp));
+        Vec2d v =
+            Vec2d::createPolar(hyp, center.getAngleTo(middleOfSide) + angle);
+        Vec2d corner = center + v;
+
+        for (size_t n = 1; n < numberOfCorners; ++n) {
+            Vec2d c = corner;
+            c.rotate((M_PI * 2.0) / numberOfCorners * n, center);
+            corners.push_back(c);
+        }
+        goto inner_create_shapes;
+    }
+    case NS::WithSideSide: {
+        Vec2d corner1 = position1;
+        Vec2d corner2 = position2;
+
+        double angle = M_PI / numberOfCorners;
+        double dist = corner1.getDistanceTo(corner2) / 2.0;
+        double opp = std::tan(angle) * dist;
+        double hyp = std::sqrt((dist * dist) + (opp * opp));
+        Vec2d cen = Vec2d::createPolar(dist, corner1.getAngleTo(corner2));
+        Vec2d center = corner1 + cen;
+
+        Vec2d v = Vec2d::createPolar(hyp, center.getAngleTo(corner1) + angle);
+        Vec2d corner = center + v;
+
+        if (numberOfCorners % 2 == 1) {
+            double newdist = (dist / (dist + hyp)) * (dist * 2);
+            double newopp = std::tan(angle) * newdist;
+            double newhyp = std::sqrt((newdist * newdist) + (newopp * newopp));
+            Vec2d newcen =
+                Vec2d::createPolar(newdist, corner1.getAngleTo(corner2));
+            Vec2d newcenter = corner1 + newcen;
+
+            v = Vec2d::createPolar(newhyp,
+                                   newcenter.getAngleTo(corner1) + angle);
+            corner = newcenter + v;
+            center = newcenter;
+        }
+        for (size_t n = 1; n <= numberOfCorners; ++n) {
+            Vec2d c = corner;
+            c.rotate((M_PI * 2.0) / numberOfCorners * n, center);
+            corners.push_back(c);
+        }
+        goto inner_create_shapes;
+    }
+    default:
+        return std::vector<std::unique_ptr<Shape>>();
+        ;
+    }
+
+inner_create_shapes:
+    std::vector<std::unique_ptr<Shape>> shapes;
+    for (size_t i = 0; i < corners.size(); ++i) {
+        shapes.emplace_back(std::move(
+            createLine(corners.at(i), corners.at((i + 1) % corners.size()))));
+    }
+    if (useRadius && radius > 0) {
+        std::vector<std::unique_ptr<Shape>> newShapes;
+        Vec2d cursor = Vec2d::invalid;
+        for (size_t i = 0; i < shapes.size(); ++i) {
+            auto &&s1 = shapes.at(i);
+            Vec2d clickPos1 =
+                s1->getPointWithDistanceToEnd(s1->getLength() / 3);
+            auto &&s2 = shapes.at((i + 1) % shapes.size());
+            Vec2d clickPos2 =
+                s2->getPointWithDistanceToEnd(s2->getLength() / 3);
+            Vec2d pos = Vec2d::getAverage(clickPos1, clickPos2);
+            auto &&res =
+                algorithm::round_shapes(s1.release(), clickPos1, s2.release(),
+                                        clickPos2, true, false, radius, pos);
+            if (res.size() > 2) {
+                if (!cursor.isValid()) {
+                    newShapes.emplace_back(
+                        std::move(createLine(cursor, res[1]->getStartPoint())));
+                }
+                newShapes.emplace_back(std::move(res[1]->clone()));
+                cursor = res[1]->getEndPoint();
+            }
+        }
+        if (newShapes.size() > 0) {
+            auto unshift =
+                createLine(newShapes[newShapes.size() - 1]->getEndPoint(),
+                           newShapes[0]->getStartPoint());
+            newShapes.insert(newShapes.begin(), std::move(unshift));
+        }
+        shapes = std::move(newShapes);
+    }
+    if (create_polyline) {
+        auto pl = createPolyline();
+        for (auto &&s : shapes) {
+            pl->appendShape(s.release());
+        }
+        pl->autoClose();
+        std::vector<std::unique_ptr<Shape>> res;
+        res.emplace_back(std::move(pl));
+        return res;
+    }
+    else {
+        return shapes;
+    }
 }
 
 } // namespace shape

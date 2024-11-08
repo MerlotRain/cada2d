@@ -54,8 +54,7 @@ NS::Side cada_arc_sideOfPoint(const shape::Arc *a, const shape::Vec2d &point)
             return NS::LeftHand;
         }
     }
-    else 
-    {
+    else {
         if (a->getCenter().getDistanceTo(point) < a->getRadius()) {
             return NS::LeftHand;
         }
@@ -65,7 +64,8 @@ NS::Side cada_arc_sideOfPoint(const shape::Arc *a, const shape::Vec2d &point)
     }
 }
 
-NS::Side cada_ellipse_sideOfPoint(const shape::Ellipse *a, const shape::Vec2d &point)
+NS::Side cada_ellipse_sideOfPoint(const shape::Ellipse *a,
+                                  const shape::Vec2d &point)
 {
     assert(a);
     if (a->contains(point)) {
@@ -86,11 +86,12 @@ NS::Side cada_ellipse_sideOfPoint(const shape::Ellipse *a, const shape::Vec2d &p
     }
 }
 
-NS::Side cada_polyline_sideOfPoint(const shape::Polyline* poly, const shape::Vec2d &point)
+NS::Side cada_polyline_sideOfPoint(const shape::Polyline *poly,
+                                   const shape::Vec2d &point)
 {
     assert(poly);
     int i = poly->getClosestSegment(point);
-    if (i<0 || i>=poly->countSegments()) {
+    if (i < 0 || i >= poly->countSegments()) {
         return NS::NoSide;
     }
 
@@ -99,49 +100,43 @@ NS::Side cada_polyline_sideOfPoint(const shape::Polyline* poly, const shape::Vec
         return NS::NoSide;
     }
 
-    if(segment->getShapeType() == NS::Line)
-    {
-        return cada_line_sideOfPoint(dynamic_cast<shape::Line*>(segment.release()), point);
+    if (segment->getShapeType() == NS::Line) {
+        return cada_line_sideOfPoint(
+            dynamic_cast<shape::Line *>(segment.release()), point);
     }
-    else if(segment->getShapeType() ==NS::Arc)
-    {
-        return cada_arc_sideOfPoint(dynamic_cast<shape::Arc*>(segment.release()), point);
+    else if (segment->getShapeType() == NS::Arc) {
+        return cada_arc_sideOfPoint(
+            dynamic_cast<shape::Arc *>(segment.release()), point);
     }
-    else
-    {
+    else {
         return NS::NoSide;
     }
 }
 
-NS::Side cada_getSideOfPoint(const shape::Shape *shape, const shape::Vec2d &point)
+NS::Side cada_getSideOfPoint(const shape::Shape *shape,
+                             const shape::Vec2d &point)
 {
     assert(shape);
-    switch (shape->getShapeType())
-    {
-    case NS::Line:
-    {
-        auto l = dynamic_cast<const shape::Line*>(shape);
+    switch (shape->getShapeType()) {
+    case NS::Line: {
+        auto l = dynamic_cast<const shape::Line *>(shape);
         return cada_line_sideOfPoint(l, point);
     }
-    case NS::Arc:
-    {
-        auto a = dynamic_cast<const shape::Arc*>(shape);
+    case NS::Arc: {
+        auto a = dynamic_cast<const shape::Arc *>(shape);
         return cada_arc_sideOfPoint(a, point);
     }
-    case NS::Ellipse:
-    {
-        auto e = dynamic_cast<const shape::Ellipse*>(shape);
+    case NS::Ellipse: {
+        auto e = dynamic_cast<const shape::Ellipse *>(shape);
         return cada_ellipse_sideOfPoint(e, point);
     }
     case NS::XLine:
-    case NS::Ray:
-    {
-        auto xl = dynamic_cast<const shape::XLine*>(shape);
+    case NS::Ray: {
+        auto xl = dynamic_cast<const shape::XLine *>(shape);
         return cada_line_sideOfPoint(xl->getLineShape().release(), point);
     }
-    case NS::Polyline:
-    {
-        auto poly = dynamic_cast<const shape::Polyline*>(shape);
+    case NS::Polyline: {
+        auto poly = dynamic_cast<const shape::Polyline *>(shape);
         return cada_polyline_sideOfPoint(poly, point);
     }
     case NS::BSpline:
@@ -151,7 +146,6 @@ NS::Side cada_getSideOfPoint(const shape::Shape *shape, const shape::Vec2d &poin
     };
     return NS::NoSide;
 }
-
 
 } // namespace algorithm
 } // namespace cada

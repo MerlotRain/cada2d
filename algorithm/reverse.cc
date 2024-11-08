@@ -31,20 +31,17 @@ namespace algorithm {
 bool cada_reverse(shape::Shape *shape)
 {
     assert(shape);
-    switch (shape->getShapeType())
-    {
-    case NS::Line:
-    {
-        auto l = dynamic_cast<shape::Line*>(shape);
+    switch (shape->getShapeType()) {
+    case NS::Line: {
+        auto l = dynamic_cast<shape::Line *>(shape);
         Vec2d v1 = l->getStartPoint();
         Vec2d v2 = l->getEndPoint();
         l->setStartPoint(v2);
         l->setEndPoint(v1);
         return true;
     }
-    case NS::Arc:
-    {
-        auto a = dynamic_cast<shape::Arc*>(shape);
+    case NS::Arc: {
+        auto a = dynamic_cast<shape::Arc *>(shape);
         double d1 = a->getStartAngle();
         double d2 = a->getEndAngle();
         bool r = a->isReversed();
@@ -52,10 +49,9 @@ bool cada_reverse(shape::Shape *shape)
         a->setEndAngle(d1);
         a->setReversed(!r);
         return true;
-    }    
-    case NS::Ellipse:
-    {
-        auto e = dynamic_cast<shape::Ellipse*>(shape);
+    }
+    case NS::Ellipse: {
+        auto e = dynamic_cast<shape::Ellipse *>(shape);
         double a = e->getStartParam();
         double b = e->getEndParam();
         bool r = e->isReversed();
@@ -65,38 +61,34 @@ bool cada_reverse(shape::Shape *shape)
         return true;
     }
     case NS::XLine:
-    case NS::Ray:
-    {
-        auto xl = dynamic_cast<shape::XLine*>(shape);
+    case NS::Ray: {
+        auto xl = dynamic_cast<shape::XLine *>(shape);
         Vec2d sp = xl->getBasePoint() + xl->getDirectionVector();
         Vec2d bp = xl->getBasePoint();
         xl->setBasePoint(sp);
         xl->setDirectionVector(bp - sp);
         return true;
     }
-    case NS::Polyline:
-    {
-        auto poly = dynamic_cast<shape::Polyline*>(shape);
+    case NS::Polyline: {
+        auto poly = dynamic_cast<shape::Polyline *>(shape);
 
         std::vector<Vec2d> vs = poly->getVertices();
         std::vector<double> bs = poly->getBulges();
         std::vector<double> sws = poly->getStartWidths();
         std::vector<double> ews = poly->getEndWidths();
-        if(poly->isClosed())
-        {
+        if (poly->isClosed()) {
             vs.push_back(vs.front());
         }
 
         auto nPolyline = ShapeFactory::instance()->createPolyline();
-        for (int i=vs.size()-1, k=0; i>=0; i--, k++) {
+        for (int i = vs.size() - 1, k = 0; i >= 0; i--, k++) {
             nPolyline->appendVertex(vs[i]);
-            if (i>0) {
-                nPolyline->setBulgeAt(k, -bs[i-1]);
-                nPolyline->setStartWidthAt(k, ews[i-1]);
-                nPolyline->setEndWidthAt(k, sws[i-1]);
+            if (i > 0) {
+                nPolyline->setBulgeAt(k, -bs[i - 1]);
+                nPolyline->setStartWidthAt(k, ews[i - 1]);
+                nPolyline->setEndWidthAt(k, sws[i - 1]);
             }
-            if(poly->isClosed())
-            {
+            if (poly->isClosed()) {
                 nPolyline->convertToClosed();
             }
 
@@ -105,7 +97,7 @@ bool cada_reverse(shape::Shape *shape)
             poly->setStartWidths(nPolyline->getStartWidths());
             poly->setEndWidths(nPolyline->getEndWidths());
             poly->setClosed(nPolyline->isClosed());
-            return true;  
+            return true;
         }
     }
     case NS::BSpline:

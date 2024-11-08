@@ -5,6 +5,7 @@ project(cada2d LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+option(BUILD_TESTS "Build tests" TRUE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(Eigen3 REQUIRED)
@@ -20,7 +21,6 @@ set(cada_srcs
     shape/point.cc
     shape/polyline.cc
     shape/ray.cc
-    shape/regularpolygon.cc
     shape/shape.cc
     shape/shapefactory.cc
     shape/triangle.cc
@@ -31,6 +31,7 @@ set(cada_srcs
     algorithm/angle.cc
     algorithm/apollonius.cc
     algorithm/boundingbox.cc
+    algorithm/direction.cc
     algorithm/distance.cc
     algorithm/equal.cc
     algorithm/flip.cc
@@ -41,10 +42,12 @@ set(cada_srcs
     algorithm/offset.cc
     algorithm/pointonshape.cc
     algorithm/pointstobspline.cc
+    algorithm/reverse.cc
     algorithm/rotate.cc
     algorithm/roundallcorners.cc
     algorithm/scale.cc
     algorithm/self-intersection.cc
+    algorithm/side.cc
     algorithm/split.cc
     algorithm/stretch.cc
     algorithm/trim.cc

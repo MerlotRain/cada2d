@@ -28,6 +28,13 @@ using namespace cada::shape;
 namespace cada {
 namespace algorithm {
 
+bool cada_arc_move(shape::Arc *a, const shape::Vec2d &offset)
+{
+    assert(a);
+    a->setCenter(a->getCenter().move(offset));
+    return true;
+}
+
 bool cada_move(shape::Shape *shape, const shape::Vec2d &offset)
 {
     assert(shape);
@@ -48,7 +55,7 @@ bool cada_move(shape::Shape *shape, const shape::Vec2d &offset)
     }
     case NS::Arc: {
         auto a = dynamic_cast<Arc *>(shape);
-        a->setCenter(a->getCenter().move(offset));
+        return cada_arc_move(a, offset);
     }
     case NS::Circle: {
         auto c = dynamic_cast<Circle *>(shape);

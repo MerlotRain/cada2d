@@ -21,12 +21,73 @@
  */
 
 #include <cada_shape.h>
+#include <cada_excption.h>
 #include <assert.h>
 
 using namespace cada::shape;
 
 namespace cada {
 namespace algorithm {
+
+std::vector<shape::Vec2d>
+cada_get_polyline_self_intersection_points(const shape::Polyline *poly,
+                                           double tolerance)
+{
+    assert(poly);
+    std::vector<shape::Vec2d> ret;
+
+    bool cl = poly->isGeometricallyClosed();
+
+    auto &&segments = poly->getExploded();
+    for (size_t i = 0; i < segments.size(); ++i) {
+        auto &&segment = poly->getSegmentAt(i);
+        for (size_t j = i + 1; j < segments.size(); ++j) {
+            auto &&other_segment = poly->getSegmentAt(j);
+            std::vector<Vec2d> ips =
+                segment->getIntersectionPoints(other_segment.release());
+            for (size_t n = 0; n < ips.size(); ++n) {
+                Vec2d ip = ips[n];
+                if (j == i + 1 &&
+                    ip.equalsFuzzy(segment->getEndPoint(), tolerance)) {
+                    continue;
+                }
+
+                if (cl) {
+                    if (i == 0 && j == segments.size() - 1 &&
+                        ip.equalsFuzzy(segment->getStartPoint(), tolerance)) {
+                        continue;
+                    }
+                }
+                ret.push_back(ip);
+            }
+        }
+    }
+    return ret;
+}
+
+std::vector<shape::Vec2d>
+cada_get_polyline_self_intersection_points(const shape::BSpline *spline,
+                                           double tolerance)
+{
+    return std::vector<shape::Vec2d>();
+}
+
+std::vector<shape::Vec2d>
+cada_getSelfIntersectionPoints(const shape::Shape *shape, double tolerance)
+{
+    assert(shape);
+    if (shape->getShapeType() == NS::Polyline) {
+        return cada_get_polyline_self_intersection_points(
+            dynamic_cast<const shape::Polyline *>(shape), tolerance);
+    }
+    else if (shape->getShapeType() == NS::BSpline) {
+        return cada_get_polyline_self_intersection_points(
+            dynamic_cast<const shape::BSpline *>(shape), tolerance);
+    }
+    else {
+        throw UnsupportedOperationException();
+    }
+}
 
 } // namespace algorithm
 } // namespace cada
