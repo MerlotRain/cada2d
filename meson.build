@@ -1,14 +1,15 @@
 project(
     'cada2d',
-    'cpp', 
+    'cpp',
     'c',
     version: '0.1',
     default_options: ['warning_level=3', 'cpp_std=c++17'],
     license: 'MIT',
 )
 
+build_test = get_option('build_test')
+
 eigen_dep = dependency('eigen3', required: true)
-gtest_dep = dependency('gtest', required: true)
 
 inc_dirs = include_directories('include')
 
@@ -24,4 +25,7 @@ cada2d_lib = static_library(
     cpp_args: ['-D_USE_MATH_DEFINES'],
 )
 
-subdir('test')
+if build_test
+    gtest_dep = dependency('gtest', main: true, required: false)
+    subdir('tests')
+endif

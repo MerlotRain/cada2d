@@ -9,10 +9,8 @@ shape_src = files(
     'point.cc',
     'polyline.cc',
     'ray.cc',
-    'regularpolygon.cc',
     'shape.cc',
     'shapefactory.cc',
-    'triangle.cc',
     'vec2d.cc',
     'xline.cc',
 )

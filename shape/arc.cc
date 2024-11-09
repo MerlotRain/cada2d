@@ -22,6 +22,8 @@
 
 #include <cada_shape.h>
 #include <cmath>
+#include <sstream>
+#include <iomanip>
 
 namespace cada {
 namespace shape {
@@ -555,6 +557,19 @@ void Arc::moveMiddlePoint(const Vec2d &pos)
     mStartAngle = a->getStartAngle();
     mEndAngle = a->getEndAngle();
     mReversed = a->isReversed();
+}
+
+std::string Arc::to_string() const
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(6);
+    ss << "Arc: ";
+    ss << "center: " << mCenter.to_string() << ", ";
+    ss << "radius: " << mRadius << ", ";
+    ss << "startAngle: " << mStartAngle << ", ";
+    ss << "endAngle: " << mEndAngle << ", ";
+    ss << std::boolalpha << "reversed: " << mReversed;
+    return ss.str();
 }
 
 } // namespace shape

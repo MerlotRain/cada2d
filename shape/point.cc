@@ -21,6 +21,8 @@
  */
 
 #include "cada_shape.h"
+#include <sstream>
+#include <iomanip>
 
 namespace cada {
 namespace shape {
@@ -83,6 +85,15 @@ std::vector<Vec2d> Point::getCenterPoints() const
     std::vector<Vec2d> ret;
     ret.push_back(mPosition);
     return ret;
+}
+
+std::string Point::to_string() const
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(6);
+    ss << "Point: ";
+    ss << "position: " << mPosition.to_string();
+    return ss.str();
 }
 
 } // namespace shape

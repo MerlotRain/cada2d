@@ -29,6 +29,7 @@
 #include <memory>
 #include <array>
 #include <limits>
+#include <string>
 
 namespace cada {
 namespace shape {
@@ -97,6 +98,7 @@ struct Vec2d {
 
     bool operator==(const Vec2d &v) const;
     bool operator!=(const Vec2d &v) const { return !operator==(v); }
+    std::string to_string() const;
 
     double dot(const Vec2d &other) const;
     Vec2d normalize();
@@ -197,6 +199,7 @@ public:
     virtual Vec2d getStartPoint() const { return Vec2d(); }
     virtual Vec2d getEndPoint() const { return Vec2d(); }
     virtual Vec2d getMiddlePoint() const { return Vec2d(); }
+    virtual std::string to_string() const { return std::string(); }
 
 public:
     BBox getBoundingBox() const;
@@ -288,6 +291,7 @@ public:
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
+    std::string to_string() const override;
 
 protected:
     Point();
@@ -313,6 +317,7 @@ public:
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
+    std::string to_string() const override;
 
     Vec2d getStartPoint() const override;
     Vec2d getEndPoint() const override;
@@ -359,6 +364,7 @@ public:
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
+    std::string to_string() const override;
 
 public:
     void appendVertex(const Vec2d &vertex, double bulge = 0.0, double w1 = 0.0,
@@ -519,6 +525,7 @@ public:
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
+    std::string to_string() const override;
 
     Vec2d getCenter() const;
     void setCenter(const Vec2d &vector);
@@ -590,6 +597,7 @@ public:
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
+    std::string to_string() const override;
 
     Vec2d getCenter() const;
     void setCenter(const Vec2d &vector);
@@ -637,6 +645,7 @@ public:
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
+    std::string to_string() const override;
 
     Vec2d getCenter() const;
     void setCenter(const Vec2d &vector);
@@ -716,6 +725,7 @@ public:
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
+    std::string to_string() const override;
 
     Vec2d getBasePoint() const;
     void setBasePoint(const Vec2d &vector);
@@ -748,6 +758,7 @@ public:
         return std::unique_ptr<Ray>(cloneImpl());
     }
     NS::ShapeType getShapeType() const override;
+    std::string to_string() const override;
 
 protected:
     Ray();
@@ -788,6 +799,7 @@ public:
     std::vector<Vec2d> getEndPoints() const override;
     std::vector<Vec2d> getMiddlePoints() const override;
     std::vector<Vec2d> getCenterPoints() const override;
+    std::string to_string() const override;
 
     void appendControlPoint(const Vec2d &point);
     void appendControlPoints(const std::vector<Vec2d> &points);
@@ -880,98 +892,98 @@ protected:
 };
 
 class ShapeFactory {
+public:
     friend class Shape;
 
 protected:
     ShapeFactory();
 
 public:
-    static auto instance() -> const ShapeFactory *;
+    static const ShapeFactory *instance();
+    std::unique_ptr<Point> createPoint() const;
+    std::unique_ptr<Point> createPoint(double x, double y) const;
+    std::unique_ptr<Point> createPoint(const Vec2d &point) const;
+    std::unique_ptr<Line> createLine() const;
+    std::unique_ptr<Line> createLine(double x1, double y1, double x2,
+                                     double y2) const;
+    std::unique_ptr<Line> createLine(const Vec2d &startPoint,
+                                     const Vec2d &endPoint) const;
+    std::unique_ptr<Line> createLine(const Vec2d &startPoint, double angle,
+                                     double ditance) const;
 
-    auto createPoint() const -> std::unique_ptr<Point>;
-    auto createPoint(double x, double y) const -> std::unique_ptr<Point>;
-    auto createPoint(const Vec2d &point) const -> std::unique_ptr<Point>;
-
-    auto createLine() const -> std::unique_ptr<Line>;
-    auto createLine(double x1, double y1, double x2, double y2) const
-        -> std::unique_ptr<Line>;
-    auto createLine(const Vec2d &startPoint, const Vec2d &endPoint) const
-        -> std::unique_ptr<Line>;
-    auto createLine(const Vec2d &startPoint, double angle, double ditance) const
-        -> std::unique_ptr<Line>;
-
-    auto createPolyline() const -> std::unique_ptr<Polyline>;
-    auto createPolyline(
+    std::unique_ptr<Polyline> createPolyline() const;
+    std::unique_ptr<Polyline> createPolyline(
         std::vector<Vec2d> &&vertrices, bool closed,
         std::vector<double> &&bulges = std::vector<double>(),
         std::vector<double> &&endWidths = std::vector<double>(),
-        std::vector<double> &&startWidths = std::vector<double>()) const
-        -> std::unique_ptr<Polyline>;
+        std::vector<double> &&startWidths = std::vector<double>()) const;
 
-    auto createArc() const -> std::unique_ptr<Arc>;
-    auto createArc(const Vec2d &center, double radius, double startAngle,
-                   double endAngle, bool reversed = false) const
-        -> std::unique_ptr<Arc>;
-    auto createArc(double cx, double xy, double radius, double startAngle,
-                   double endAngle, bool reversed = false) const
-        -> std::unique_ptr<Arc>;
-    auto createArcFrom3Point(const Vec2d &startPoint, const Vec2d &point,
-                             const Vec2d &endPoint) const
-        -> std::unique_ptr<Arc>;
-    auto createArcFrom2PBulge(const Vec2d &startPoint, const Vec2d &endPoint,
-                              double bulge) const -> std::unique_ptr<Arc>;
-    auto createArcFromTangential(const Vec2d &startPoint, const Vec2d &pos,
-                                 double direction, double radius) const
-        -> std::unique_ptr<Arc>;
-    auto createArcFromBiarc(const Vec2d &startPoint, double startDirection,
-                            const Vec2d &endPoint, double endDirection,
-                            bool secondTry = false) const
-        -> std::vector<std::unique_ptr<Arc>>;
+    std::unique_ptr<Arc> createArc() const;
+    std::unique_ptr<Arc> createArc(const Vec2d &center, double radius,
+                                   double startAngle, double endAngle,
+                                   bool reversed = false) const;
+    std::unique_ptr<Arc> createArc(double cx, double xy, double radius,
+                                   double startAngle, double endAngle,
+                                   bool reversed = false) const;
+    std::unique_ptr<Arc> createArcFrom3Point(const Vec2d &startPoint,
+                                             const Vec2d &point,
+                                             const Vec2d &endPoint) const;
+    std::unique_ptr<Arc> createArcFrom2PBulge(const Vec2d &startPoint,
+                                              const Vec2d &endPoint,
+                                              double bulge) const;
+    std::unique_ptr<Arc> createArcFromTangential(const Vec2d &startPoint,
+                                                 const Vec2d &pos,
+                                                 double direction,
+                                                 double radius) const;
+    std::vector<std::unique_ptr<Arc>>
+    createArcFromBiarc(const Vec2d &startPoint, double startDirection,
+                       const Vec2d &endPoint, double endDirection,
+                       bool secondTry = false) const;
 
-    auto createCircle() const -> std::unique_ptr<Circle>;
-    auto createCircle(const Vec2d &center, double radius) const
-        -> std::unique_ptr<Circle>;
-    auto createCircle(double cx, double cy, double radius) const
-        -> std::unique_ptr<Circle>;
-    auto createCircleFrom2Points(const Vec2d &p1, const Vec2d &p2) const
-        -> std::unique_ptr<Circle>;
-    auto createCircleFrom3Points(const Vec2d &p1, const Vec2d &p2,
-                                 const Vec2d &p3) const
-        -> std::unique_ptr<Circle>;
+    std::unique_ptr<Circle> createCircle() const;
+    std::unique_ptr<Circle> createCircle(const Vec2d &center,
+                                         double radius) const;
+    std::unique_ptr<Circle> createCircle(double cx, double cy,
+                                         double radius) const;
+    std::unique_ptr<Circle> createCircleFrom2Points(const Vec2d &p1,
+                                                    const Vec2d &p2) const;
+    std::unique_ptr<Circle> createCircleFrom3Points(const Vec2d &p1,
+                                                    const Vec2d &p2,
+                                                    const Vec2d &p3) const;
 
-    auto createEllipse() const -> std::unique_ptr<Ellipse>;
-    auto createEllipse(const Vec2d &center, const Vec2d &majorPoint,
-                       double ratio, double startParam, double endParam,
-                       bool reversed) const -> std::unique_ptr<Ellipse>;
-    auto
+    std::unique_ptr<Ellipse> createEllipse() const;
+    std::unique_ptr<Ellipse>
+    createEllipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
+                  double startParam, double endParam, bool reversed) const;
+    std::unique_ptr<Ellipse>
     createEllipseFromInscribed(const Vec2d &p1, const Vec2d &p2,
                                const Vec2d &p3, const Vec2d &p4,
-                               const Vec2d &centerHint = Vec2d::invalid) const
-        -> std::unique_ptr<Ellipse>;
-    auto createEllipseFrom4Points(const Vec2d &p1, const Vec2d &p2,
-                                  const Vec2d &p3, const Vec2d &p4) const
-        -> std::unique_ptr<Ellipse>;
+                               const Vec2d &centerHint = Vec2d::invalid) const;
+    std::unique_ptr<Ellipse> createEllipseFrom4Points(const Vec2d &p1,
+                                                      const Vec2d &p2,
+                                                      const Vec2d &p3,
+                                                      const Vec2d &p4) const;
 
-    auto createXLine() const -> std::unique_ptr<XLine>;
-    auto createXLine(const Vec2d &basePoint, const Vec2d &directionVector) const
-        -> std::unique_ptr<XLine>;
-    auto createXLine(const Vec2d &basePoint, double angle,
-                     double distance) const -> std::unique_ptr<XLine>;
+    std::unique_ptr<XLine> createXLine() const;
+    std::unique_ptr<XLine> createXLine(const Vec2d &basePoint,
+                                       const Vec2d &directionVector) const;
+    std::unique_ptr<XLine> createXLine(const Vec2d &basePoint, double angle,
+                                       double distance) const;
 
-    auto createRay() const -> std::unique_ptr<Ray>;
-    auto createRay(const Vec2d &basePoint, const Vec2d &directionVector) const
-        -> std::unique_ptr<Ray>;
-    auto createRay(const Vec2d &basePoint, double angle, double distance) const
-        -> std::unique_ptr<Ray>;
+    std::unique_ptr<Ray> createRay() const;
+    std::unique_ptr<Ray> createRay(const Vec2d &basePoint,
+                                   const Vec2d &directionVector) const;
+    std::unique_ptr<Ray> createRay(const Vec2d &basePoint, double angle,
+                                   double distance) const;
 
-    auto createBSpline() const -> std::unique_ptr<BSpline>;
-    auto createBSpline(std::vector<Vec2d> &&controlPoints, int degree) const
-        -> std::unique_ptr<BSpline>;
+    std::unique_ptr<BSpline> createBSpline() const;
+    std::unique_ptr<BSpline> createBSpline(std::vector<Vec2d> &&controlPoints,
+                                           int degree) const;
 
-    auto createPolygon(const Vec2d &position1, const Vec2d &position2,
-                       NS::PolygonOption option, bool createPolyline,
-                       bool useRadius, double radius, int numberOfCorners)
-        -> std::vector<std::unique_ptr<Shape>>;
+    std::vector<std::unique_ptr<Shape>>
+    createPolygon(const Vec2d &position1, const Vec2d &position2,
+                  NS::PolygonOption option, bool createPolyline, bool useRadius,
+                  double radius, size_t numberOfCorners) const;
 };
 
 } // namespace shape

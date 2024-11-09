@@ -22,6 +22,8 @@
 
 #include "cada_shape.h"
 #include <assert.h>
+#include <sstream>
+#include <iomanip>
 
 namespace cada {
 namespace shape {
@@ -624,6 +626,19 @@ void Ellipse::moveEndPoint(const Vec2d &pos, bool changeAngleOnly)
         mMajorPoint.scale(factor);
         mMajorPoint.rotate(angleDelta);
     }
+}
+
+std::string Ellipse::to_string() const
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(6);
+    ss << "Ellipse: ";
+    ss << "center: " << mCenter.to_string() << ", ";
+    ss << "majorPoint: " << mMajorPoint.to_string() << ", ";
+    ss << "startParam: " << mStartParam << ", ";
+    ss << "endParam: " << mEndParam << ", ";
+    ss << std::boolalpha << "reversed: " << mReversed;
+    return ss.str();
 }
 
 } // namespace shape

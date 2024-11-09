@@ -21,6 +21,8 @@
  */
 
 #include "cada_shape.h"
+#include <sstream>
+#include <iomanip>
 
 namespace cada {
 namespace shape {
@@ -50,6 +52,16 @@ Ray *Ray::cloneImpl() const
     pClone->mBasePoint = mBasePoint;
     pClone->mDirectionVector = mDirectionVector;
     return pClone;
+}
+
+std::string Ray::to_string() const
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(6);
+    ss << "Ray: ";
+    ss << "basePoint: " << mBasePoint.to_string() << ", ";
+    ss << "directionVector: " << mDirectionVector.to_string();
+    return ss.str();
 }
 
 } // namespace shape

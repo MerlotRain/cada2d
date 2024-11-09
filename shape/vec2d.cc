@@ -26,6 +26,8 @@
 #include <cmath>
 #include <algorithm>
 #include <stdexcept>
+#include <sstream>
+#include <iomanip>
 
 namespace cada {
 namespace shape {
@@ -570,6 +572,14 @@ bool Vec2dAngleSort::lessThan(const Vec2d &v1, const Vec2d &v2)
         diff2 = 0.0;
     }
     return diff1 < diff2;
+}
+
+std::string Vec2d::to_string() const
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(6);
+    ss << "(" << x << ", " << y << ")";
+    return ss.str();
 }
 
 } // namespace shape

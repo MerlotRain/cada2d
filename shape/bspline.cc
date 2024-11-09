@@ -23,6 +23,8 @@
 #include "cada_shape.h"
 
 #include <cmath>
+#include <sstream>
+#include <iomanip>
 
 namespace cada {
 namespace shape {
@@ -503,6 +505,23 @@ void BSpline::update() const
 bool BSpline::isDirty() const
 {
     return false;
+}
+
+std::string BSpline::to_string() const
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(6);
+    ss << "BSpline: ";
+    ss << "degree: " << mDegree << ", ";
+    ss << "controlPoints: " << mControlPoints.size() << ", ";
+    for (auto &cp : mControlPoints) {
+        ss << cp.to_string() << ", ";
+    }
+    ss << "weights: " << mWeights.size() << ", ";
+    for (auto &w : mWeights) {
+        ss << w << ", ";
+    }
+    return ss.str();
 }
 
 } // namespace shape

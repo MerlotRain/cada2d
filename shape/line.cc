@@ -21,6 +21,8 @@
  */
 
 #include "cada_shape.h"
+#include <sstream>
+#include <iomanip>
 
 namespace cada {
 namespace shape {
@@ -213,6 +215,16 @@ void Line::clipTo(const BBox &box)
         mStartPoint = Vec2d::invalid;
         mEndPoint = Vec2d::invalid;
     }
+}
+
+std::string Line::to_string() const
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(6);
+    ss << "Line: ";
+    ss << "start: " << mStartPoint.to_string() << ", ";
+    ss << "end: " << mEndPoint.to_string();
+    return ss.str();
 }
 
 } // namespace shape

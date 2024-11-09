@@ -22,6 +22,8 @@
 
 #include "cada_shape.h"
 
+#include <sstream>
+#include <iomanip>
 #include <assert.h>
 
 namespace cada {
@@ -1619,6 +1621,19 @@ Vec2d Polyline::getCentroid() const
     double centroidY = ySum / (6.0 * signedArea);
 
     return Vec2d(centroidX, centroidY);
+}
+
+std::string Arc::to_string() const
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(6);
+    ss << "Arc: ";
+    ss << "center: " << mCenter.to_string() << ", ";
+    ss << "radius: " << mRadius << ", ";
+    ss << "startAngle: " << mStartAngle << ", ";
+    ss << "endAngle: " << mEndAngle << ", ";
+    ss << "reversed: " << mReversed;
+    return ss.str();
 }
 
 } // namespace shape

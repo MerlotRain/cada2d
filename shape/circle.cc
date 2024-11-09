@@ -23,6 +23,8 @@
 #include "cada_shape.h"
 #include <numeric>
 #include <limits>
+#include <sstream>
+#include <iomanip>
 
 namespace cada {
 namespace shape {
@@ -173,6 +175,16 @@ std::vector<std::unique_ptr<Line>> Circle::getTangents(const Vec2d &point) const
     }
 
     return ret;
+}
+
+std::string Circle::to_string() const
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(6);
+    ss << "Circle: ";
+    ss << "center: " << mCenter.to_string() << ", ";
+    ss << "radius: " << mRadius;
+    return ss.str();
 }
 
 } // namespace shape

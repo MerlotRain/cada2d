@@ -1,0 +1,6 @@
+option(
+    'build_test',
+    type: 'boolean',
+    value: true,
+    description: 'Whether to build tests',
+)

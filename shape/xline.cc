@@ -21,6 +21,8 @@
  */
 
 #include "cada_shape.h"
+#include <sstream>
+#include <iomanip>
 
 namespace cada {
 namespace shape {
@@ -125,6 +127,17 @@ std::vector<Vec2d> XLine::getCenterPoints() const
 std::unique_ptr<Line> XLine::getLineShape() const
 {
     return ShapeFactory::instance()->createLine(mBasePoint, mDirectionVector);
+}
+
+std::string XLine::to_string() const
+{
+    std::stringstream ss;
+    ss << std::fixed << std::setprecision(6);
+    ss << "XLine: ";
+    ss << "basePoint: " << mBasePoint.to_string() << ", ";
+    ss << "directionVector: " << mDirectionVector.to_string();
+    ss << std::endl;
+    return ss.str();
 }
 
 } // namespace shape

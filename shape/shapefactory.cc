@@ -39,64 +39,65 @@ ShapeFactory *g_shapefactory = nullptr;
 
 ShapeFactory::ShapeFactory() = default;
 
-auto ShapeFactory::instance() -> const ShapeFactory *
+const ShapeFactory *ShapeFactory::instance()
 {
     static std::once_flag flag;
     std::call_once(flag, [&]() { g_shapefactory = new ShapeFactory(); });
     return g_shapefactory;
 }
 
-auto ShapeFactory::createPoint() const -> std::unique_ptr<Point>
+std::unique_ptr<Point> ShapeFactory::createPoint() const
 {
     return std::unique_ptr<Point>();
 }
 
-auto ShapeFactory::createPoint(double x, double y) const
-    -> std::unique_ptr<Point>
+std::unique_ptr<Point> ShapeFactory::createPoint(double x, double y) const
+
 {
     return std::unique_ptr<Point>(new Point(x, y));
 }
 
-auto ShapeFactory::createPoint(const Vec2d &point) const
-    -> std::unique_ptr<Point>
+std::unique_ptr<Point> ShapeFactory::createPoint(const Vec2d &point) const
+
 {
     return std::unique_ptr<Point>(new Point(point));
 }
 
-auto ShapeFactory::createLine() const -> std::unique_ptr<Line>
+std::unique_ptr<Line> ShapeFactory::createLine() const
 {
     return std::unique_ptr<Line>(new Line());
 }
 
-auto ShapeFactory::createLine(double x1, double y1, double x2, double y2) const
-    -> std::unique_ptr<Line>
+std::unique_ptr<Line> ShapeFactory::createLine(double x1, double y1, double x2,
+                                               double y2) const
+
 {
     return std::unique_ptr<Line>(new Line(x1, y1, x2, y2));
 }
 
-auto ShapeFactory::createLine(const Vec2d &startPoint,
-                              const Vec2d &endPoint) const
-    -> std::unique_ptr<Line>
+std::unique_ptr<Line> ShapeFactory::createLine(const Vec2d &startPoint,
+                                               const Vec2d &endPoint) const
+
 {
     return std::unique_ptr<Line>(new Line(startPoint, endPoint));
 }
 
-auto ShapeFactory::createLine(const Vec2d &startPoint, double angle,
-                              double ditance) const -> std::unique_ptr<Line>
+std::unique_ptr<Line> ShapeFactory::createLine(const Vec2d &startPoint,
+                                               double angle,
+                                               double ditance) const
 {
     return std::unique_ptr<Line>(new Line(startPoint, angle, ditance));
 }
 
-auto ShapeFactory::createPolyline() const -> std::unique_ptr<Polyline>
+std::unique_ptr<Polyline> ShapeFactory::createPolyline() const
 {
     return std::unique_ptr<Polyline>(new Polyline());
 }
 
-auto ShapeFactory::createPolyline(std::vector<Vec2d> &&vertrices, bool closed,
-                                  std::vector<double> &&bulges,
-                                  std::vector<double> &&endWidths,
-                                  std::vector<double> &&startWidths) const
-    -> std::unique_ptr<Polyline>
+std::unique_ptr<Polyline> ShapeFactory::createPolyline(
+    std::vector<Vec2d> &&vertrices, bool closed, std::vector<double> &&bulges,
+    std::vector<double> &&endWidths, std::vector<double> &&startWidths) const
+
 {
     auto polyline =
         std::unique_ptr<Polyline>(new Polyline(std::move(vertrices), closed));
@@ -106,31 +107,32 @@ auto ShapeFactory::createPolyline(std::vector<Vec2d> &&vertrices, bool closed,
     return polyline;
 }
 
-auto ShapeFactory::createArc() const -> std::unique_ptr<Arc>
+std::unique_ptr<Arc> ShapeFactory::createArc() const
 {
     return std::unique_ptr<Arc>(new Arc());
 }
 
-auto ShapeFactory::createArc(const Vec2d &center, double radius,
-                             double startAngle, double endAngle,
-                             bool reversed) const -> std::unique_ptr<Arc>
+std::unique_ptr<Arc> ShapeFactory::createArc(const Vec2d &center, double radius,
+                                             double startAngle, double endAngle,
+                                             bool reversed) const
 {
     return std::unique_ptr<Arc>(
         new Arc(center, radius, startAngle, endAngle, reversed));
 }
 
-auto ShapeFactory::createArc(double cx, double xy, double radius,
-                             double startAngle, double endAngle,
-                             bool reversed) const -> std::unique_ptr<Arc>
+std::unique_ptr<Arc> ShapeFactory::createArc(double cx, double xy,
+                                             double radius, double startAngle,
+                                             double endAngle,
+                                             bool reversed) const
 {
     return std::unique_ptr<Arc>(
         new Arc(cx, xy, radius, startAngle, endAngle, reversed));
 }
 
-auto ShapeFactory::createArcFrom3Point(const Vec2d &startPoint,
-                                       const Vec2d &point,
-                                       const Vec2d &endPoint) const
-    -> std::unique_ptr<Arc>
+std::unique_ptr<Arc>
+ShapeFactory::createArcFrom3Point(const Vec2d &startPoint, const Vec2d &point,
+                                  const Vec2d &endPoint) const
+
 {
     // intersection of two middle lines
 
@@ -165,10 +167,10 @@ auto ShapeFactory::createArcFrom3Point(const Vec2d &startPoint,
     return createArc(center, radius, angle1, angle2, reversed);
 }
 
-auto ShapeFactory::createArcFrom2PBulge(const Vec2d &startPoint,
-                                        const Vec2d &endPoint,
-                                        double bulge) const
-    -> std::unique_ptr<Arc>
+std::unique_ptr<Arc> ShapeFactory::createArcFrom2PBulge(const Vec2d &startPoint,
+                                                        const Vec2d &endPoint,
+                                                        double bulge) const
+
 {
     auto arc = createArc();
 
@@ -204,10 +206,10 @@ auto ShapeFactory::createArcFrom2PBulge(const Vec2d &startPoint,
     return arc;
 }
 
-auto ShapeFactory::createArcFromTangential(const Vec2d &startPoint,
-                                           const Vec2d &pos, double direction,
-                                           double radius) const
-    -> std::unique_ptr<Arc>
+std::unique_ptr<Arc>
+ShapeFactory::createArcFromTangential(const Vec2d &startPoint, const Vec2d &pos,
+                                      double direction, double radius) const
+
 {
     auto arc = createArc();
 
@@ -241,11 +243,11 @@ auto ShapeFactory::createArcFromTangential(const Vec2d &startPoint,
     return arc;
 }
 
-auto ShapeFactory::createArcFromBiarc(const Vec2d &startPoint,
-                                      double startDirection,
-                                      const Vec2d &endPoint,
-                                      double endDirection, bool secondTry) const
-    -> std::vector<std::unique_ptr<Arc>>
+std::vector<std::unique_ptr<Arc>>
+ShapeFactory::createArcFromBiarc(const Vec2d &startPoint, double startDirection,
+                                 const Vec2d &endPoint, double endDirection,
+                                 bool secondTry) const
+
 {
     std::vector<std::unique_ptr<Arc>> rets;
 
@@ -326,35 +328,38 @@ auto ShapeFactory::createArcFromBiarc(const Vec2d &startPoint,
     return rets;
 }
 
-auto ShapeFactory::createCircle() const -> std::unique_ptr<Circle>
+std::unique_ptr<Circle> ShapeFactory::createCircle() const
 {
     return std::unique_ptr<Circle>();
 }
 
-auto ShapeFactory::createCircle(const Vec2d &center, double radius) const
-    -> std::unique_ptr<Circle>
+std::unique_ptr<Circle> ShapeFactory::createCircle(const Vec2d &center,
+                                                   double radius) const
+
 {
     return std::unique_ptr<Circle>(new Circle(center, radius));
 }
 
-auto ShapeFactory::createCircle(double cx, double cy, double radius) const
-    -> std::unique_ptr<Circle>
+std::unique_ptr<Circle> ShapeFactory::createCircle(double cx, double cy,
+                                                   double radius) const
+
 {
     return std::unique_ptr<Circle>(new Circle(cx, cy, radius));
 }
 
-auto ShapeFactory::createCircleFrom2Points(const Vec2d &p1,
-                                           const Vec2d &p2) const
-    -> std::unique_ptr<Circle>
+std::unique_ptr<Circle>
+ShapeFactory::createCircleFrom2Points(const Vec2d &p1, const Vec2d &p2) const
+
 {
     Vec2d center = (p1 + p2) / 2.0;
     double radius = p1.getDistanceTo(p2) / 2.0;
     return createCircle(center, radius);
 }
 
-auto ShapeFactory::createCircleFrom3Points(const Vec2d &p1, const Vec2d &p2,
-                                           const Vec2d &p3) const
-    -> std::unique_ptr<Circle>
+std::unique_ptr<Circle>
+ShapeFactory::createCircleFrom3Points(const Vec2d &p1, const Vec2d &p2,
+                                      const Vec2d &p3) const
+
 {
     // intersection of two middle lines
 
@@ -385,32 +390,34 @@ auto ShapeFactory::createCircleFrom3Points(const Vec2d &p1, const Vec2d &p2,
     return createCircle(center, radius);
 }
 
-auto ShapeFactory::createEllipse() const -> std::unique_ptr<Ellipse>
+std::unique_ptr<Ellipse> ShapeFactory::createEllipse() const
 {
     return std::unique_ptr<Ellipse>();
 }
 
-auto ShapeFactory::createEllipse(const Vec2d &center, const Vec2d &majorPoint,
-                                 double ratio, double startParam,
-                                 double endParam, bool reversed) const
-    -> std::unique_ptr<Ellipse>
+std::unique_ptr<Ellipse>
+ShapeFactory::createEllipse(const Vec2d &center, const Vec2d &majorPoint,
+                            double ratio, double startParam, double endParam,
+                            bool reversed) const
+
 {
     return std::unique_ptr<Ellipse>(
         new Ellipse(center, majorPoint, ratio, startParam, endParam, reversed));
 }
 
-auto ShapeFactory::createEllipseFromInscribed(const Vec2d &p1, const Vec2d &p2,
-                                              const Vec2d &p3, const Vec2d &p4,
-                                              const Vec2d &centerHint) const
-    -> std::unique_ptr<Ellipse>
+std::unique_ptr<Ellipse>
+ShapeFactory::createEllipseFromInscribed(const Vec2d &p1, const Vec2d &p2,
+                                         const Vec2d &p3, const Vec2d &p4,
+                                         const Vec2d &centerHint) const
+
 {
     return nullptr;
 }
 
-auto ShapeFactory::createEllipseFrom4Points(const Vec2d &p1, const Vec2d &p2,
-                                            const Vec2d &p3,
-                                            const Vec2d &p4) const
-    -> std::unique_ptr<Ellipse>
+std::unique_ptr<Ellipse>
+ShapeFactory::createEllipseFrom4Points(const Vec2d &p1, const Vec2d &p2,
+                                       const Vec2d &p3, const Vec2d &p4) const
+
 {
     if (threePointCollinear(p1, p2, p3) && threePointCollinear(p1, p2, p4)) {
         return nullptr;
@@ -468,59 +475,63 @@ auto ShapeFactory::createEllipseFrom4Points(const Vec2d &p1, const Vec2d &p2,
     return createEllipse(center, majorPoint, ratio, 0, 360, false);
 }
 
-auto ShapeFactory::createXLine() const -> std::unique_ptr<XLine>
+std::unique_ptr<XLine> ShapeFactory::createXLine() const
 {
     return std::unique_ptr<XLine>(new XLine());
 }
 
-auto ShapeFactory::createXLine(const Vec2d &basePoint,
-                               const Vec2d &directionVector) const
-    -> std::unique_ptr<XLine>
+std::unique_ptr<XLine>
+ShapeFactory::createXLine(const Vec2d &basePoint,
+                          const Vec2d &directionVector) const
+
 {
     return std::unique_ptr<XLine>(new XLine(basePoint, directionVector));
 }
 
-auto ShapeFactory::createXLine(const Vec2d &basePoint, double angle,
-                               double distance) const -> std::unique_ptr<XLine>
+std::unique_ptr<XLine> ShapeFactory::createXLine(const Vec2d &basePoint,
+                                                 double angle,
+                                                 double distance) const
 {
     return std::unique_ptr<XLine>(new XLine(basePoint, angle, distance));
 }
 
-auto ShapeFactory::createRay() const -> std::unique_ptr<Ray>
+std::unique_ptr<Ray> ShapeFactory::createRay() const
 {
     return std::unique_ptr<Ray>(new Ray());
 }
 
-auto ShapeFactory::createRay(const Vec2d &basePoint,
-                             const Vec2d &directionVector) const
-    -> std::unique_ptr<Ray>
+std::unique_ptr<Ray> ShapeFactory::createRay(const Vec2d &basePoint,
+                                             const Vec2d &directionVector) const
+
 {
     return std::unique_ptr<Ray>(new Ray(basePoint, directionVector));
 }
 
-auto ShapeFactory::createRay(const Vec2d &basePoint, double angle,
-                             double distance) const -> std::unique_ptr<Ray>
+std::unique_ptr<Ray> ShapeFactory::createRay(const Vec2d &basePoint,
+                                             double angle,
+                                             double distance) const
 {
     return std::unique_ptr<Ray>(new Ray(basePoint, angle, distance));
 }
 
-auto ShapeFactory::createBSpline() const -> std::unique_ptr<BSpline>
+std::unique_ptr<BSpline> ShapeFactory::createBSpline() const
 {
     return std::unique_ptr<BSpline>(new BSpline());
 }
 
-auto ShapeFactory::createBSpline(std::vector<Vec2d> &&controlPoints,
-                                 int degree) const -> std::unique_ptr<BSpline>
+std::unique_ptr<BSpline>
+ShapeFactory::createBSpline(std::vector<Vec2d> &&controlPoints,
+                            int degree) const
 {
     return std::unique_ptr<BSpline>(
         new BSpline(std::move(controlPoints), degree));
 }
 
-auto ShapeFactory::createPolygon(const Vec2d &position1, const Vec2d &position2,
-                                 NS::PolygonOption option, bool create_polyline,
-                                 bool useRadius, double radius,
-                                 int numberOfCorners)
-    -> std::vector<std::unique_ptr<Shape>>
+std::vector<std::unique_ptr<Shape>>
+ShapeFactory::createPolygon(const Vec2d &position1, const Vec2d &position2,
+                            NS::PolygonOption option, bool create_polyline,
+                            bool useRadius, double radius,
+                            size_t numberOfCorners) const
 {
     assert(numberOfCorners > 2);
 
@@ -617,8 +628,8 @@ auto ShapeFactory::createPolygon(const Vec2d &position1, const Vec2d &position2,
 inner_create_shapes:
     std::vector<std::unique_ptr<Shape>> shapes;
     for (size_t i = 0; i < corners.size(); ++i) {
-        shapes.emplace_back(std::move(
-            createLine(corners.at(i), corners.at((i + 1) % corners.size()))));
+        shapes.emplace_back(
+            createLine(corners.at(i), corners.at((i + 1) % corners.size())));
     }
     if (useRadius && radius > 0) {
         std::vector<std::unique_ptr<Shape>> newShapes;
@@ -637,9 +648,9 @@ inner_create_shapes:
             if (res.size() > 2) {
                 if (!cursor.isValid()) {
                     newShapes.emplace_back(
-                        std::move(createLine(cursor, res[1]->getStartPoint())));
+                        createLine(cursor, res[1]->getStartPoint()));
                 }
-                newShapes.emplace_back(std::move(res[1]->clone()));
+                newShapes.emplace_back(res[1]->clone());
                 cursor = res[1]->getEndPoint();
             }
         }
