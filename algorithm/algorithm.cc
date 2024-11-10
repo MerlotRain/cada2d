@@ -25,6 +25,9 @@
 #include <assert.h>
 #include <cmath>
 #include <cada_math.h>
+extern "C" {
+#include <apollonius.h>
+}
 
 using namespace cada::shape;
 
@@ -122,7 +125,9 @@ round_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
 std::unique_ptr<shape::Shape> lengthen(const shape::Shape *shape,
                                        const shape::Vec2d &position,
                                        bool trim_start, double amount);
-
+std::vector<std::unique_ptr<Circle>> apollonius_solutions(const Shape *shape1,
+                                                          const Shape *shape2,
+                                                          const Shape *shape3);
 /* ------------------------- inner static functions ------------------------- */
 
 static std::vector<Vec2d>
@@ -484,6 +489,72 @@ std::unique_ptr<shape::Shape> lengthen(const shape::Shape *shape,
                                        bool trim_start, double amount)
 {
     return nullptr;
+}
+
+std::vector<std::unique_ptr<Circle>> apollonius_solutions(const Shape *shape1,
+                                                          const Shape *shape2,
+                                                          const Shape *shape3)
+{
+    assert(shape1);
+    assert(shape2);
+    assert(shape3);
+
+    apollonius_t *apo = apollonius_init();
+    if (!apo) {
+        return {};
+    }
+
+#define apo_append_shape(shp)                                                 \
+    {                                                                         \
+        if (shp->getShapeType() == NS::Point) {                               \
+            auto p = dynamic_cast<const shape::Point *>(shp);                 \
+            if (0 != apollonius_add_point(apo, p->getPosition().x,            \
+                                          p->getPosition().y))                \
+                goto apo_error;                                               \
+        }                                                                     \
+        else if (shp->getShapeType() == NS::Line) {                           \
+            auto l = dynamic_cast<const shape::Line *>(shp);                  \
+            if (0 != apollonius_add_line(                                     \
+                         apo, l->getStartPoint().x, l->getStartPoint().y,     \
+                         l->getEndPoint().x, l->getEndPoint().y))             \
+                goto apo_error;                                               \
+        }                                                                     \
+        else if (shp->getShapeType() == NS::Circle) {                         \
+            auto c = dynamic_cast<const shape::Circle *>(shp);                \
+            if (0 != apollonius_add_circle(apo, c->getCenter().x,             \
+                                           c->getCenter().y, c->getRadius())) \
+                goto apo_error;                                               \
+        }                                                                     \
+        else if (shp->getShapeType() == NS::Arc) {                            \
+            auto a = dynamic_cast<const shape::Arc *>(shp);                   \
+            if (0 != apollonius_add_circle(apo, a->getCenter().x,             \
+                                           a->getCenter().y, a->getRadius())) \
+                goto apo_error;                                               \
+        }                                                                     \
+        else {                                                                \
+            goto apo_error;                                                   \
+        }                                                                     \
+    }
+
+    apo_append_shape(shape1);
+    apo_append_shape(shape2);
+    apo_append_shape(shape3);
+    apollonius_solution *sulu;
+    if (apollonius_solve(apo, &sulu) == 0) {
+        std::vector<std::unique_ptr<Circle>> circles;
+        for (int i = 0; i < sulu->count; ++i) {
+            circles.emplace_back(ShapeFactory::instance()->createCircle(
+                Vec2d(sulu->circles[i].cx, sulu->circles[i].cy),
+                sulu->circles[i].r));
+        }
+        apollonius_free(apo);
+        apollonius_solution_free(sulu);
+        return circles;
+    }
+
+apo_error:
+    apollonius_free(apo);
+    return {};
 }
 
 /* ------------------------- inner static functions ------------------------- */

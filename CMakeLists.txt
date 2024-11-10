@@ -27,7 +27,6 @@ set(cada_srcs
 
     algorithm/algorithm.cc
     algorithm/angle.cc
-    algorithm/apollonius.cc
     algorithm/boundingbox.cc
     algorithm/direction.cc
     algorithm/distance.cc
@@ -52,12 +51,18 @@ set(cada_srcs
     algorithm/vectorto.cc
 
     index/rtree.c
+
+    apollonius/apollonius.c
+    apollonius/circle.c
+    apollonius/line.c
+    apollonius/point.c
 )
 
 add_library(cada2d STATIC ${cada_srcs}) 
 
 target_include_directories(cada2d PUBLIC
     ${CMAKE_CURRENT_LIST_DIR}/include
+    ${CMAKE_CURRENT_LIST_DIR}/apollonius
 )
 
 target_include_directories(cada2d PRIVATE

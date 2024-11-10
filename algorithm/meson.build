@@ -1,7 +1,6 @@
 algorithm_src = files(
     'algorithm.cc',
     'angle.cc',
-    'apollonius.cc',
     'boundingbox.cc',
     'direction.cc',
     'distance.cc',
