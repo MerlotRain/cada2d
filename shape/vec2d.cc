@@ -32,6 +32,42 @@
 namespace cada {
 namespace shape {
 
+//-- this value is not critical, since most common usage should be VERY close to
+// integral
+const double GRIDSIZE_INTEGER_TOLERANCE = 1e-5;
+double snapToInt(double val, double tolerance)
+{
+    double valInt = std::round(val);
+    if (std::abs(val - valInt) < tolerance) {
+        return valInt;
+    }
+    return val;
+}
+
+double makePrecise(double val)
+{
+
+    static double scale = 10000000;
+    scale = snapToInt(scale, GRIDSIZE_INTEGER_TOLERANCE);
+    double gridSize = 1.0 / scale;
+    if (gridSize > 1) {
+        // double v2 = util::round(val / gridSize) * gridSize;
+        // std::cout << std::setprecision(16) << "GS[" << gridSize << "] " <<
+        // val << " -> "  << v2 << std::endl;
+        return Math::round(val / gridSize) * gridSize;
+    }
+    //-- since grid size is <= 1, scale must be >= 1 OR 0
+    //-- if scale == 0, this is a no-op (should never happen)
+    else if (scale != 0.0) {
+        // double v2 = util::round(val * scale) / scale;
+        // std::cout << std::setprecision(16) << "SC[" << scale << "] " << val
+        // << " -> " << "SC " << v2 << std::endl;
+        return Math::round(val * scale) / scale;
+    }
+    // modelType == FLOATING - no rounding necessary
+    return val;
+}
+
 class Vec2dAngleSort {
 public:
     static bool lessThan(const Vec2d &v1, const Vec2d &v2);
@@ -59,9 +95,10 @@ Vec2d::Vec2d() : x(0.0), y(0.0), valid(true)
 {
 }
 
-Vec2d::Vec2d(double vx, double vy, bool valid_in) : x(vx), y(vy)
+Vec2d::Vec2d(double vx, double vy, bool valid_in)
 {
-
+    x = makePrecise(vx);
+    y = makePrecise(vy);
     valid = valid_in && Math::isNormal(x) && Math::isNormal(y);
 }
 

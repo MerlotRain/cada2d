@@ -48,7 +48,7 @@ const ShapeFactory *ShapeFactory::instance()
 
 std::unique_ptr<Point> ShapeFactory::createPoint() const
 {
-    return std::unique_ptr<Point>();
+    return std::unique_ptr<Point>(new Point());
 }
 
 std::unique_ptr<Point> ShapeFactory::createPoint(double x, double y) const

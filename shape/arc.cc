@@ -485,6 +485,8 @@ std::vector<std::unique_ptr<Arc>> Arc::splitAtQuadrantLines() const
 void Arc::moveStartPoint(const Vec2d &pos, bool keepRadius)
 {
     if (!keepRadius) {
+        auto e = getEndPoint();
+        auto m = getMiddlePoint();
         auto a = ShapeFactory::instance()->createArcFrom3Point(
             pos, getMiddlePoint(), getEndPoint());
         if (a->isReversed() != isReversed()) {

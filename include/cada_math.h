@@ -47,6 +47,11 @@ public:
     static bool isNormal(double v);
     static bool isSane(double v);
 
+    static double rad2deg(double a);
+    static double deg2rad(double a);
+    static double rad2gra(double a);
+    static double gra2deg(double a);
+
     static bool isAngleBetween(double a, double a1, double a2, bool reversed);
     static double getNormalizedAngle(double a);
     static double getAngleDifference(double a1, double a2);
@@ -55,9 +60,19 @@ public:
                              double tolerance = DBL_EPSILON);
     static bool fuzzyAngleCompare(double v1, double v2,
                                   double tolerance = DBL_EPSILON);
+
+    static bool isBetween(double value, double limit1, double limit2,
+                          bool inclusive, double tolerance = DBL_EPSILON);
+    static int getGcd(int a, int b);
+    static double getRelativeAngle(double a, double baseAngle);
+    static double makeAngleReadable(double angle, bool readable = true,
+                                    bool *corrected = NULL);
+    static bool isAngleReadable(double angle, double tolerance = 0.01);
     static bool isSameDirection(double dir1, double dir2,
                                 double tol = DBL_EPSILON);
     static int absmod(int a, int b);
+    static double round(double val) { return java_math_round(val); }
+    static double java_math_round(double val);
 };
 
 } // namespace cada

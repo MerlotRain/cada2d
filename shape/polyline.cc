@@ -1623,16 +1623,13 @@ Vec2d Polyline::getCentroid() const
     return Vec2d(centroidX, centroidY);
 }
 
-std::string Arc::to_string() const
+std::string Polyline::to_string() const
 {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(6);
-    ss << "Arc: ";
-    ss << "center: " << mCenter.to_string() << ", ";
-    ss << "radius: " << mRadius << ", ";
-    ss << "startAngle: " << mStartAngle << ", ";
-    ss << "endAngle: " << mEndAngle << ", ";
-    ss << "reversed: " << mReversed;
+    ss << "Polyline: ";
+    ss << "vertices: " << mVertices.size() << ", ";
+    ss << "closed: " << mClosed;
     return ss.str();
 }
 

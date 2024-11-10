@@ -1,0 +1,2 @@
+add_executable(shape_base_method shape_base_method.cpp)
+target_link_libraries(shape_base_method PRIVATE cada2d)

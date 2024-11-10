@@ -334,8 +334,6 @@ public:
     bool isVertical(double tolerance = DBL_EPSILON) const;
     bool isHorizontal(double tolerance = DBL_EPSILON) const;
 
-    void clipTo(const BBox &box);
-
 protected:
     Line();
     Line(double x1, double y1, double x2, double y2);

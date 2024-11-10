@@ -5,7 +5,6 @@ project(cada2d LANGUAGES CXX C)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
-option(BUILD_TESTS "Build tests" TRUE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(Eigen3 REQUIRED)
@@ -23,7 +22,6 @@ set(cada_srcs
     shape/ray.cc
     shape/shape.cc
     shape/shapefactory.cc
-    shape/triangle.cc
     shape/vec2d.cc
     shape/xline.cc
 
@@ -68,3 +66,5 @@ target_include_directories(cada2d PRIVATE
 )
 
 target_link_libraries(cada2d Eigen3::Eigen)
+
+add_subdirectory(examples)
