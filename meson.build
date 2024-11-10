@@ -9,8 +9,11 @@ project(
 
 build_test = get_option('build_test')
 
-eigen_dep = dependency('eigen3', required: true)
+# apo library
+subdir('apollonius') 
 
+eigen_dep = dependency('eigen3', required: true)
+# apo_dep = dependency('apollonius', required: true) 
 inc_dirs = include_directories('include')
 
 subdir('algorithm')
@@ -21,7 +24,7 @@ cada2d_lib = static_library(
     'cada2d',
     shape_src + algorithm_src + index_src,
     include_directories: inc_dirs,
-    dependencies: [eigen_dep],
+    dependencies: [eigen_dep, apo_dep],
     cpp_args: ['-D_USE_MATH_DEFINES'],
 )
 

@@ -43,6 +43,57 @@ typedef struct apo_solution_real_s {
     size_t capacity;
 } apo_solution_real_t;
 
+/* ------------------------- static solve functions ------------------------- */
+
+static int apollonius_solution_from_PPP(apo_object_t *point1,
+                                        apo_object_t *point2,
+                                        apo_object_t *point3,
+                                        apo_solution_real_t *result);
+
+static int apollonius_solution_from_PPC(apo_object_t *point1,
+                                        apo_object_t *point2,
+                                        apo_object_t *circle,
+                                        apo_solution_real_t *result);
+
+static int apollonius_solution_from_PPL(apo_object_t *point1,
+                                        apo_object_t *point2,
+                                        apo_object_t *line,
+                                        apo_solution_real_t *result);
+
+static int apollonius_solution_from_PCC(apo_object_t *point,
+                                        apo_object_t *circle1,
+                                        apo_object_t *circle2,
+                                        apo_solution_real_t *result);
+
+static int apollonius_solution_from_PLL(apo_object_t *point,
+                                        apo_object_t *line1,
+                                        apo_object_t *line2,
+                                        apo_solution_real_t *result);
+
+static int apollonius_solution_from_PLC(apo_object_t *point, apo_object_t *line,
+                                        apo_object_t *circle,
+                                        apo_solution_real_t *result);
+
+static int apollonius_solution_from_LLL(apo_object_t *line1,
+                                        apo_object_t *line2,
+                                        apo_object_t *line3,
+                                        apo_solution_real_t *result);
+
+static int apollonius_solution_from_LLC(apo_object_t *line1,
+                                        apo_object_t *line2,
+                                        apo_object_t *circle,
+                                        apo_solution_real_t *result);
+
+static int apollonius_solution_from_LCC(apo_object_t *line,
+                                        apo_object_t *circle2,
+                                        apo_object_t *circle3,
+                                        apo_solution_real_t *result);
+
+static int apollonius_solution_from_CCC(apo_object_t *circle1,
+                                        apo_object_t *circle2,
+                                        apo_object_t *circle3,
+                                        apo_solution_real_t *result);
+
 /* -------------------- apollonius result real functions -------------------- */
 
 static apo_solution_real_t *apo_solution_real_new()
@@ -239,57 +290,6 @@ void apollonius_solution_free(apollonius_solution *result)
     free(real);
 }
 
-/* ------------------------- static solve functions ------------------------- */
-
-static int apollonius_solution_from_PPP(apo_object_t *point1,
-                                        apo_object_t *point2,
-                                        apo_object_t *point3,
-                                        apo_solution_real_t *result);
-
-static int apollonius_solution_from_PPC(apo_object_t *point1,
-                                        apo_object_t *point2,
-                                        apo_object_t *circle,
-                                        apo_solution_real_t *result);
-
-static int apollonius_solution_from_PPL(apo_object_t *point1,
-                                        apo_object_t *point2,
-                                        apo_object_t *line,
-                                        apo_solution_real_t *result);
-
-static int apollonius_solution_from_PCC(apo_object_t *point,
-                                        apo_object_t *circle1,
-                                        apo_object_t *circle2,
-                                        apo_solution_real_t *result);
-
-static int apollonius_solution_from_PLL(apo_object_t *point,
-                                        apo_object_t *line1,
-                                        apo_object_t *line2,
-                                        apo_solution_real_t *result);
-
-static int apollonius_solution_from_PLC(apo_object_t *point, apo_object_t *line,
-                                        apo_object_t *circle,
-                                        apo_solution_real_t *result);
-
-static int apollonius_solution_from_LLL(apo_object_t *line1,
-                                        apo_object_t *line2,
-                                        apo_object_t *line3,
-                                        apo_solution_real_t *result);
-
-static int apollonius_solution_from_LLC(apo_object_t *line1,
-                                        apo_object_t *line2,
-                                        apo_object_t *circle,
-                                        apo_solution_real_t *result);
-
-static int apollonius_solution_from_LCC(apo_object_t *line,
-                                        apo_object_t *circle2,
-                                        apo_object_t *circle3,
-                                        apo_solution_real_t *result);
-
-static int apollonius_solution_from_CCC(apo_object_t *circle1,
-                                        apo_object_t *circle2,
-                                        apo_object_t *circle3,
-                                        apo_solution_real_t *result);
-
 /* --------------------------------- solves --------------------------------- */
 
 int apollonius_solution_from_PPP(apo_object_t *point1, apo_object_t *point2,
@@ -321,7 +321,7 @@ int apollonius_solution_from_PPC(apo_object_t *point1, apo_object_t *point2,
         return -1;
     }
 
-        return -1;
+    return -1;
 }
 
 int apollonius_solution_from_PPL(apo_object_t *point1, apo_object_t *point2,

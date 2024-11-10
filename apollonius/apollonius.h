@@ -30,7 +30,7 @@ typedef struct apollonius_circle {
 } apollonius_circle;
 
 typedef struct apollonius_solution {
-    size_t count;
+    unsigned int count;
     apollonius_circle *circles;
 } apollonius_solution;
 
