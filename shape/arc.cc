@@ -568,8 +568,8 @@ std::string Arc::to_string() const
     ss << "Arc: ";
     ss << "center: " << mCenter.to_string() << ", ";
     ss << "radius: " << mRadius << ", ";
-    ss << "startAngle: " << mStartAngle << ", ";
-    ss << "endAngle: " << mEndAngle << ", ";
+    ss << "startAngle: " << Math::rad2deg(mStartAngle) << ", ";
+    ss << "endAngle: " << Math::rad2deg(mEndAngle) << ", ";
     ss << std::boolalpha << "reversed: " << mReversed;
     return ss.str();
 }

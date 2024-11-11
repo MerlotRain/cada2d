@@ -22,13 +22,14 @@
 
 #include "apo.h"
 #include <math.h>
+#include <assert.h>
 
 double pt_magnitude(const apo_point_t p)
 {
     return sqrt(p.x * p.x + p.y * p.y);
 }
 
-apo_point_t pt_create_polar(double r, double ang)
+apo_point_t apo_create_point_from_polar(double r, double ang)
 {
     return (apo_point_t){
         .x = r * cos(ang),
@@ -77,6 +78,19 @@ double pt_angle(const apo_point_t p)
     return ret;
 }
 
+double pt_dot_product(const apo_point_t p1, const apo_point_t p2)
+{
+    return p1.x * p2.x + p1.y * p2.y;
+}
+
+void pt_set_maguitude(apo_point_t *u, double r)
+{
+    assert(u);
+    double a = pt_angle(*u);
+    u->x = r * cos(a);
+    u->y = r * sin(a);
+}
+
 apo_point_t pt_sub(const apo_point_t a, const apo_point_t b)
 {
     return (apo_point_t){
@@ -91,4 +105,40 @@ apo_point_t pt_add(const apo_point_t a, const apo_point_t b)
         .x = a.x + b.x,
         .y = a.y + b.y,
     };
+}
+
+apo_point_t pt_mul(const apo_point_t p, const double s)
+{
+    return (apo_point_t){
+        .x = p.x * s,
+        .y = p.y * s,
+    };
+}
+
+boolean pt_on_line(const apo_line_t l, const apo_point_t p, boolean limited)
+{
+    apo_point_t vt;
+    if (!apo_line_closest_point(l, p, limited, &vt)) {
+        return APO_FALSE;
+    }
+
+    double vtm = pt_magnitude(vt);
+    if (vtm < 1.0e-4) {
+        return APO_TRUE;
+    }
+    return APO_FALSE;
+}
+
+boolean pt_on_circle(const apo_circle_t c, const apo_point_t p)
+{
+    return APO_FALSE;
+}
+
+boolean pt_equal(const apo_point_t p1, const apo_point_t p2)
+{
+    if (fabs(p1.x - p2.x) < APO_TOLERANCE &&
+        fabs(p1.y - p2.y) < APO_TOLERANCE) {
+        return APO_TRUE;
+    }
+    return APO_FALSE;
 }

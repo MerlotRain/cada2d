@@ -66,7 +66,7 @@ public:
     static int getGcd(int a, int b);
     static double getRelativeAngle(double a, double baseAngle);
     static double makeAngleReadable(double angle, bool readable = true,
-                                    bool *corrected = NULL);
+                                    bool *corrected = nullptr);
     static bool isAngleReadable(double angle, double tolerance = 0.01);
     static bool isSameDirection(double dir1, double dir2,
                                 double tol = DBL_EPSILON);

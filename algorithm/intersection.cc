@@ -735,11 +735,11 @@ std::vector<Vec2d> cada_getIntersectionPointsLL(const Line *line1,
     assert(line2);
     std::vector<Vec2d> res;
     double a1 = line1->getEndPoint().y - line1->getStartPoint().y;
-    double b1 = line1->getEndPoint().x - line1->getStartPoint().x;
+    double b1 = line1->getStartPoint().x - line1->getEndPoint().x;
     double c1 = a1 * line1->getStartPoint().x + b1 * line1->getStartPoint().y;
 
     double a2 = line2->getEndPoint().y - line2->getStartPoint().y;
-    double b2 = line2->getEndPoint().x - line2->getStartPoint().x;
+    double b2 = line2->getStartPoint().x - line2->getEndPoint().x;
     double c2 = a2 * line2->getStartPoint().x + b2 * line2->getStartPoint().y;
 
     double det = a1 * b2 - a2 * b1;

@@ -23,9 +23,10 @@
 #include "apo.h"
 #include <stddef.h>
 #include <math.h>
+#include <float.h>
 
-int intersection_ll(const apo_line_t l1, const apo_line_t l2, int limited,
-                    apo_point_t *ret)
+boolean apo_intersection_ll(const apo_line_t l1, const apo_line_t l2,
+                            boolean limited, apo_point_t *ret)
 {
     double a1 = l1.end_point.y - l1.begin_point.y;
     double b1 = l1.begin_point.x - l1.end_point.x;
@@ -37,7 +38,7 @@ int intersection_ll(const apo_line_t l1, const apo_line_t l2, int limited,
 
     double det = a1 * b2 - a2 * b1;
     if (fabs(det) < 1.0e-6) {
-        return -1;
+        return APO_FALSE;
     }
     else {
         apo_point_t v;
@@ -45,32 +46,63 @@ int intersection_ll(const apo_line_t l1, const apo_line_t l2, int limited,
         v.x = (b2 * c1 - b1 * c2) / det;
         v.y = (a1 * c2 - a2 * c1) / det;
 
-        if ((!limited || 0 == pt_on_line(l1, v)) &&
-            (!limited || 0 == pt_on_line(l2, v))) {
+        if ((!limited || 0 == pt_on_line(l1, v, limited)) &&
+            (!limited || 0 == pt_on_line(l2, v, limited))) {
 
             ret->x = v.x;
             ret->y = v.y;
-            return 0;
+            return APO_TRUE;
         }
     }
-    return -1;
+    return APO_FALSE;
 }
 
-int pt_on_line(const apo_line_t l, const apo_point_t p)
+static apo_point_t pt_closest_to_line_end(const apo_line_t l,
+                                          const apo_point_t p)
 {
-    float cross_product =
-        (p.y - l.begin_point.y) * (l.end_point.x - l.begin_point.x) -
-        (p.x - l.begin_point.x) * (l.end_point.y - l.begin_point.y);
-    if (cross_product != 0) {
-        return -1;
+    double d1 = pt_distance(l.begin_point, p);
+    double d2 = pt_distance(l.end_point, p);
+    return d1 > d2 ? l.end_point : l.begin_point;
+}
+
+boolean apo_line_closest_point(const apo_line_t l, const apo_point_t p,
+                               boolean limited, apo_point_t *closest)
+{
+    apo_point_t ae = pt_sub(l.end_point, l.begin_point);
+    apo_point_t ap = pt_sub(p, l.begin_point);
+
+    if (pt_magnitude(ae) < 1.0e-6) {
+        return APO_FALSE;
+    }
+    if (pt_magnitude(ap) < 1.0e-6) {
+        closest->x = 0.0;
+        closest->y = 0.0;
+        return APO_TRUE;
     }
 
-    if (p.x < fmin(l.begin_point.x, l.end_point.x) ||
-        p.x > fmax(l.begin_point.x, l.end_point.x) ||
-        p.y < fmin(l.begin_point.y, l.end_point.y) ||
-        p.y > fmax(l.begin_point.y, l.end_point.y)) {
-        return -1;
+    double b = pt_dot_product(ap, ae) / pt_dot_product(ae, ae);
+    if (limited && (b < 0 || b > 1.0)) {
+        *closest = pt_closest_to_line_end(l, p);
+        if (pt_magnitude(*closest) < DBL_MAX) {
+            return APO_TRUE;
+        }
+        else {
+            return APO_FALSE;
+        }
     }
 
-    return 0;
+    apo_point_t closest_point = pt_add(l.begin_point, pt_mul(ae, b));
+    *closest = pt_sub(p, closest_point);
+    return APO_TRUE;
+}
+
+boolean apo_intersection_lc(const apo_line_t l, const apo_circle_t c,
+                            boolean limited, apo_point_t *rets, int *ret_size)
+{
+    return APO_FALSE;
+}
+
+double apo_line_angle(const apo_line_t l)
+{
+    return pt_angle_to(l.begin_point, l.end_point);
 }
