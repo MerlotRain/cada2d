@@ -128,7 +128,7 @@ typedef struct apo_object_s {
     {                                            \
         .type = APOLLONIUS_LINE_TYPE, .line = l, \
     }
-#define APO_LINE_OBJ2(l, B, E)        \
+#define APO_LINE_OBJ2(B, E)           \
     (apo_object_t)                    \
     {                                 \
         .type = APOLLONIUS_LINE_TYPE, \
@@ -142,7 +142,7 @@ typedef struct apo_object_s {
     {                                                             \
         .type = APOLLONIUS_LINE_TYPE, .line = APO_LINE3(B, A, D), \
     }
-#define APO_LINE_OBJ4(l, A, B, C, D)  \
+#define APO_LINE_OBJ4(A, B, C, D)     \
     (apo_object_t)                    \
     {                                 \
         .type = APOLLONIUS_LINE_TYPE, \
