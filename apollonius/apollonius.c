@@ -138,7 +138,6 @@ static void apo_solution_real_append(apo_solution_real_t *result,
         }
         result->capacity *= APOLLONIUS_CIRCLE_EXPAND_FACTOR;
     }
-    result->count++;
     result->circle_objs[result->count++] = circle;
 }
 
