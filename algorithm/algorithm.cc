@@ -125,6 +125,7 @@ round_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
 std::unique_ptr<shape::Shape> lengthen(const shape::Shape *shape,
                                        const shape::Vec2d &position,
                                        bool trim_start, double amount);
+
 std::vector<std::unique_ptr<Circle>> apollonius_solutions(const Shape *shape1,
                                                           const Shape *shape2,
                                                           const Shape *shape3);

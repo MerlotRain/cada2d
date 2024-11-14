@@ -73,13 +73,16 @@ typedef struct apo_object_s {
     {                   \
         .x = X, .y = Y, \
     }
+
 #define APO_LINE(B, E)                    \
     (apo_line_t)                          \
     {                                     \
         .begin_point = B, .end_point = E, \
     }
+
 #define APO_LINE3(B, A, D) \
     APO_LINE(B, pt_add(B, apo_create_point_from_polar(A, D)))
+
 #define APO_LINE4(A, B, C, D)       \
     (apo_line_t)                    \
     {                               \
@@ -93,11 +96,13 @@ typedef struct apo_object_s {
             .y = D,                 \
         },                          \
     }
+
 #define APO_CIRCLE(C, R)          \
     (apo_circle_t)                \
     {                             \
         .center = C, .radius = R, \
     }
+
 #define APO_CIRCLE2(X, Y, R) \
     (apo_circle_t)           \
     {                        \
@@ -114,6 +119,7 @@ typedef struct apo_object_s {
     {                                              \
         .type = APOLLONIUS_POINT_TYPE, .point = p, \
     }
+
 #define APO_POINT_OBJ2(X, Y)           \
     (apo_object_t)                     \
     {                                  \
@@ -123,11 +129,13 @@ typedef struct apo_object_s {
             .y = Y,                    \
         },                             \
     }
+
 #define APO_LINE_OBJ(l)                          \
     (apo_object_t)                               \
     {                                            \
         .type = APOLLONIUS_LINE_TYPE, .line = l, \
     }
+
 #define APO_LINE_OBJ2(B, E)           \
     (apo_object_t)                    \
     {                                 \
@@ -137,11 +145,13 @@ typedef struct apo_object_s {
             .end_point = E,           \
         },                            \
     }
+
 #define APO_LINE_OBJ3(B, A, D)                                    \
     (apo_object_t)                                                \
     {                                                             \
         .type = APOLLONIUS_LINE_TYPE, .line = APO_LINE3(B, A, D), \
     }
+
 #define APO_LINE_OBJ4(A, B, C, D)     \
     (apo_object_t)                    \
     {                                 \
@@ -159,11 +169,13 @@ typedef struct apo_object_s {
                 },                    \
         },                            \
     }
+
 #define APO_CIRCLE_OBJ(c)                            \
     (apo_object_t)                                   \
     {                                                \
         .type = APOLLONIUS_CIRCLE_TYPE, .circle = c, \
     }
+
 #define APO_CIRCLE_OBJ2(C, R)           \
     (apo_object_t)                      \
     {                                   \
@@ -173,6 +185,7 @@ typedef struct apo_object_s {
             .radius = R,                \
         },                              \
     }
+
 #define APO_CIRCLE_OBJ3(X, Y, R)        \
     (apo_object_t)                      \
     {                                   \
@@ -202,6 +215,8 @@ extern apo_point_t pt_average(const apo_point_t a, const apo_point_t b);
 extern double pt_distance(const apo_point_t a, const apo_point_t b);
 extern double pt_angle_to(const apo_point_t a, const apo_point_t b);
 extern double pt_angle(const apo_point_t p);
+extern apo_point_t pt_rotate(const apo_point_t p, double rotation,
+                             const apo_point_t center);
 extern double pt_dot_product(const apo_point_t p1, const apo_point_t p2);
 extern void pt_set_maguitude(apo_point_t *u, double r);
 
@@ -227,6 +242,11 @@ extern boolean apo_line_closest_point(const apo_line_t l, const apo_point_t p,
                                       boolean limited, apo_point_t *closest);
 
 extern double apo_line_angle(const apo_line_t l);
+extern apo_point_t apo_line_middle_point(const apo_line_t l);
+extern void apo_set_line_length(apo_line_t *l, double length,
+                                boolean from_start);
+extern void apo_set_line_rotate(apo_line_t *l, double angle,
+                                const apo_point_t center);
 /* ------------------------------- apo circle ------------------------------- */
 extern boolean apo_circle_contains_point(const apo_circle_t circle,
                                          const apo_point_t p);

@@ -29,21 +29,46 @@ typedef struct apollonius_circle {
     double r;
 } apollonius_circle;
 
+/*
+ * apollonius problem solution
+ */
 typedef struct apollonius_solution {
-    unsigned int count;
-    apollonius_circle *circles;
+    unsigned int count;         // circle count
+    apollonius_circle *circles; // circle array
 } apollonius_solution;
 
+/**
+ * @brief apollonius problem object
+ *
+ * This problem describes solving all circles obtained by plotting three
+ * elements (any combination of points, lines, and circles) in a plane.
+ *
+ */
 typedef struct apollonius_s apollonius_t;
 
 apollonius_t *apollonius_init();
 void apollonius_free(apollonius_t *apo);
 
+/**
+ * @brief add a point object
+ * @return 1: add success; 0: add failure
+ */
 int apollonius_add_point(apollonius_t *apo, double x, double y);
+/**
+ * @brief add a line object
+ * @return 1: add success; 0: add failure
+ */
 int apollonius_add_line(apollonius_t *apo, double x1, double y1, double x2,
                         double y2);
+/**
+ * @brief add a circle object
+ * @return 1: add success; 0: add failure
+ */
 int apollonius_add_circle(apollonius_t *apo, double cx, double cy, double r);
-
+/**
+ * @brief claculate solution circles
+ * @return 1: add success; 0: add failure
+ */
 int apollonius_solve(apollonius_t *apo, apollonius_solution **result);
 void apollonius_solution_free(apollonius_solution *result);
 

@@ -10,10 +10,11 @@ project(
 build_test = get_option('build_test')
 
 # apo library
-subdir('apollonius') 
+subdir('apollonius')
+subdir('polyline')
 
 eigen_dep = dependency('eigen3', required: true)
-# apo_dep = dependency('apollonius', required: true) 
+# apo_dep = dependency('apollonius', required: true)
 inc_dirs = include_directories('include')
 
 subdir('algorithm')

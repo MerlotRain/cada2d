@@ -54,6 +54,9 @@ static void apo_circle_tangents_through_point(const apo_circle_t circle,
                                               apo_line_t *lines,
                                               int *line_size);
 
+static void apo_tangents(const apo_object_t *obj1, const apo_object_t *obj2,
+                         apo_line_t *lines, int *line_size);
+
 static boolean apollonius_solution_from_PPP(apo_object_t *point1,
                                             apo_object_t *point2,
                                             apo_object_t *point3,
@@ -337,7 +340,7 @@ boolean apo_inverse_shape(const apo_object_t *shp,
             center.y + (shp->point.y - center.y) * d_inverse / d);
         return APO_TRUE;
     }
-
+    // line inverse
     if (APOLLONIUS_IS_LINE(shp)) {
         apo_point_t center = inversion_circle->circle.center;
         // A “line” that passes through O is inverted to itself. Note, of course
@@ -353,7 +356,7 @@ boolean apo_inverse_shape(const apo_object_t *shp,
             apo_line_t s;
             s.begin_point = center;
             apo_line_closest_point(shp->line, center, APO_FALSE, &s.end_point);
-
+            // intersection_points from shp.line and s
             apo_point_t p;
             if (apo_intersection_ll(shp->line, s, APO_FALSE, &p)) {
                 apo_object_t pinverse;
@@ -425,11 +428,16 @@ boolean apo_inverse_shape(const apo_object_t *shp,
                                    &p1inverse)) {
                 return APO_FALSE;
             }
+            if (!apo_inverse_shape(&(APO_POINT_OBJ(p2)), inversion_circle,
+                                   &p2inverse)) {
+                return APO_FALSE;
+            }
             *inversed = APO_CIRCLE_OBJ(apo_create_circle_from_2point(
                 p1inverse.point, p2inverse.point));
             return APO_TRUE;
         }
     }
+
     return APO_FALSE;
 }
 
@@ -469,6 +477,57 @@ void apo_circle_tangents_through_point(const apo_circle_t circle,
             lines[0] = APO_LINE(p, touching_points[0]);
             lines[1] = APO_LINE(p, touching_points[1]);
             *line_size = 2;
+        }
+    }
+}
+
+void apo_tangents(const apo_object_t *obj1, const apo_object_t *obj2,
+                  apo_line_t *lines, int *line_size)
+{
+    assert(obj1);
+    assert(obj2);
+
+    if (APOLLONIUS_IS_CIRCLE(obj1) && APOLLONIUS_IS_CIRCLE(obj2)) {
+        apo_circle_t c1 = obj1->circle;
+        apo_circle_t c2 = obj2->circle;
+        if (obj1->circle.radius < APO_TOLERANCE) {
+            c1.radius = 0.0;
+        }
+        if (obj2->circle.radius < APO_TOLERANCE) {
+            c2.radius = 0.0;
+        }
+        if (c1.radius > c2.radius) {
+            apo_circle_t tmp = c1;
+            c1 = c2;
+            c2 = tmp;
+        }
+
+        double c1Radius = c1.radius;
+        double c2Radius = c2.radius;
+        apo_point_t c1Center = c1.center;
+        apo_point_t c2Center = c2.center;
+
+        double dc1c2 = pt_distance(c1Center, c2Center);
+        if (dc1c2 < 1.0e-6)
+            return;
+
+        // internally touching circles:
+        if (fabs(dc1c2 + c1Radius - c2Radius) < APO_TOLERANCE) {
+            apo_line_t tangent = APO_LINE(c2Center, c1Center);
+            // with 2 radii larger than zero:
+            if (c1Radius > 0.0) {
+                apo_set_line_length(&tangent, (dc1c2 + c1Radius) * 2.0,
+                                    APO_TRUE);
+            }
+            else {
+                apo_set_line_length(&tangent, c2Radius * 2, APO_TRUE);
+            }
+            apo_set_line_rotate(&tangent, M_PI / 2.0,
+                                apo_line_middle_point(tangent));
+
+            lines[0] = tangent;
+            *line_size = 1;
+            return;
         }
     }
 }
@@ -526,7 +585,7 @@ boolean apollonius_solution_from_PPC(apo_object_t *point1, apo_object_t *point2,
 
     apo_object_t inversion_cirlce;
     inversion_cirlce.type = APOLLONIUS_CIRCLE_TYPE;
-    inversion_cirlce.circle.center = p2;
+    inversion_cirlce.circle.center = p1;
     inversion_cirlce.circle.radius = 10.0;
     apo_object_t circle_inverse;
     apo_object_t point2_inverse;
@@ -539,8 +598,15 @@ boolean apollonius_solution_from_PPC(apo_object_t *point1, apo_object_t *point2,
     int lines_size = 0;
     apo_circle_tangents_through_point(circle_inverse.circle,
                                       point2_inverse.point, lines, &lines_size);
-
-    // return
+    for (int i = 0; i < lines_size; ++i) {
+        apo_object_t res_circle;
+        apo_inverse_shape(&(APO_LINE_OBJ(lines[i])), &inversion_cirlce,
+                          &res_circle);
+        apo_solution_real_append(
+            result, (apollonius_circle){.cx = res_circle.circle.center.x,
+                                        .cy = res_circle.circle.center.y,
+                                        .r = res_circle.circle.radius});
+    }
     return APO_TRUE;
 
 point_on_circle: {
@@ -563,14 +629,65 @@ boolean apollonius_solution_from_PPL(apo_object_t *point1, apo_object_t *point2,
                                      apo_object_t *line,
                                      apo_solution_real_t *result)
 {
-    return APO_FALSE;
+    if (!APOLLONIUS_IS_POINT(point1) || !APOLLONIUS_IS_POINT(point2) ||
+        !APOLLONIUS_IS_LINE(line))
+        return APO_FALSE;
+
+    if (pt_on_line(line->line, point1->point, APO_TRUE)) {
+        apo_point_t tmp = point1->point;
+        point1->point = point2->point;
+        point2->point = tmp;
+        if (pt_on_line(line->line, point1->point, APO_TRUE)) {
+            return APO_FALSE;
+        }
+    }
+
+    apo_object_t inversion_cirlce = APO_CIRCLE_OBJ2(point1->point, 10);
+    apo_object_t line_inverse;
+    apo_object_t point2_inverse;
+    if (0 != apo_inverse_shape(line, &inversion_cirlce, &line_inverse) ||
+        0 != apo_inverse_shape(point2, &inversion_cirlce, &point2_inverse)) {
+        return APO_FALSE;
+    }
+
+    apo_line_t lines[2];
+    int lines_size = 0;
+    apo_circle_tangents_through_point(line_inverse.circle, point2_inverse.point,
+                                      lines, &lines_size);
+    for (int i = 0; i < lines_size; ++i) {
+        apo_object_t res_circle;
+        apo_inverse_shape(&(APO_LINE_OBJ(lines[i])), &inversion_cirlce,
+                          &res_circle);
+        apo_solution_real_append(
+            result, (apollonius_circle){.cx = res_circle.circle.center.x,
+                                        .cy = res_circle.circle.center.y,
+                                        .r = res_circle.circle.radius});
+    }
+    return APO_TRUE;
 }
 
 boolean apollonius_solution_from_PCC(apo_object_t *point, apo_object_t *circle1,
                                      apo_object_t *circle2,
                                      apo_solution_real_t *result)
 {
-    return APO_FALSE;
+    if (!APOLLONIUS_IS_POINT(point) || !APOLLONIUS_IS_CIRCLE(circle1) ||
+        !APOLLONIUS_IS_CIRCLE(circle2))
+        return APO_FALSE;
+
+    // relative sized inversion circle:
+    double r_inv = circle1->circle.radius;
+    if (circle2->circle.radius > circle1->circle.radius) {
+        r_inv = circle2->circle.radius;
+    }
+    apo_object_t inversion_circle = APO_CIRCLE_OBJ2(point->point, r_inv);
+
+    // construct inversion shape:
+    apo_object_t c1inverse;
+    apo_object_t c2inverse;
+    if (!apo_inverse_shape(circle1, &inversion_circle, &c1inverse) ||
+        !apo_inverse_shape(circle2, &inversion_circle, &c2inverse)) {
+        return APO_FALSE;
+    }
 }
 
 boolean apollonius_solution_from_PLL(apo_object_t *point, apo_object_t *line1,

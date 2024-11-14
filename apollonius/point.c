@@ -142,3 +142,16 @@ boolean pt_equal(const apo_point_t p1, const apo_point_t p2)
     }
     return APO_FALSE;
 }
+
+apo_point_t pt_rotate(const apo_point_t p, double rotation,
+                      const apo_point_t center)
+{
+    double r = pt_magnitude(p);
+    double a = pt_angle(p) + rotation;
+
+    double x = cos(a) * r;
+    double y = sin(a) * r;
+    x = x <= APO_TOLERANCE ? 0.0 : x;
+    y = y <= APO_TOLERANCE ? 0.0 : y;
+    return APO_POINT(x, y);
+}

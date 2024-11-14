@@ -106,3 +106,31 @@ double apo_line_angle(const apo_line_t l)
 {
     return pt_angle_to(l.begin_point, l.end_point);
 }
+
+apo_point_t apo_line_middle_point(const apo_line_t l)
+{
+    return pt_average(l.begin_point, l.end_point);
+}
+
+void apo_set_line_length(apo_line_t *l, double length, boolean from_start)
+{
+    if (from_start) {
+        l->end_point =
+            pt_add(l->begin_point,
+                   apo_create_point_from_polar(length, apo_line_angle(*l)));
+    }
+    else {
+        l->begin_point =
+            pt_sub(l->end_point,
+                   apo_create_point_from_polar(length, apo_line_angle(*l)));
+    }
+}
+
+void apo_set_line_rotate(apo_line_t *l, double angle, const apo_point_t center)
+{
+    if (angle < APO_TOLERANCE)
+        return;
+
+    l->begin_point = pt_rotate(l->begin_point, angle, center);
+    l->end_point = pt_rotate(l->end_point, angle, center);
+}
