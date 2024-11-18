@@ -38,11 +38,11 @@ typedef struct vertex_s {
 typedef struct polyline_s polyline_t;
 
 polyline_t *polyline_create();
-void polyline_free(polyline_t *t);
+void polyline_free(polyline_t *pline);
 
-int polyline_append_vertex(polyline_t *poly, const vertex_t v);
-vertex_t polyline_vertex_at(polyline_t *poly, size_t index);
-size_t polyline_size(const polyline_t *poly);
+int polyline_append_vertex(polyline_t *pline, vertex_t v);
+vertex_t polyline_vertex_at(const polyline_t *pline, size_t index);
+size_t polyline_size(const polyline_t *pline);
 
 polyline_t **polyline_parallel_offset(const polyline_t *pline, double offset,
                                       int hasSelfIntersects, int *res_size);
