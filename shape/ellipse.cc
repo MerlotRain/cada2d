@@ -569,7 +569,53 @@ Vec2d Ellipse::getTangentPoint(const Line *line) const
 
 std::unique_ptr<Polyline> Ellipse::approximateWithArcs(int segments) const
 {
-    return std::unique_ptr<Polyline>();
+    std::vector<Vec2d> vertices;
+    assert(segments >= 2);
+
+    double beta = mMajorPoint.getAngle();
+    double sinBeta = std::sin(beta);
+    double cosBeta = std::cos(beta);
+    double start;
+    double end;
+    double steps;
+
+    double majorAxis = 2 * mMajorPoint.getMagnitude();
+    double minorAxis = majorAxis * mRatio;
+    if (isFullEllipse()) {
+        start = 0;
+        end = M_PI * 2;
+        steps = segments;
+    }
+    else {
+        Vec2d startPoint = getStartPoint();
+        Vec2d endPoint = getEndPoint();
+        double a = 1.0 / (0.5 * majorAxis);
+        double b = 1.0 / (0.5 * minorAxis);
+        start = atan2(startPoint.y * b, startPoint.x * a);
+        end = atan2(endPoint.y * b, endPoint.x * a);
+
+        if (end < start) {
+            end += (M_PI * 2);
+        }
+        steps = segments - 1;
+    }
+
+    double delta = (end - start) / steps;
+
+    for (int i = 0; i < segments; ++i) {
+        double angle = start + delta * i;
+        double sinAlpha = std::sin(angle);
+        double cosAlpha = std::cos(angle);
+
+        double pointX = 0.5 * (majorAxis * cosAlpha * cosBeta -
+                               minorAxis * sinAlpha * sinBeta);
+        double pointY = 0.5 * (majorAxis * cosAlpha * sinBeta -
+                               minorAxis * sinAlpha * cosBeta);
+
+        vertices.push_back(Vec2d(pointX, pointY));
+    }
+
+    return ShapeFactory::instance()->createPolyline(std::move(vertices), false);
 }
 
 void Ellipse::moveStartPoint(const Vec2d &pos, bool changeAngleOnly)

@@ -1,5 +1,6 @@
 #include "polyline.h"
 #include "arraylist.h"
+#include "quickindex.h"
 
 #include <stddef.h>
 #include <stdlib.h>
