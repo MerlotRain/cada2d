@@ -13,19 +13,16 @@ build_test = get_option('build_test')
 subdir('apollonius')
 subdir('polyline')
 
-eigen_dep = dependency('eigen3', required: true)
-# apo_dep = dependency('apollonius', required: true)
 inc_dirs = include_directories('include')
 
 subdir('algorithm')
 subdir('shape')
-subdir('index')
 
 cada2d_lib = static_library(
     'cada2d',
-    shape_src + algorithm_src + index_src,
+    shape_src + algorithm_src,
     include_directories: inc_dirs,
-    dependencies: [eigen_dep, apo_dep, polyline_dep],
+    dependencies: [apo_dep, polyline_dep],
     cpp_args: ['-D_USE_MATH_DEFINES'],
 )
 

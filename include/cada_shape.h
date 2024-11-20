@@ -953,6 +953,7 @@ public:
     std::unique_ptr<Ellipse>
     createEllipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
                   double startParam, double endParam, bool reversed) const;
+    // http://chrisjones.id.au/Ellipses/ellipse.html
     std::unique_ptr<Ellipse>
     createEllipseFromInscribed(const Vec2d &p1, const Vec2d &p2,
                                const Vec2d &p3, const Vec2d &p4,

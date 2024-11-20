@@ -345,6 +345,57 @@ double Math::java_math_round(double val)
             return n;
         }
     }
-} // java_math_round
+}
+
+bool Math::linearSolver(const std::vector<std::vector<double>> &mt,
+                        std::vector<double> &sn)
+{
+    // verify the matrix size
+    size_t mSize = mt.size(); // rows
+    size_t aSize(mSize + 1);  // columns of augmented matrix
+    if (std::any_of(mt.begin(), mt.end(),
+                    [&aSize](const std::vector<double> &v) -> bool {
+                        return v.size() != aSize;
+                    }))
+        return false;
+    sn.resize(mSize); // to hold the solution
+
+    // solve the linear equation by Gauss-Jordan elimination
+    std::vector<std::vector<double>> mt0(mt); // copy the matrix;
+    for (size_t i = 0; i < mSize; ++i) {
+        size_t imax(i);
+        double cmax(fabs(mt0[i][i]));
+        for (size_t j = i + 1; j < mSize; ++j) {
+            if (fabs(mt0[j][i]) > cmax) {
+                imax = j;
+                cmax = fabs(mt0[j][i]);
+            }
+        }
+        if (cmax < 1.0e-20)
+            return false; // singular matrix
+        if (imax != i) {  // move the line with largest absolute value at column
+                          // i to row i, to avoid division by zero
+            std::swap(mt0[i], mt0[imax]);
+        }
+        for (size_t k = i + 1; k <= mSize; ++k) { // normalize the i-th row
+            mt0[i][k] /= mt0[i][i];
+        }
+        mt0[i][i] = 1.;
+        for (size_t j = 0; j < mSize; ++j) { // Gauss-Jordan
+            if (j != i) {
+                double &a = mt0[j][i];
+                for (size_t k = i + 1; k <= mSize; ++k) {
+                    mt0[j][k] -= mt0[i][k] * a;
+                }
+                a = 0.;
+            }
+        }
+    }
+    for (size_t i = 0; i < mSize; ++i) {
+        sn[i] = mt0[i][mSize];
+    }
+
+    return true;
+}
 
 } // namespace cada

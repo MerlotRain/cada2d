@@ -1,1 +1,0 @@
-index_src = files('rtree.c')

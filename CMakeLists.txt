@@ -8,8 +8,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-find_package(Eigen3 REQUIRED)
-
 set(cada_srcs
     shape/arc.cc
     shape/bbox.cc
@@ -51,8 +49,6 @@ set(cada_srcs
     algorithm/trim.cc
     algorithm/vectorto.cc
 
-    index/rtree.c
-
     apollonius/apollonius.c
     apollonius/circle.c
     apollonius/line.c
@@ -74,7 +70,5 @@ target_include_directories(cada2d PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/algorithm
 )
-
-target_link_libraries(cada2d Eigen3::Eigen)
 
 add_subdirectory(examples)

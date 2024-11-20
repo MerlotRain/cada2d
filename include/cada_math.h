@@ -25,6 +25,7 @@
 
 #include <float.h>
 #include <math.h>
+#include <vector>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846 // pi
@@ -73,6 +74,9 @@ public:
     static int absmod(int a, int b);
     static double round(double val) { return java_math_round(val); }
     static double java_math_round(double val);
+
+    static bool linearSolver(const std::vector<std::vector<double>> &mt,
+                             std::vector<double> &sn);
 };
 
 } // namespace cada

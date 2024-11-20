@@ -140,11 +140,79 @@ bool cada_scale(shape::Shape *shape, const shape::Vec2d &scaleFactors,
     return false;
 }
 
-std::unique_ptr<Shape> cada_arc_scale_new(const shape::Shape *arc,
-                                          const shape::Vec2d &scaleFactors,
-                                          const shape::Vec2d &c)
+std::unique_ptr<shape::Shape>
+cada__ellipse_to_arc_circle_ellipse(const Ellipse *ellipse)
 {
-    return std::unique_ptr<Shape>();
+    assert(ellipse);
+    if (ellipse->isCircular()) {
+        if (ellipse->isFullEllipse()) {
+            return ShapeFactory::instance()->createCircle(
+                ellipse->getCenter(), ellipse->getMajorRadius());
+        }
+        else {
+
+            Vec2d c = ellipse->getCenter();
+            auto ret = ShapeFactory::instance()->createArc(
+                c, ellipse->getMajorRadius(),
+                0.0, 2 * M_PI, ellipse->isReversed());
+            ret->setStartAngle(c.getAngleTo(ellipse->getStartPoint()));
+            ret->setEndAngle(c.getAngleTo(ellipse->getEndPoint()));
+            return ret;
+        }
+    }
+    else {
+        return ellipse->clone();
+    }
+}
+
+std::unique_ptr<Shape> cada_arc_scale_new(const shape::Shape *shp,
+                                          const shape::Vec2d &scaleFactors,
+                                          const shape::Vec2d &center)
+{
+    assert(shp);
+    const shape::Arc *arc = dynamic_cast<const shape::Arc *>(shp);
+
+    Vec2d r1 = Vec2d(arc->getRadius(), 0);
+    Vec2d r2 = Vec2d(0, arc->getRadius());
+    Vec2d c = arc->getCenter();
+
+    // corners of bounding box of untransformed arc:
+    Vec2d v1 = c + r1 + r2;
+    Vec2d v2 = c + r1 - r2;
+    Vec2d v3 = c - r1 - r2;
+    Vec2d v4 = c - r1 + r2;
+
+    // transform conrners:
+    v1 = v1.getScaled(scaleFactors, center);
+    v2 = v2.getScaled(scaleFactors, center);
+    v3 = v3.getScaled(scaleFactors, center);
+    v4 = v4.getScaled(scaleFactors, center);
+
+    auto &&ellipse =
+        ShapeFactory::instance()->createEllipseFromInscribed(v1, v2, v3, v4);
+
+    {
+        Vec2d sp = shp->getStartPoint();
+        Vec2d ep = shp->getEndPoint();
+        Vec2d mp = shp->getMiddlePoint();
+
+        sp = sp.getScaled(scaleFactors, center);
+        ep = ep.getScaled(scaleFactors, center);
+        mp = mp.getScaled(scaleFactors, center);
+
+        ellipse->setStartParam(ellipse->getParamTo(sp));
+        ellipse->setEndParam(ellipse->getParamTo(ep));
+
+        double d1 = ellipse->getMiddlePoint().getDistanceTo(mp);
+        ellipse->setReversed(true);
+        double d2 = ellipse->getMiddlePoint().getDistanceTo(mp);
+
+        if (d1 < d2) {
+            ellipse->setReversed(false);
+        }
+    }
+
+    return cada__ellipse_to_arc_circle_ellipse(ellipse.release());
 }
 
 bool cada_polyline_scale(shape::Polyline *polyline,

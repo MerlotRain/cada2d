@@ -24,7 +24,15 @@
 #include "cada_algorithm.h"
 #include <cmath>
 #include <mutex>
-#include <Eigen/Dense>
+#include <assert.h>
+
+namespace cada {
+namespace algorithm {
+extern std::vector<shape::Vec2d>
+cada_getIntersectionPointsLL(const shape::Line *line1, const shape::Line *line2,
+                             bool limited1, bool limited2);
+}
+} // namespace cada
 
 namespace cada {
 namespace shape {
@@ -411,7 +419,266 @@ ShapeFactory::createEllipseFromInscribed(const Vec2d &p1, const Vec2d &p2,
                                          const Vec2d &centerHint) const
 
 {
-    return nullptr;
+    auto &&l1 = createLine(p1, p2);
+    auto &&l2 = createLine(p2, p3);
+    auto &&l3 = createLine(p3, p4);
+    auto &&l4 = createLine(p4, p1);
+
+    auto createQuadrilateral =
+        [](const std::vector<Line *> &lines) -> std::vector<Vec2d> {
+        std::vector<Vec2d> ret;
+        // find intersections
+        std::vector<Vec2d> vertices;
+        for (auto it = lines.begin() + 1; it != lines.end(); ++it) {
+            for (auto jt = lines.begin(); jt != it; ++jt) {
+                auto sol = algorithm::cada_getIntersectionPointsLL(
+                    *it, *jt, false, false);
+                if (sol.size()) {
+                    vertices.emplace_back(sol.at(0));
+                }
+            }
+        }
+
+        //	std::cout<<"vertices.size()="<<vertices.size()<<std::endl;
+
+        switch (vertices.size()) {
+        default:
+            return ret;
+        case 4:
+            break;
+        case 5:
+        case 6:
+            for (auto &&pl : lines) {
+                const double a0 = pl->getDirection1();
+                std::vector<std::vector<Vec2d>::iterator> left;
+                std::vector<std::vector<Vec2d>::iterator> right;
+                for (auto it = vertices.begin(); it != vertices.end(); ++it) {
+                    const Vec2d &dir = *it - pl->getVectorTo(*it, false);
+                    if (dir.getMagnitude() < NS::PointTolerance)
+                        continue;
+                    //				std::cout<<"angle="<<remainder(dir.angle()
+                    //- a0, 2.*M_PI)<<std::endl;
+                    if (remainder(dir.getAngle() - a0, 2. * M_PI) > 0.)
+                        left.emplace_back(it);
+                    else
+                        right.emplace_back(it);
+
+                    if (left.size() == 2 && right.size() == 1) {
+                        vertices.erase(right[0]);
+                        break;
+                    }
+                    else if (left.size() == 1 && right.size() == 2) {
+                        vertices.erase(left[0]);
+                        break;
+                    }
+                }
+                if (vertices.size() == 4)
+                    break;
+            }
+            break;
+        }
+
+        // order vertices
+        Vec2d center{0., 0.};
+        for (const Vec2d &vp : vertices)
+            center += vp;
+        center *= 0.25;
+        std::sort(vertices.begin(), vertices.end(),
+                  [&center](const Vec2d &a, const Vec2d &b) -> bool {
+                      return center.getAngleTo(a) < center.getAngleTo(b);
+                  });
+        for (const Vec2d &vp : vertices) {
+            ret.emplace_back(vp);
+            //		std::cout<<"vp="<<vp<<std::endl;
+        }
+        return ret;
+    };
+
+    auto &&s0 = createQuadrilateral({l1.get(), l2.get(), l3.get(), l4.get()});
+    if (s0.size() != 4)
+        return nullptr;
+
+    l1.reset(new Line(s0[0], s0[1]));
+    l2.reset(new Line(s0[1], s0[2]));
+    l3.reset(new Line(s0[2], s0[3]));
+    l4.reset(new Line(s0[3], s0[0]));
+
+    // center of original square projected, intersection of diagonal
+    Vec2d centerProjection;
+    {
+        std::vector<RS_Line> diagonal;
+        diagonal.emplace_back(quad[0]->getStartpoint(), quad[1]->getEndpoint());
+        diagonal.emplace_back(quad[1]->getStartpoint(), quad[2]->getEndpoint());
+        Vec2dSolutions const &sol =
+            RS_Information::getIntersectionLineLine(&diagonal[0], &diagonal[1]);
+        if (sol.getNumber() == 0) { // this should not happen
+            return nullptr;
+        }
+        centerProjection = sol.get(0);
+    }
+    //        std::cout<<"RS_Ellipse::createInscribe():
+    //        centerProjection="<<centerProjection<<std::endl;
+
+    std::vector<Vec2d> tangent; // holds the tangential points on edges, in
+                                // the order of edges: 1 3 2 0
+    int parallel = 0;
+    int parallel_index = 0;
+    for (int i = 0; i <= 1; ++i) {
+        Vec2dSolutions const &sol1 = RS_Information::getIntersectionLineLine(
+            quad[i].get(), quad[(i + 2) % 4].get());
+        Vec2d direction;
+        if (sol1.getNumber() == 0) {
+            direction = quad[i]->getEndpoint() - quad[i]->getStartpoint();
+            ++parallel;
+            parallel_index = i;
+        }
+        else {
+            direction = sol1.get(0) - centerProjection;
+        }
+        //                std::cout<<"Direction: "<<direction<<std::endl;
+        RS_Line l(centerProjection, centerProjection + direction);
+        for (int k = 1; k <= 3; k += 2) {
+            Vec2dSolutions sol2 = RS_Information::getIntersectionLineLine(
+                &l, quad[(i + k) % 4].get());
+            if (sol2.size())
+                tangent.push_back(sol2.get(0));
+        }
+    }
+
+    if (tangent.size() < 3)
+        return false;
+
+    // find ellipse center by projection
+    Vec2d ellipseCenter;
+    {
+        RS_Line cl0(quad[1]->getEndpoint(), (tangent[0] + tangent[2]) * 0.5);
+        RS_Line cl1(quad[2]->getEndpoint(), (tangent[1] + tangent[2]) * 0.5);
+        Vec2dSolutions const &sol =
+            RS_Information::getIntersection(&cl0, &cl1, false);
+        if (sol.getNumber() == 0) {
+            return nullptr;
+        }
+        ellipseCenter = sol.get(0);
+    }
+    //	qDebug()<<"parallel="<<parallel;
+    if (parallel == 1) {
+        // trapezoid
+        RS_Line *l0 = quad[parallel_index].get();
+        RS_Line *l1 = quad[(parallel_index + 2) % 4].get();
+        Vec2d centerPoint = (l0->getMiddlePoint() + l1->getMiddlePoint()) * 0.5;
+        // not symmetric, no inscribed ellipse
+        if (fabs(centerPoint.distanceTo(l0->getStartpoint()) -
+                 centerPoint.distanceTo(l0->getEndpoint())) > RS_TOLERANCE)
+            return nullptr;
+        // symmetric
+        double d = l0->getDistanceToPoint(centerPoint);
+        double l = ((l0->getLength() + l1->getLength())) * 0.25;
+        double k = 4. * d / fabs(l0->getLength() - l1->getLength());
+        double theta = d / (l * k);
+        if (theta >= 1. || d < RS_TOLERANCE) {
+            
+            return nullptr;
+        }
+        theta = asin(theta);
+
+        // major axis
+        double a = d / (k * tan(theta));
+        setCenter(Vec2d(0., 0.));
+        setMajorP(Vec2d(a, 0.));
+        setRatio(d / a);
+        rotate(l0->getAngle1());
+        setCenter(centerPoint);
+        return true;
+    }
+    //    double ratio;
+    //        std::cout<<"dn="<<dn[0]<<' '<<dn[1]<<' '<<dn[2]<<std::endl;
+    std::vector<double> dn(3);
+    Vec2d angleVector(false);
+
+    for (size_t i = 0; i < tangent.size(); i++) {
+        tangent[i] -= ellipseCenter; // relative to ellipse center
+    }
+    std::vector<std::vector<double>> mt;
+    mt.clear();
+    const double symTolerance = 20. * RS_TOLERANCE;
+    for (const Vec2d &vp : tangent) {
+        // form the linear equation
+        //  need to remove duplicated {x^2, xy, y^2} terms due to symmetry (x =>
+        //  -x, y=> -y) i.e. rotation of 180 degrees around ellipse center
+        //		std::cout<<"point  : "<<vp<<std::endl;
+        std::vector<double> mtRow;
+        mtRow.push_back(vp.x * vp.x);
+        mtRow.push_back(vp.x * vp.y);
+        mtRow.push_back(vp.y * vp.y);
+        const double l = hypot(hypot(mtRow[0], mtRow[1]), mtRow[2]);
+        bool addRow(true);
+        for (const auto &v : mt) {
+            Vec2d const dv{v[0] - mtRow[0], v[1] - mtRow[1], v[2] - mtRow[2]};
+            if (dv.magnitude() < symTolerance * l) {
+                // symmetric
+                addRow = false;
+                break;
+            }
+        }
+        if (addRow) {
+            mtRow.push_back(1.);
+            mt.push_back(mtRow);
+        }
+    }
+    //    std::cout<<"mt.size()="<<mt.size()<<std::endl;
+    switch (mt.size()) {
+    case 2: { // the quadrilateral is a parallelogram
+
+        // fixme, need to handle degenerate case better
+        //         double angle(center.angleTo(tangent[0]));
+        Vec2d majorP(tangent[0]);
+        double dx(majorP.magnitude());
+        if (dx < RS_TOLERANCE2)
+            return false; // refuse to return zero size ellipse
+        angleVector.set(majorP.x / dx, -majorP.y / dx);
+        for (size_t i = 0; i < tangent.size(); i++)
+            tangent[i].rotate(angleVector);
+
+        Vec2d minorP(tangent[2]);
+        double dy2(minorP.squared());
+        if (fabs(minorP.y) < RS_TOLERANCE || dy2 < RS_TOLERANCE2)
+            return false; // refuse to return zero size ellipse
+        // y'= y
+        // x'= x-y/tan
+        // reverse scale
+        // y=y'
+        // x=x'+y' tan
+        //
+        double ia2 = 1. / (dx * dx);
+        double ib2 = 1. / (minorP.y * minorP.y);
+        // ellipse scaled:drawi
+        //  ia2*x'^2+ib2*y'^2=1
+        //  ia2*(x-y*minor.x/minor.y)^2+ib2*y^2=1
+        //  ia2*x^2 -2*ia2*minor.x/minor.y xy + ia2*minor.x^2*ib2 y^2 + ib2*y^2
+        //  =1
+        dn[0] = ia2;
+        dn[1] = -2. * ia2 * minorP.x / minorP.y;
+        dn[2] = ib2 * ia2 * minorP.x * minorP.x + ib2;
+    } break;
+    case 4:
+        mt.pop_back(); // only 3 points needed to form the qudratic form
+        if (!RS_Math::linearSolver(mt, dn))
+            return nullptr;
+        break;
+    default:
+    
+        return nullptr; // invalid quadrilateral
+    }
+
+    if (!createFromQuadratic(dn))
+        return nullptr;
+    setCenter(ellipseCenter);
+
+    if (angleVector.valid) { // need to rotate back, for the parallelogram case
+        angleVector.y *= -1.;
+        rotate(ellipseCenter, angleVector);
+    }
+    return true;
 }
 
 std::unique_ptr<Ellipse>
@@ -419,60 +686,35 @@ ShapeFactory::createEllipseFrom4Points(const Vec2d &p1, const Vec2d &p2,
                                        const Vec2d &p3, const Vec2d &p4) const
 
 {
-    if (threePointCollinear(p1, p2, p3) && threePointCollinear(p1, p2, p4)) {
+    std::vector<Vec2d> sol = {p1, p2, p3, p4};
+    std::vector<std::vector<double>> mt;
+    std::vector<double> dn;
+    int mSize(4);
+    mt.resize(mSize);
+    for (int i = 0; i < mSize;
+         i++) { // form the linear equation, c0 x^2 + c1 x + c2 y^2 + c3 y = 1
+        mt[i].resize(mSize + 1);
+        mt[i][0] = sol[i].x * sol[i].x;
+        mt[i][1] = sol[i].x;
+        mt[i][2] = sol[i].y * sol[i].y;
+        mt[i][3] = sol[i].y;
+        mt[i][4] = 1.;
+    }
+    if (!Math::linearSolver(mt, dn))
+        return nullptr;
+    double d(1. + 0.25 * (dn[1] * dn[1] / dn[0] + dn[3] * dn[3] / dn[2]));
+    if (fabs(dn[0]) < NS::PointTolerance || fabs(dn[2]) < NS::PointTolerance ||
+        d / dn[0] < NS::PointTolerance || d / dn[2] < NS::PointTolerance) {
+        // ellipse not defined
         return nullptr;
     }
 
-    auto solveEllipse =
-        [](const std::vector<Vec2d> &points) -> Eigen::VectorXd {
-        Eigen::MatrixXd A(4, 5);
-        Eigen::VectorXd b(4);
+    Vec2d center(-0.5 * dn[1] / dn[0], -0.5 * dn[3] / dn[2]); // center
+    d = sqrt(d / dn[0]);
+    Vec2d majorP(d, 0.); // major point
+    double ratio = sqrt(dn[0] / dn[2]);
 
-        for (int i = 0; i < 4; ++i) {
-            double x = points[i].x;
-            double y = points[i].y;
-            A(i, 0) = x * x; // A
-            A(i, 1) = x * y; // B
-            A(i, 2) = y * y; // C
-            A(i, 3) = x;     // D
-            A(i, 4) = y;     // E
-            b(i) = -1.0;     // F
-        }
-
-        Eigen::VectorXd x = A.colPivHouseholderQr().solve(b);
-        return x;
-    };
-
-    std::vector<Vec2d> points = {p1, p2, p3, p4};
-    Eigen::VectorXd coeffs = solveEllipse(points);
-
-    double A = coeffs(0);
-    double B = coeffs(1);
-    double C = coeffs(2);
-    double D = coeffs(3);
-    double E = coeffs(4);
-    double F = -1;
-
-    Vec2d center(-D / (2 * A), -E / (2 * C));
-
-    double term1 = 4 * A * C - B * B;
-    double majorLength = sqrt(
-        (2 * (A * center.x * center.x + C * center.y * center.y - F)) / term1);
-
-    double minorLength =
-        sqrt((2 * (A * center.x * center.x + C * center.y * center.y - F)) /
-             (4 * A * C));
-
-    double majorAxis = std::max(majorLength, minorLength);
-    double minorAxis = std::min(majorLength, minorLength);
-    double ratio = majorAxis / minorAxis;
-
-    double theta = 0.5 * atan2(B, A - C);
-
-    Vec2d majorPoint(center.x + majorAxis * cos(theta),
-                     center.y + majorAxis * sin(theta));
-
-    return createEllipse(center, majorPoint, ratio, 0, 360, false);
+    return createEllipse(center, majorP, ratio, 0, 2 * M_PI, false);
 }
 
 std::unique_ptr<XLine> ShapeFactory::createXLine() const
