@@ -912,7 +912,7 @@ public:
     std::unique_ptr<Polyline> createPolyline() const;
     std::unique_ptr<Polyline> createPolyline(
         std::vector<Vec2d> &&vertrices, bool closed,
-        std::vector<double> &&bulges = std::vector<double>(),
+        std::vector<double> &&bulges,
         std::vector<double> &&endWidths = std::vector<double>(),
         std::vector<double> &&startWidths = std::vector<double>()) const;
 

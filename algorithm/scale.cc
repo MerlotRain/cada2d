@@ -164,10 +164,6 @@ bool cada_polyline_scale(shape::Polyline *polyline,
                 continue;
             }
 
-            double w1 = polyline->getStartWidthAt(i);
-            double w2 =
-                polyline->getStartWidthAt((i + 1) % polyline->countVertices());
-
             std::unique_ptr<Shape> newSeg;
             if (seg->getShapeType() == NS::Line) {
                 newSeg = std::move(seg);

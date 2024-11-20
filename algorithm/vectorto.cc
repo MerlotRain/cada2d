@@ -112,7 +112,7 @@ shape::Vec2d cada_getVectorTo(const shape::Shape *shape,
                 // segments in the middle: always limited:
                 lim = true;
             }
-            Vec2d v = shape->getVectorTo(point, lim, strictRange);
+            Vec2d v = ss->getVectorTo(point, lim, strictRange);
             if (v.isValid() &&
                 (!ret.isValid() || v.getMagnitude() < ret.getMagnitude())) {
                 ret = v;
@@ -125,6 +125,7 @@ shape::Vec2d cada_getVectorTo(const shape::Shape *shape,
     default:
         break;
     }
+    return Vec2d::invalid;
 }
 
 shape::Vec2d cada_line_getVectorTo(const shape::Line *l,

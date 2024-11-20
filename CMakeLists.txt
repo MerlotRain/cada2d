@@ -57,6 +57,10 @@ set(cada_srcs
     apollonius/circle.c
     apollonius/line.c
     apollonius/point.c
+
+    polyline/arraylist.c
+    polyline/polyline.c
+    polyline/quickindex.c
 )
 
 add_library(cada2d STATIC ${cada_srcs}) 

@@ -25,7 +25,7 @@ cada2d_lib = static_library(
     'cada2d',
     shape_src + algorithm_src + index_src,
     include_directories: inc_dirs,
-    dependencies: [eigen_dep, apo_dep],
+    dependencies: [eigen_dep, apo_dep, polyline_dep],
     cpp_args: ['-D_USE_MATH_DEFINES'],
 )
 

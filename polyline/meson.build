@@ -1,5 +1,7 @@
 polyline_files = files(
+    'arraylist.c',
     'polyline.c',
+    'quickindex.c',
 )
 
 polyline_include = include_directories('.')

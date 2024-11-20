@@ -78,8 +78,9 @@ bool cada_arc_stretch(shape::Arc *a, const shape::Polyline *area,
 bool cada_stretch(shape::Shape *shape, std::vector<shape::Vec2d> &&vertex,
                   const shape::Vec2d &offset)
 {
-    auto area =
-        ShapeFactory::instance()->createPolyline(std::move(vertex), true);
+    std::vector<double> bulges(vertex.size(), 0.0);
+    auto area = ShapeFactory::instance()->createPolyline(
+        std::move(vertex), true, std::move(bulges));
 
     assert(shape);
     switch (shape->getShapeType()) {

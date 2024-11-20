@@ -615,7 +615,10 @@ std::unique_ptr<Polyline> Ellipse::approximateWithArcs(int segments) const
         vertices.push_back(Vec2d(pointX, pointY));
     }
 
-    return ShapeFactory::instance()->createPolyline(std::move(vertices), false);
+    std::vector<double> bulges(vertices.size(), 0.0);
+
+    return ShapeFactory::instance()->createPolyline(std::move(vertices), false,
+                                                    std::move(bulges));
 }
 
 void Ellipse::moveStartPoint(const Vec2d &pos, bool changeAngleOnly)

@@ -31,6 +31,14 @@ typedef struct arc_s {
     double radius;
 } arc_t;
 
+// axis aligned bounding box
+typedef struct aabb_s {
+    double xmin;
+    double xmax;
+    double ymin;
+    double ymax;
+} aabb_t;
+
 struct polyline_s {
     bool closed;
     size_t vertex_num; // index plus one equal vertex_num;
@@ -41,14 +49,14 @@ struct polyline_s {
 
 typedef enum {
     // no intersect (segments are parallel and not collinear)
-    LL_None,
+    LL_NONE,
     // true intersect between line segments
-    LL_True,
+    LL_TRUE,
     // segments overlap each other by some amount
-    LL_Coincident,
+    LL_COINCIDENT,
     // false intersect between line segments (one or both of the segments must
     // be extended)
-    LL_False
+    LL_FALSE
 } IntrLLType;
 
 typedef struct intr_LL {
@@ -67,13 +75,13 @@ typedef struct intr_LL {
 
 typedef enum {
     // no intersect between circles
-    CC_NoIntersect,
+    CC_NO_INTERSECT,
     // one intersect between circles (tangent)
-    CC_OneIntersect,
+    CC_ONE_INTERSECT,
     // two intersects between circles
-    CC_TwoIntersects,
+    CC_TWO_INTERSECTS,
     // circles are coincident
-    CC_Coincident
+    CC_COINCIDENT
 } IntrCCType;
 
 typedef struct intr_CC {
@@ -143,6 +151,10 @@ bool point_within_arc_sweep_angle(const point_t center, const point_t start,
                                   const point_t end, double bulge,
                                   const point_t point);
 
+/* ---------------------------- aabb_t functions ---------------------------- */
+void aabb_expand(aabb_t *aabb, double val);
+aabb_t create_fast_approx_boundingbox(const vertex_t v1, const vertex_t v2);
+
 /* ------------------------ polyline_t base functions ----------------------- */
 
 void polyline_set_pos(polyline_t *pline, size_t index, const point_t pos);
@@ -166,12 +178,13 @@ void polyline_clear_vertices(polyline_t *pline);
 polyline_t *create_raw_offset_polyline(const polyline_t *pline, double offset);
 pline_offset_segment_t *
 create_untrimmed_offset_segments(const polyline_t *pline, double offset,
-                                 int *seg_size);
+                                 size_t *seg_size);
 void pline_add_or_replace_if_same_pos(polyline_t *pline, const vertex_t v,
                                       double epsilon);
 polyline_t **slices_from_raw_offset(const polyline_t *pline,
                                     const polyline_t *rawOffsetPline,
                                     double offset, size_t *slice_size);
+quickIndex_t *create_approx_qIndex(const polyline_t *pline);
 
 #define false_intersect(t) ((t) < 0.0 || (t) > 1.0)
 
@@ -396,7 +409,7 @@ polyline_t *create_raw_offset_polyline(const polyline_t *pline, double offset)
 
 pline_offset_segment_t *
 create_untrimmed_offset_segments(const polyline_t *pline, double offset,
-                                 int *seg_size)
+                                 size_t *seg_size)
 {
     *seg_size = 0;
     size_t segment_count =
@@ -481,6 +494,42 @@ polyline_t **slices_from_raw_offset(const polyline_t *originalPline,
         return NULL;
     }
 
+    quickIndex_t *origPlineSpatialIndex = create_approx_qIndex(originalPline);
+    quickIndex_t *rawOffsetPlineSpatialIndex =
+        create_approx_qIndex(rawOffsetPline);
+
+    return NULL;
+}
+
+quickIndex_t *create_approx_qIndex(const polyline_t *pline)
+{
+    assert(pline);
+    assert(pl_size(pline) > 0);
+
+    size_t segmentCount = pline->closed ? pl_size(pline) : pl_size(pline) - 1;
+    quickIndex_t *result =
+        qindex_create(segmentCount, QINDEX_DEFAULT_NODE_SIZE);
+    if (!result)
+        return NULL;
+
+    for (size_t i = 0; i < pl_size(pline) - 1; ++i) {
+        aabb_t approxBB = create_fast_approx_boundingbox(pl_at(pline, i),
+                                                         pl_at(pline, i + 1));
+        qindex_add(result, approxBB.xmin, approxBB.ymin, approxBB.xmax,
+                   approxBB.ymax);
+    }
+
+    if (pline->closed) {
+        // add final segment from last to first
+        aabb_t approxBB =
+            create_fast_approx_boundingbox(pl_backv(pline), pl_frontv(pline));
+        qindex_add(result, approxBB.xmin, approxBB.ymin, approxBB.xmax,
+                   approxBB.ymax);
+    }
+
+    qindex_finish(result);
+
+    return result;
     return NULL;
 }
 
@@ -523,20 +572,20 @@ void pline_internal_join_LL(const pline_offset_segment_t s1,
     else {
         intr_LL intrResult = intersection_LL(v1.pos, v2.pos, u1.pos, u2.pos);
         switch (intrResult.intrType) {
-        case LL_None:
+        case LL_NONE:
             pline_add_or_replace_if_same_pos(result, (vertex_t){v2.pos, 0.0},
                                              THRESHOLD_ELLIPSE);
             pline_add_or_replace_if_same_pos(result, u1, THRESHOLD_ELLIPSE);
             break;
-        case LL_True:
+        case LL_TRUE:
             pline_add_or_replace_if_same_pos(
                 result, (vertex_t){intrResult.point, 0.0}, THRESHOLD_ELLIPSE);
             break;
-        case LL_Coincident:
+        case LL_COINCIDENT:
             pline_add_or_replace_if_same_pos(result, (vertex_t){v2.pos, 0.0},
                                              THRESHOLD_ELLIPSE);
             break;
-        case LL_False:
+        case LL_FALSE:
             if (intrResult.t0 > 1.0 && false_intersect(intrResult.t1)) {
                 // extend and join the lines together using an arc
                 goto connect_using_arc;
@@ -992,6 +1041,101 @@ bool point_within_arc_sweep_angle(const point_t center, const point_t start,
     }
 }
 
+/* ---------------------------- aabb_t functions ---------------------------- */
+void aabb_expand(aabb_t *aabb, double val)
+{
+    assert(aabb);
+    aabb->xmin -= val;
+    aabb->ymin -= val;
+    aabb->xmax += val;
+    aabb->ymax += val;
+}
+
+aabb_t create_fast_approx_boundingbox(const vertex_t v1, const vertex_t v2)
+{
+    aabb_t result;
+    if (v1.bulge == 0.0) {
+        if (v1.pos.x < v2.pos.x) {
+            result.xmin = v1.pos.x;
+            result.xmax = v2.pos.x;
+        }
+        else {
+            result.xmin = v2.pos.x;
+            result.xmax = v1.pos.x;
+        }
+
+        if (v1.pos.y < v2.pos.y) {
+            result.ymin = v1.pos.y;
+            result.ymax = v2.pos.y;
+        }
+        else {
+            result.ymin = v2.pos.y;
+            result.ymax = v1.pos.y;
+        }
+
+        return result;
+    }
+
+    // For arcs we don't compute the actual extents which is slower, instead we
+    // create an approximate bounding box from the rectangle formed by extending
+    // the chord by the sagitta, NOTE: this approximate bounding box is always
+    // equal to or bigger than the true bounding box
+    double b = v1.bulge;
+    double offsX = b * (v2.pos.y - v1.pos.y) / 2.0;
+    double offsY = -b * (v2.pos.x - v1.pos.x) / 2.0;
+
+    double pt1X = v1.pos.x + offsX;
+    double pt2X = v2.pos.x + offsX;
+    double pt1Y = v1.pos.y + offsY;
+    double pt2Y = v2.pos.y + offsY;
+
+    double endPointXMin, endPointXMax;
+    if (v1.pos.x < v2.pos.x) {
+        endPointXMin = v1.pos.x;
+        endPointXMax = v2.pos.x;
+    }
+    else {
+        endPointXMin = v2.pos.x;
+        endPointXMax = v1.pos.x;
+    }
+
+    double ptXMin, ptXMax;
+    if (pt1X < pt2X) {
+        ptXMin = pt1X;
+        ptXMax = pt2X;
+    }
+    else {
+        ptXMin = pt2X;
+        ptXMax = pt1X;
+    }
+
+    double endPointYMin, endPointYMax;
+    if (v1.pos.y < v2.pos.y) {
+        endPointYMin = v1.pos.y;
+        endPointYMax = v2.pos.y;
+    }
+    else {
+        endPointYMin = v2.pos.y;
+        endPointYMax = v1.pos.y;
+    }
+
+    double ptYMin, ptYMax;
+    if (pt1Y < pt2Y) {
+        ptYMin = pt1Y;
+        ptYMax = pt2Y;
+    }
+    else {
+        ptYMin = pt2Y;
+        ptYMax = pt1Y;
+    }
+
+    result.xmin = MIN(endPointXMin, ptXMin);
+    result.ymin = MIN(endPointYMin, ptYMin);
+    result.xmax = MAX(endPointXMax, ptXMax);
+    result.ymax = MAX(endPointYMax, ptYMax);
+    return result;
+}
+
 /* ------------------------ polyline_t main functions ----------------------- */
 
 polyline_t **polyline_parallel_offset(const polyline_t *pline, double offset,
@@ -1002,35 +1146,35 @@ polyline_t **polyline_parallel_offset(const polyline_t *pline, double offset,
     if (pline->vertices->size < 2)
         return NULL;
     polyline_t *rawOffset = create_raw_offset_polyline(pline, offset);
-    if (pline->closed && !hasSelfIntersects) {
-        size_t slice_size = 0;
-        polyline_t **slices =
-            slices_from_raw_offset(pline, rawOffset, offset, &slice_size);
-        polyline_t **result =
-            stitch_offset_slices_together(slices, slice_size, pline->closed,
-                                          pl_size(rawOffset) - 1, res_size);
-        polyline_free(rawOffset);
-        for (size_t i = 0; i < slice_size; ++i) {
-            polyline_free(slices[i]);
-        }
-        return result;
-    }
-    else {
-        // not closed polyline or has self intersects, must apply dual clipping
-        polyline_t *dualRawOffset = create_raw_offset_polyline(pline, offset);
-        size_t slice_size = 0;
-        polyline_t **slices = dual_slice_at_intersects_for_offset(
-            pline, rawOffset, dualRawOffset, offset, &slice_size);
-        polyline_t **result =
-            stitch_offset_slices_together(slices, slice_size, pline->closed,
-                                          pl_size(rawOffset) - 1, res_size);
-        polyline_free(rawOffset);
-        polyline_free(dualRawOffset);
-        for (size_t i = 0; i < slice_size; ++i) {
-            polyline_free(slices[i]);
-        }
-        return result;
-    }
+    // if (pline->closed && !hasSelfIntersects) {
+    //     size_t slice_size = 0;
+    //     polyline_t **slices =
+    //         slices_from_raw_offset(pline, rawOffset, offset, &slice_size);
+    //     polyline_t **result =
+    //         stitch_offset_slices_together(slices, slice_size, pline->closed,
+    //                                       pl_size(rawOffset) - 1, res_size);
+    //     polyline_free(rawOffset);
+    //     for (size_t i = 0; i < slice_size; ++i) {
+    //         polyline_free(slices[i]);
+    //     }
+    //     return result;
+    // }
+    // else {
+    //     // not closed polyline or has self intersects, must apply dual
+    //     clipping polyline_t *dualRawOffset =
+    //     create_raw_offset_polyline(pline, offset); size_t slice_size = 0;
+    //     polyline_t **slices = dual_slice_at_intersects_for_offset(
+    //         pline, rawOffset, dualRawOffset, offset, &slice_size);
+    //     polyline_t **result =
+    //         stitch_offset_slices_together(slices, slice_size, pline->closed,
+    //                                       pl_size(rawOffset) - 1, res_size);
+    //     polyline_free(rawOffset);
+    //     polyline_free(dualRawOffset);
+    //     for (size_t i = 0; i < slice_size; ++i) {
+    //         polyline_free(slices[i]);
+    //     }
+    //     return result;
+    // }
 
     return NULL;
 }
@@ -1048,13 +1192,13 @@ intr_CC intersection_CC(double radius1, const point_t center1, double radius2,
     double d = sqrt(d2);
     if (d < THRESHOLD_ELLIPSE) {
         if (fuzzyEqual(radius1, radius2, THRESHOLD_ELLIPSE))
-            result.intrType = CC_Coincident;
+            result.intrType = CC_COINCIDENT;
         else
-            result.intrType = CC_NoIntersect;
+            result.intrType = CC_NO_INTERSECT;
     }
     else {
         if (d > radius1 + radius2 || d < fabs(radius1 - radius2))
-            result.intrType = CC_NoIntersect;
+            result.intrType = CC_NO_INTERSECT;
         else {
             double rad11 = radius1 * radius1;
             double rad22 = radius2 * radius2;
@@ -1062,7 +1206,7 @@ intr_CC intersection_CC(double radius1, const point_t center1, double radius2,
             point_t midPoint = pt_add(center1, pt_div(pt_mul(a, cv), d));
             double diff = rad11 - a * a;
             if (diff < 0.0) {
-                result.intrType = CC_OneIntersect;
+                result.intrType = CC_ONE_INTERSECT;
                 result.point1 = midPoint;
             }
             else {
@@ -1078,10 +1222,10 @@ intr_CC intersection_CC(double radius1, const point_t center1, double radius2,
                 result.point2 = (point_t){x2, y2};
                 if (pt_fuzzyEqual(result.point1, result.point2,
                                   THRESHOLD_ELLIPSE)) {
-                    result.intrType = CC_OneIntersect;
+                    result.intrType = CC_ONE_INTERSECT;
                 }
                 else {
-                    result.intrType = CC_TwoIntersects;
+                    result.intrType = CC_TWO_INTERSECTS;
                 }
             }
         }
@@ -1149,6 +1293,7 @@ intr_LC intersection_LC(const point_t p0, const point_t p1, double radius,
             result.t1 = sol2;
         }
     }
+    return result;
 }
 
 static bool intr_LL_hint_segment(const point_t pt, const point_t start,
@@ -1187,16 +1332,16 @@ intr_LL intersection_LL(const point_t u1, const point_t u2, const point_t v1,
         result.point = pt_add(v1, pt_mul(result.t1, v));
         if (result.t0 < 0.0 || result.t0 > 1.0 || result.t1 < 0.0 ||
             result.t1 > 1.0)
-            result.intrType = LL_False;
+            result.intrType = LL_FALSE;
         else
-            result.intrType = LL_True;
+            result.intrType = LL_TRUE;
     }
     else {
         // segments are parallel or collinear
         double a = perp_dot(u, w);
         double b = perp_dot(v, w);
         if (fabs(a) > THRESHOLD_ELLIPSE || fabs(b) > THRESHOLD_ELLIPSE)
-            result.intrType = LL_None;
+            result.intrType = LL_NONE;
         else {
             // either collinear or degenerate (segments are single points)
             bool uIsPoint = pt_fuzzyEqual(u1, u2, THRESHOLD_ELLIPSE);
@@ -1206,29 +1351,29 @@ intr_LL intersection_LL(const point_t u1, const point_t u2, const point_t v1,
                 if (pt_fuzzyEqual(u1, v2, THRESHOLD_ELLIPSE)) {
                     // same point
                     result.point = u1;
-                    result.intrType = LL_True;
+                    result.intrType = LL_TRUE;
                 }
                 else {
                     // distinct point
-                    result.intrType = LL_None;
+                    result.intrType = LL_NONE;
                 }
             }
             else if (uIsPoint) {
                 if (intr_LL_hint_segment(u1, v1, v2)) {
-                    result.intrType = LL_True;
+                    result.intrType = LL_TRUE;
                     result.point = u1;
                 }
                 else {
-                    result.intrType = LL_None;
+                    result.intrType = LL_NONE;
                 }
             }
             else if (vIsPoint) {
                 if (intr_LL_hint_segment(v1, u1, u2)) {
-                    result.intrType = LL_True;
+                    result.intrType = LL_TRUE;
                     result.point = v1;
                 }
                 else {
-                    result.intrType = LL_None;
+                    result.intrType = LL_NONE;
                 }
             }
             else {
@@ -1253,17 +1398,17 @@ intr_LL intersection_LL(const point_t u1, const point_t u2, const point_t v1,
                 // prefer considering it an intersect
                 if (result.t0 > 1.0 || result.t1 < 0.0) {
                     // no overlap
-                    result.intrType = LL_None;
+                    result.intrType = LL_NONE;
                 }
                 else {
                     result.t0 = MAX(result.t0, 0.0);
                     result.t1 = MIN(result.t1, 1.0);
                     if (fabs(result.t1 - result.t0) < THRESHOLD_ELLIPSE) {
-                        result.intrType = LL_True;
+                        result.intrType = LL_TRUE;
                         result.point = pt_add(v1, pt_mul(result.t0, v));
                     }
                     else {
-                        result.intrType = LL_Coincident;
+                        result.intrType = LL_COINCIDENT;
                     }
                 }
             }

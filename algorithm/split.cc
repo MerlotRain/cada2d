@@ -105,10 +105,10 @@ cada_split_circle(const shape::Circle *c,
             continue;
         }
 
-        ret.emplace_back(std::move(ShapeFactory::instance()->createArc(
+        ret.emplace_back(ShapeFactory::instance()->createArc(
             c->getCenter(), c->getRadius(),
             c->getCenter().getAngleTo(sorted_points[i]),
-            c->getCenter().getAngleTo(sorted_points[i + 1]), false)));
+            c->getCenter().getAngleTo(sorted_points[i + 1]), false));
     }
 
     return ret;
