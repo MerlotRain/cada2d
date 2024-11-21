@@ -56,6 +56,11 @@ extern std::vector<std::unique_ptr<shape::Shape>>
 auto_split(const shape::Vec2d &pos, const shape::Shape *shape,
            const std::vector<shape::Shape *> &intersecting_shapes, bool extend);
 
+extern std::vector<std::unique_ptr<shape::Shape>>
+auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
+                  shape::Vec2d cutPos1, shape::Vec2d cutPos2,
+                 const shape::Vec2d &position, bool extend);
+
 extern bool break_out_gap(const shape::Vec2d &pos, const shape::Shape *shape,
                           std::vector<shape::Shape *> &additional);
 

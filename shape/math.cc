@@ -398,4 +398,18 @@ bool Math::linearSolver(const std::vector<std::vector<double>> &mt,
     return true;
 }
 
+int Math::sign(double x)
+{
+    if (std::isnan(x))
+    {
+        return 4;
+    }
+    if (x == 0)
+    {
+        return std::signbit(x) ? 3 : 2;
+    }
+    return x > 0 ? 0 : 1;
+}
+
+
 } // namespace cada

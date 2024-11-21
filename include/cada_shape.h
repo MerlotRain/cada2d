@@ -64,7 +64,9 @@ struct Vec2d {
     Vec2d move(const Vec2d &offset);
 
     Vec2d rotate(double rotation);
+    Vec2d rotate(const Vec2d angleVector);
     Vec2d rotate(double rotation, const Vec2d &center);
+    Vec2d rotate(const Vec2d &center, const Vec2d &angleVector);
     Vec2d getRotated(double rotation, const Vec2d &center) const;
 
     Vec2d scale(double factor, const Vec2d &center = nullVector);
@@ -495,6 +497,7 @@ public:
     std::vector<std::unique_ptr<Shape>> getExploded() const;
     bool contains(const Vec2d &point, bool borderIsInside = false,
                   double tolerance = NS::PointTolerance) const;
+    bool simplify(double angleTolerance);
 
 protected:
     Polyline();
@@ -953,6 +956,8 @@ public:
     std::unique_ptr<Ellipse>
     createEllipse(const Vec2d &center, const Vec2d &majorPoint, double ratio,
                   double startParam, double endParam, bool reversed) const;
+    std::unique_ptr<Ellipse> createEllipseFromQuadratic(double a, double b,
+                                                        double c) const;
     // http://chrisjones.id.au/Ellipses/ellipse.html
     std::unique_ptr<Ellipse>
     createEllipseFromInscribed(const Vec2d &p1, const Vec2d &p2,

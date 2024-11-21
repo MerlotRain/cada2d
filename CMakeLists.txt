@@ -8,6 +8,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+find_package(Eigen3 REQUIRED)
+add_subdirectory(opennurbs)
+
 set(cada_srcs
     shape/arc.cc
     shape/bbox.cc
@@ -70,5 +73,7 @@ target_include_directories(cada2d PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}
     ${CMAKE_CURRENT_LIST_DIR}/algorithm
 )
+
+target_link_libraries(cada2d PRIVATE Eigen3::Eigen OpenNURBS)
 
 add_subdirectory(examples)

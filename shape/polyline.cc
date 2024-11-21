@@ -1003,17 +1003,93 @@ void Polyline::setMinimumWidth(double w)
 
 int Polyline::getSegmentAtDist(double dist)
 {
+    double total = getLength();
+    auto &&segments = getExploded();
+
+    if (segments.empty()) {
+        return -1;
+    }
+
+    if (dist < 0) {
+        dist = std::fmod(dist, total) + total;
+    }
+
+    if (isClosed()) {
+        dist = std::fmod(dist, total);
+        if (dist < 0) {
+            dist += total;
+        }
+    }
+    else {
+        if (dist < 0 || dist > total) {
+            return -1;
+        }
+    }
+
+    double accumulatedLength = 0.0;
+    for (size_t i = 0; i < segments.size(); ++i) {
+        accumulatedLength += segments[i]->getLength();
+        if (accumulatedLength >= dist) {
+            return static_cast<int>(i);
+        }
+    }
     return -1;
 }
 
 bool Polyline::relocateStartPoint(const Vec2d &p)
 {
-    return false;
+    if (!isGeometricallyClosed()) {
+        return false;
+    }
+
+    // convert closed to open polyline with start in p:
+    // find closest segment of polyline:
+    int segmentIndex = getClosestSegment(p);
+    if (segmentIndex < 0) {
+        return false;
+    }
+
+    std::unique_ptr<Polyline> newShape =
+        ShapeFactory::instance()->createPolyline();
+
+    auto &&firstSegment = getSegmentAt(segmentIndex);
+    auto &&lastSegment = getSegmentAt(segmentIndex);
+    if (!firstSegment || !lastSegment)
+        return false;
+
+    // trim segment start to p
+    firstSegment->trimStartPoint(p);
+
+    // start polyline with second part of split segment:
+    newShape->appendShape(firstSegment.release());
+
+    // append rest of polyline:
+    for (int i = segmentIndex + 1; i < countSegments(); i++) {
+        newShape->appendShape(getSegmentAt(i).release());
+    }
+    for (int i = 0; i < segmentIndex; i++) {
+        newShape->appendShape(getSegmentAt(i).release());
+    }
+
+    // trim segment end to p
+    lastSegment->trimEndPoint(p);
+
+    // end polyline with second part of split segment:
+    newShape->appendShape(lastSegment.release());
+    newShape->setClosed(false);
+
+    mVertices = newShape->getVertices();
+    mBulges = newShape->getBulges();
+    mStartWidths = newShape->getStartWidths();
+    mEndWidths = newShape->getEndWidths();
+    mClosed = newShape->isClosed();
+    return true;
 }
 
 bool Polyline::relocateStartPoint(double dist)
 {
-    return false;
+    Vec2d v = getPointAtPercent(dist);
+    return relocateStartPoint(v);
 }
 
 bool Polyline::convertToClosed()
@@ -1342,8 +1418,54 @@ void Polyline::moveSegmentAt(int i, const Vec2d &offset)
 
 double Polyline::getArea() const
 {
-    double ret = 0.0;
-    return ret;
+    auto &&closedCopy = clone();
+
+    if (!closedCopy->isGeometricallyClosed()) {
+        closedCopy->autoClose();
+    }
+
+    // polygonal area (all segments treated as lines):
+    std::vector<Vec2d> pts = closedCopy->getVertices();
+    double area = 0;
+    int nPts = closedCopy->countVertices();
+    int j = nPts - 1;
+    Vec2d p1;
+    Vec2d p2;
+
+    for (int i = 0; i < nPts; j = i++) {
+        p1 = pts[i];
+        p2 = pts[j];
+        area += p1.x * p2.y;
+        area -= p1.y * p2.x;
+    }
+    area /= 2;
+    area = fabs(area);
+
+    // add / subtract arc segment sector area:
+    if (closedCopy->hasArcSegments()) {
+        bool plReversed = (closedCopy->getOrientation() == NS::CW);
+        for (int i = 0; i < closedCopy->countSegments(); i++) {
+            if (closedCopy->isArcSegmentAt(i)) {
+                auto &&shape = closedCopy->getSegmentAt(i);
+                if (shape->getShapeType() == NS::Arc) {
+                    auto &&arc = dynamic_cast<Arc *>(shape.get());
+                    double chordArea = arc->getChordArea();
+
+                    if (arc->isReversed() == plReversed) {
+                        // arc has same orientation as polyline: add
+                        area = area + chordArea;
+                    }
+                    else {
+                        // arc has opposite orientation of polyline: subtract
+                        area = area - chordArea;
+                    }
+                }
+            }
+        }
+    }
+
+    area = fabs(area);
+    return area;
 }
 
 double Polyline::getLengthTo(const Vec2d &p, bool limited) const
@@ -1621,6 +1743,73 @@ Vec2d Polyline::getCentroid() const
     double centroidY = ySum / (6.0 * signedArea);
 
     return Vec2d(centroidX, centroidY);
+}
+
+bool Polyline::simplify(double angleTolerance)
+{
+    bool ret = false;
+    std::unique_ptr<Polyline> newPolyline =
+        ShapeFactory::instance()->createPolyline();
+
+    NS::ShapeType type = NS::Unkonwn;
+    double angle = std::numeric_limits<double>::max();
+    double radius = std::numeric_limits<double>::max();
+    Vec2d center = Vec2d::invalid;
+
+    for (int i = 0; i < countSegments(); i++) {
+        auto &&seg = getSegmentAt(i);
+
+        if (seg->getShapeType() == NS::Line) {
+            auto &&line = dynamic_cast<Line *>(seg.get());
+            if (line->getLength() < NS::PointTolerance) {
+                ret = true;
+            }
+            else {
+                double angleDiff = std::fabs(
+                    Math::getAngleDifference180(line->getAngle(), angle));
+                if (type == NS::Line && angleDiff < angleTolerance) {
+                    ret = true;
+                }
+                else {
+                    newPolyline->appendVertex(line->getStartPoint());
+                    angle = line->getAngle();
+                    type = NS::Line;
+                }
+            }
+            radius = std::numeric_limits<double>::max();
+            center = Vec2d::invalid;
+        }
+
+        if (seg->getShapeType() == NS::Arc) {
+            auto &&arc = dynamic_cast<Arc *>(seg.get());
+            // simplify consecutive arcs:
+            if (arc->getCenter().equalsFuzzy(center, 0.001) &&
+                Math::fuzzyCompare(arc->getRadius(), radius, 0.001)) {
+                arc->setStartAngle(
+                    arc->getCenter().getAngleTo(newPolyline->getEndPoint()));
+                newPolyline->removeLastVertex();
+            }
+            newPolyline->appendVertex(arc->getStartPoint(), arc->getBulge());
+            angle = std::numeric_limits<double>::max();
+            radius = arc->getRadius();
+            center = arc->getCenter();
+        }
+    }
+
+    if (isClosed()) {
+        newPolyline->setClosed(true);
+    }
+    else {
+        newPolyline->appendVertex(getEndPoint());
+    }
+
+    mVertices = newPolyline->getVertices();
+    mBulges = newPolyline->getBulges();
+    mClosed = newPolyline->isClosed();
+    mStartWidths = newPolyline->getStartWidths();
+    mEndWidths = newPolyline->getEndWidths();
+
+    return ret;
 }
 
 std::string Polyline::to_string() const

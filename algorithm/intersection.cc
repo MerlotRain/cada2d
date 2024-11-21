@@ -402,13 +402,14 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
         if (ray1) {
             if (same)
                 return empty;
+
+            auto &&xline1 = ray1->getLineShape();
+            std::vector<Vec2d> ret = cada_getIntersectionPoints(
+                xline1.get(), shape2, limited, same, force);
+            if (limited)
+                ret = ray1->filterOnShape(ret, true);
+            return ret;
         }
-        auto &&xline1 = ray1->getLineShape();
-        std::vector<Vec2d> ret = cada_getIntersectionPoints(
-            xline1.get(), shape2, limited, same, force);
-        if (limited)
-            ret = ray1->filterOnShape(ret, true);
-        return ret;
     }
 
     {
@@ -1150,7 +1151,7 @@ std::vector<Vec2d> cada_getIntersectionPointsCC(const Circle *circle1,
 
     s = 1.0 / 2.0 * ((r1 * r1 - r2 * r2) / (std::pow(uMag, 2.0)) + 1.0);
 
-    term = (r1 * r1) / (std::pow(uMag, 2.0))-s * s;
+    term = (r1 * r1) / (std::pow(uMag, 2.0)) - s * s;
 
     // no intersection:
     if (term < 0.0) {

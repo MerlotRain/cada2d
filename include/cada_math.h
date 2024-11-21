@@ -77,6 +77,11 @@ public:
 
     static bool linearSolver(const std::vector<std::vector<double>> &mt,
                              std::vector<double> &sn);
+    /**
+    * @brief JavaScript Math.sign
+    * @return 0: Negative number; 1: Positive numbers; 2: -0; 3: 0; 4: NAN
+    */
+    static int sign(double x);
 };
 
 } // namespace cada

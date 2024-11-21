@@ -76,8 +76,8 @@ cada_offset_arc(const shape::Arc *arc, double distance, int number,
             d *= -1.0;
         }
 
-        for (size_t n = 0; n < number; ++n) {
-            auto concentric = arc->clone();
+        for (size_t n = 1; n <= number; ++n) {
+            std::unique_ptr<Arc> concentric = arc->clone();
             concentric->setRadius(concentric->getRadius() + d * n);
             if (concentric->getRadius() < 0.0) {
                 break;
@@ -136,8 +136,8 @@ cada_offset_circle(const shape::Circle *circle, double distance, int number,
             d *= -1.0;
         }
 
-        for (size_t n = 0; n < number; ++n) {
-            auto concentric = circle->clone();
+        for (size_t n = 1; n <= number; ++n) {
+            std::unique_ptr<Circle> concentric = circle->clone();
             concentric->setRadius(concentric->getRadius() + d * n);
             if (concentric->getRadius() < 0.0) {
                 break;
@@ -289,6 +289,13 @@ cada_offset_lines(const shape::Shape *l, double distance, int number,
 }
 
 std::vector<std::unique_ptr<shape::Shape>>
+cada_offset_polyline(const shape::Polyline *pline, double distance, int number,
+                     NS::Side side, const shape::Vec2d &position)
+{
+    return std::vector<std::unique_ptr<shape::Shape>>();
+}
+
+std::vector<std::unique_ptr<shape::Shape>>
 cada_getOffsetShapes(const shape::Shape *shape, double distance, int number,
                      NS::Side side, const shape::Vec2d &position)
 {
@@ -312,8 +319,10 @@ cada_getOffsetShapes(const shape::Shape *shape, double distance, int number,
     case NS::Ray: {
         return cada_offset_lines(shape, distance, number, side, position);
     }
-    case NS::Polyline:
-        break;
+    case NS::Polyline: {
+        auto pline = dynamic_cast<const shape::Polyline *>(shape);
+        return cada_offset_polyline(pline, distance, number, side, position);
+    }
     case NS::BSpline:
         break;
     default:

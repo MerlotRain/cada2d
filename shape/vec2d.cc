@@ -108,6 +108,8 @@ void Vec2d::setPolar(double radius, double angle)
 {
     x = radius * cos(angle);
     y = radius * sin(angle);
+    x = fabs(x) < NS::PointTolerance ? 0.0 : x;
+    y = fabs(y) < NS::PointTolerance ? 0.0 : y;
     valid = Math::isNormal(radius) && Math::isNormal(angle);
 }
 
@@ -220,9 +222,25 @@ Vec2d Vec2d::rotate(double rotation)
     return *this;
 }
 
+
+Vec2d Vec2d::rotate(const Vec2d angleVector)
+{
+    double x0 = x * angleVector.x - y * angleVector.y;
+    y = x * angleVector.y + y * angleVector.x;
+    x = x0;
+
+    return *this;
+}
+
 Vec2d Vec2d::rotate(double rotation, const Vec2d &center)
 {
     *this = center + (*this - center).rotate(rotation);
+    return *this;
+}
+
+Vec2d Vec2d::rotate(const Vec2d &center, const Vec2d &angleVector)
+{
+    *this = center + (*this - center).rotate(angleVector);
     return *this;
 }
 
