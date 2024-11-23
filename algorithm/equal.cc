@@ -140,32 +140,6 @@ bool cada_equalsPolyline(const shape::Polyline *polyline1,
         }
     }
 
-    auto poly_start_width1 = polyline1->getStartWidths();
-    auto poly_start_width2 = polyline2->getStartWidths();
-    if (poly_start_width1.size() != poly_start_width2.size()) {
-        return false;
-    }
-
-    for (size_t i = 0; i < poly_start_width1.size(); ++i) {
-        if (!Math::fuzzyCompare(poly_start_width1[i], poly_start_width2[i],
-                                tolerance)) {
-            return false;
-        }
-    }
-
-    auto poly_end_width1 = polyline1->getEndWidths();
-    auto poly_end_width2 = polyline2->getEndWidths();
-    if (poly_end_width1.size() != poly_end_width2.size()) {
-        return false;
-    }
-
-    for (size_t i = 0; i < poly_end_width1.size(); ++i) {
-        if (!Math::fuzzyCompare(poly_end_width1[i], poly_end_width2[i],
-                                tolerance)) {
-            return false;
-        }
-    }
-
     return true;
 }
 

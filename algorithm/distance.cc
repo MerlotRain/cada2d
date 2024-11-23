@@ -56,40 +56,6 @@ double cada_getDistanceTo(const shape::Shape *shape, const shape::Vec2d &point,
                           bool limited, double strictRange)
 {
     assert(shape);
-    if (shape->getShapeType() == NS::Polyline) {
-        auto polyline = dynamic_cast<const Polyline *>(shape);
-        if (!polyline->hasWidths()) {
-            goto nonpolyline_distance_to;
-        }
-
-        // polyline with widths
-        if (!polyline->getBoundingBox().grow(strictRange).contains(point)) {
-            return std::numeric_limits<double>::quiet_NaN();
-        }
-
-        double ret = std::numeric_limits<double>::quiet_NaN();
-
-        std::vector<std::unique_ptr<Polyline>> outline = polyline->getOutline();
-        for (int i = 0; i < outline.size(); i++) {
-            assert(!outline[i]->hasWidths());
-            double d = outline[i]->getDistanceTo(point);
-            if (Math::isNaN(ret) || d < ret) {
-                ret = d;
-            }
-
-            if (outline[i]->isGeometricallyClosed()) {
-                if (outline[i]->contains(point)) {
-                    if (Math::isNaN(ret) || strictRange < ret) {
-                        ret = strictRange;
-                    }
-                }
-            }
-        }
-
-        return ret;
-    }
-
-nonpolyline_distance_to:
     Vec2d v = shape->getVectorTo(point, limited, strictRange);
     if (v.isValid()) {
         return v.getMagnitude();

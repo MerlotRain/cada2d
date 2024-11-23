@@ -24,14 +24,35 @@
 #define CADA_ALGORITHM_H
 
 #include "cada_shape.h"
+#include <vector>
 
 namespace cada {
 namespace algorithm {
 
+/**
+ * @brief Calculate equidistant points on a line segment
+ *
+ * @param v1 The start point of the line segment, of type Vec2d
+ * @param v2 The end point of the line segment, of type Vec2d
+ * @param n The number of equidistant points to calculate
+ * @return std::vector<shape::Vec2d> The set of calculated equidistant points
+ */
 extern std::vector<shape::Vec2d>
 calculate_equidistant_points_on_line(const shape::Vec2d &v1,
                                      const shape::Vec2d &v2, size_t n);
 
+/**
+ * @brief Calculate equidistant distribution points on a surface
+ *
+ * @param v1 The first corner point of the surface, of type Vec2d
+ * @param v2 The second corner point of the surface, of type Vec2d
+ * @param v3 The third corner point of the surface, of type Vec2d
+ * @param v4 The fourth corner point of the surface, of type Vec2d
+ * @param col The number of columns of equidistant points to calculate
+ * @param row The number of rows of equidistant points to calculate
+ * @return std::vector<shape::Vec2d> The set of calculated equidistant
+ * distribution points
+ */
 extern std::vector<shape::Vec2d>
 calculate_equidistant_distribution_points_on_surface(const shape::Vec2d &v1,
                                                      const shape::Vec2d &v2,
@@ -39,45 +60,160 @@ calculate_equidistant_distribution_points_on_surface(const shape::Vec2d &v1,
                                                      const shape::Vec2d &v4,
                                                      size_t col, size_t row);
 
+/**
+ * @brief Calculate the angle bisector of two line segments
+ *
+ * @param v1 The first corner point of the first line segment, of type Vec2d
+ * @param v2 The second corner point of the first line segment, of type Vec2d
+ * @param v3 The first corner point of the second line segment, of type Vec2d
+ * @param v4 The second corner point of the second line segment, of type Vec2d
+ * @return std::vector<shape::Vec2d> The set of calculated angle bisector points
+ */
 extern std::vector<std::unique_ptr<shape::Line>>
 calculate_angle_bisector_of_two_line_segments(
     const shape::Line *l1, const shape::Line *l2, const shape::Vec2d &pos1,
     const shape::Vec2d &pos2, double line_length, int line_number);
 
+/**
+ * @brief Calculate the common tangent between two circles
+ *
+ * @param c1 The first circle, of type Circle
+ * @param c2 The second circle, of type Circle
+ * @return std::vector<std::unique_ptr<shape::Line>> The set of calculated
+ * common tangent lines
+ */
 extern std::vector<std::unique_ptr<shape::Line>>
 calculate_common_tangent_between_two_circles(const shape::Circle *c1,
                                              const shape::Circle *c2);
 
+/**
+ * @brief Calculate the orthogonal tangent between a shape and a line
+ *
+ * @param line The line, of type Line
+ * @param shape The shape, of type Shape
+ * @return std::vector<std::unique_ptr<shape::Line>> The set of calculated
+ * orthogonal tangent lines
+ */
 extern std::vector<std::unique_ptr<shape::Line>>
 calculate_orthogonal_tangent_between_shape_and_line(const shape::Line *line,
                                                     const shape::Shape *shape);
 
+/**
+ * @brief Automatically split a shape at a given position
+ *
+ * @param pos The position at which to split the shape, of type Vec2d
+ * @param shape The shape to be split, of type Shape
+ * @param intersecting_shapes The shapes that intersect with the shape to be
+ * split, of type Shape*
+ * @param extend A boolean flag indicating whether to extend the shape to the
+ * intersection point
+ * @return std::vector<std::unique_ptr<shape::Shape>> The set of split shapes
+ */
 extern std::vector<std::unique_ptr<shape::Shape>>
 auto_split(const shape::Vec2d &pos, const shape::Shape *shape,
            const std::vector<shape::Shape *> &intersecting_shapes, bool extend);
 
+/**
+ * @brief Automatically split a shape at a given position manually
+ *
+ * @param shp The shape to be split, of type Shape
+ * @param cutDist1 The distance from the start of the shape to the first cutting
+ * position
+ * @param cutDist2 The distance from the start of the shape to the second
+ * cutting position
+ * @param cutPos1 The first cutting position, of type Vec2d
+ * @param cutPos2 The second cutting position, of type Vec2d
+ * @param position The position at which to split the shape, of type Vec2d
+ * @param extend A boolean flag indicating whether to extend the shape to the
+ * intersection point
+ * @return std::vector<std::unique_ptr<shape::Shape>> The set of split shapes
+ */
 extern std::vector<std::unique_ptr<shape::Shape>>
 auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
                   shape::Vec2d cutPos1, shape::Vec2d cutPos2,
-                 const shape::Vec2d &position, bool extend);
+                  const shape::Vec2d &position, bool extend);
 
+/**
+ * @brief Break out a gap at a given position
+ *
+ * @param pos The position at which to break out the gap, of type Vec2d
+ * @param shape The shape to be broken out, of type Shape
+ * @param additional A vector to store additional shapes created during the
+ * breaking out process
+ * @return bool A boolean flag indicating whether the breaking out process was
+ * successful
+ */
 extern bool break_out_gap(const shape::Vec2d &pos, const shape::Shape *shape,
                           std::vector<shape::Shape *> &additional);
 
+/**
+ * @brief Calculate the bevel shapes of two shapes.
+ *
+ * This function takes two shapes (shp1 and shp2) and their click positions
+ * (clickPos1 and clickPos2), as well as some additional parameters (trim,
+ * samePolyline, distance1 and distance2).
+ *
+ * The function returns a std::vector<std::unique_ptr<shape::Shape>>, which
+ * contains the calculated bevel shapes.
+ *
+ * @param shp1 The first shape.
+ * @param clickPos1 The click position of the first shape.
+ * @param shp2 The second shape.
+ * @param clickPos2 The click position of the second shape.
+ * @param trim A boolean indicating whether to trim the shapes.
+ * @param samePolyline A boolean indicating whether the shapes are the same
+ * polyline.
+ * @param distance1 The distance of the first shape.
+ * @param distance2 The distance of the second shape.
+ * @return std::vector<std::unique_ptr<shape::Shape>> The calculated bevel
+ * shapes.
+ */
 extern std::vector<std::unique_ptr<shape::Shape>>
-bevel_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
-             const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
-             double distance1, double distance2);
+bevel_shapes(const shape::Shape *shp1, const shape::Vec2d &clickPos1,
+             const shape::Shape *shp2, const shape::Vec2d &clickPos2, bool trim,
+             bool samePolyline, double distance1, double distance2);
 
+/**
+ * @brief Round the corners of two shapes at a given position
+ *
+ * @param shp1 The first shape, of type Shape
+ * @param pos1 The position of the first shape, of type Vec2d
+ * @param shp2 The second shape, of type Shape
+ * @param pos2 The position of the second shape, of type Vec2d
+ * @param trim A boolean flag indicating whether to trim the shapes
+ * @param samepolyline A boolean flag indicating whether the shapes are the same
+ * polyline
+ * @param radius The radius of the rounding, of type double
+ * @param solutionPos The position at which to round the corners, of type Vec2d
+ * @return std::vector<std::unique_ptr<shape::Shape>> The set of rounded shapes
+ */
 extern std::vector<std::unique_ptr<shape::Shape>>
-round_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
-             const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
-             bool same_polyline, double radius, const shape::Vec2d &pos);
+round_shapes(const shape::Shape *shp1, const shape::Vec2d &pos1,
+             const shape::Shape *shp2, const shape::Vec2d &pos2, bool trim,
+             bool samepolyline, double radius, const shape::Vec2d &solutionPos);
 
-extern std::unique_ptr<shape::Shape> lengthen(const shape::Shape *shape,
-                                              const shape::Vec2d &position,
-                                              bool trim_start, double amount);
-
+/**
+ * @brief Lengthen a shape at a given position
+ *
+ * @param shape The shape to be lengthened, of type Shape
+ * @param position The position at which to lengthen the shape, of type Vec2d
+ * @param trim_start A boolean flag indicating whether to trim the start of the
+ * shape
+ * @param amount The amount to lengthen the shape, of type double
+ * @return bool A boolean flag indicating whether the lengthening process was
+ * successful
+ */
+extern bool lengthen(shape::Shape *shape, const shape::Vec2d &position,
+                     bool trim_start, double amount);
+/**
+ * @brief Calculate the Apollonius solutions for three given shapes
+ *
+ * @param shape1 The first shape, of type Shape
+ * @param shape2 The second shape, of type Shape
+ * @param shape3 The third shape, of type Shape
+ * @return std::vector<std::unique_ptr<shape::Circle>> The set of calculated
+ * Apollonius solutions
+ */
 extern std::vector<std::unique_ptr<shape::Circle>>
 apollonius_solutions(const shape::Shape *shape1, const shape::Shape *shape2,
                      const shape::Shape *shape3);

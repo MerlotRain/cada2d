@@ -153,8 +153,8 @@ cada__ellipse_to_arc_circle_ellipse(const Ellipse *ellipse)
 
             Vec2d c = ellipse->getCenter();
             auto ret = ShapeFactory::instance()->createArc(
-                c, ellipse->getMajorRadius(),
-                0.0, 2 * M_PI, ellipse->isReversed());
+                c, ellipse->getMajorRadius(), 0.0, 2 * M_PI,
+                ellipse->isReversed());
             ret->setStartAngle(c.getAngleTo(ellipse->getStartPoint()));
             ret->setEndAngle(c.getAngleTo(ellipse->getEndPoint()));
             return ret;
@@ -250,24 +250,11 @@ bool cada_polyline_scale(shape::Polyline *polyline,
     }
 
     auto &poly_vertices = polyline->getVertices();
-    auto &poly_startWidths = polyline->getStartWidths();
-    auto &poly_endWidths = polyline->getEndWidths();
     auto &poly_bulges = polyline->getBulges();
 
     for (auto &v : poly_vertices) {
         v.scale(scaleFactors, c);
     }
-    for (auto &sw : poly_startWidths) {
-        if (sw > 0.0) {
-            sw *= fabs(scaleFactors.x);
-        }
-    }
-    for (auto &ew : poly_endWidths) {
-        if (ew > 0.0) {
-            ew *= fabs(scaleFactors.x);
-        }
-    }
-
     if ((scaleFactors.x < 0) != (scaleFactors.y < 0)) {
         for (auto &b : poly_bulges) {
             b *= -1;

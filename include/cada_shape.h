@@ -347,8 +347,6 @@ protected:
 class Polyline : public Shape {
     std::vector<Vec2d> mVertices;
     std::vector<double> mBulges;
-    std::vector<double> mEndWidths;
-    std::vector<double> mStartWidths;
     bool mClosed;
 
 public:
@@ -367,12 +365,9 @@ public:
     std::string to_string() const override;
 
 public:
-    void appendVertex(const Vec2d &vertex, double bulge = 0.0, double w1 = 0.0,
-                      double w2 = 0.0);
-    void appendVertex(double x, double y, double bulge = 0.0, double w1 = 0.0,
-                      double w2 = 0.0);
-    void prependVertex(const Vec2d &vertex, double bulge = 0.0, double w1 = 0.0,
-                       double w2 = 0.0);
+    void appendVertex(const Vec2d &vertex, double bulge = 0.0);
+    void appendVertex(double x, double y, double bulge = 0.0);
+    void prependVertex(const Vec2d &vertex, double bulge = 0.0);
     void insertVertex(int index, const Vec2d &vertex, double bulgeBefore = 0.0,
                       double bulgeAfter = 0.0);
     void insertVertexAt(const Vec2d &point);
@@ -407,19 +402,6 @@ public:
     double
     getVertexAngle(int i,
                    NS::Orientation orientation = NS::UnknownOrientation) const;
-
-    void setGlobalWidth(double w);
-    void setStartWidthAt(int i, double w);
-    double getStartWidthAt(int i) const;
-    void setEndWidthAt(int i, double w);
-    double getEndWidthAt(int i) const;
-    bool hasWidths() const;
-    void setStartWidths(const std::vector<double> &sw);
-    std::vector<double> getStartWidths() const;
-    std::vector<double> &getStartWidths();
-    void setEndWidths(const std::vector<double> &ew);
-    std::vector<double> getEndWidths() const;
-    std::vector<double> &getEndWidths();
 
     void setClosed(bool on);
     bool isClosed() const;
@@ -461,8 +443,6 @@ public:
     int getClosestVertex(const Vec2d &point) const;
 
     bool isStraight(double bulge) const;
-    void stripWidths();
-    void setMinimumWidth(double w);
     int getSegmentAtDist(double dist);
     bool relocateStartPoint(const Vec2d &p);
     bool relocateStartPoint(double dist);
@@ -475,11 +455,6 @@ public:
     std::unique_ptr<Polyline>
     convertArcToLineSegmentsLength(double segmentLength) const;
 
-    std::vector<std::unique_ptr<Polyline>> getOutline() const;
-    std::vector<std::pair<std::unique_ptr<Polyline>, std::unique_ptr<Polyline>>>
-    getLeftRightOutline() const;
-    std::vector<std::unique_ptr<Polyline>> getLeftOutline() const;
-    std::vector<std::unique_ptr<Polyline>> getRightOutline() const;
     int countSegments() const;
     std::unique_ptr<Shape> getSegmentAt(int i) const;
     bool isArcSegmentAt(int i) const;
@@ -913,11 +888,9 @@ public:
                                      double ditance) const;
 
     std::unique_ptr<Polyline> createPolyline() const;
-    std::unique_ptr<Polyline> createPolyline(
-        std::vector<Vec2d> &&vertrices, bool closed,
-        std::vector<double> &&bulges,
-        std::vector<double> &&endWidths = std::vector<double>(),
-        std::vector<double> &&startWidths = std::vector<double>()) const;
+    std::unique_ptr<Polyline>
+    createPolyline(std::vector<Vec2d> &&vertrices, bool closed,
+                   std::vector<double> &&bulges) const;
 
     std::unique_ptr<Arc> createArc() const;
     std::unique_ptr<Arc> createArc(const Vec2d &center, double radius,

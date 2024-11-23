@@ -25,7 +25,8 @@
 #include <assert.h>
 #include <cmath>
 #include <cada_math.h>
-#include <opennurbs/opennurbs.h>
+
+#include <cavaliercontours.h>
 
 extern "C" {
 #include <apollonius.h>
@@ -38,29 +39,14 @@ namespace algorithm {
 
 /* -------------------------- foundation functions -------------------------- */
 
-bool cada__is_circle_shape(const Shape *shape);
-bool cada__is_ellipse_shape(const Shape *shape);
-bool cada__is_full_ellipse(const Shape *shape);
-bool cada__is_xline_shape(const Shape *shape);
-bool cada__is_line_shape(const Shape *shape);
-bool cada__is_polyline_shape(const Shape *shape);
-bool cada__is_arc_shape(const Shape *shape);
-bool cada__is_geometrically_closed(const Shape *shape);
-bool cada__is_spline_shape(const Shape *shape);
-bool cada__is_closed(const Shape *shape);
-bool cada__is_ray_shape(const Shape *shape);
-
-#define isCircleShape(shp)              cada__is_circle_shape(shp)
-#define isEllipseShape(shp)             cada__is_ellipse_shape(shp)
-#define isFullEllipseShape(shp)         cada__is_full_ellipse(shp)
-#define isXLineShape(shp)               cada__is_xline_shape(shp)
-#define isLineShape(shp)                cada__is_line_shape(shp)
-#define isPolylineShape(shp)            cada__is_polyline_shape(shp)
-#define isArcShape2(shp)                cada__is_arc_shape(shape)
-#define shapeIsGeometricallyClosed(shp) cada__is_geometrically_closed(shp)
-#define isSplineShape(shp)              cada__is_spline_shape(shp)
-#define shapeIsClosed(shp)              cada__is_closed(shp)
-#define isRayShape(shp)                 cada__is_ray_shape(shp)
+std::unique_ptr<Shape> TrimStartPoint(shape::Shape *shape,
+                                      const Vec2d &trimPoint,
+                                      const Vec2d &clickPoint);
+std::unique_ptr<Shape> TrimEndPoint(shape::Shape *shape, const Vec2d &trimPoint,
+                                    const Vec2d &clickPoint);
+std::unique_ptr<Shape> xLineToRay(const shape::Shape *shape);
+std::unique_ptr<Shape> rayToXLine(const shape::Shape *shape);
+std::unique_ptr<Shape> rayToLine(const shape::Shape *shape);
 
 /* ---------------------------- extern functions ---------------------------- */
 
@@ -141,18 +127,17 @@ bool break_out_gap(const shape::Vec2d &pos, const shape::Shape *shape,
                    std::vector<shape::Shape *> &additional);
 
 std::vector<std::unique_ptr<shape::Shape>>
-bevel_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
-             const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
-             double distance1, double distance2);
+bevel_shapes(const shape::Shape *shp1, const shape::Vec2d &clickPos1,
+             const shape::Shape *shp2, const shape::Vec2d &clickPos2, bool trim,
+             bool samePolyline, double distance1, double distance2);
 
 std::vector<std::unique_ptr<shape::Shape>>
-round_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
-             const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
-             bool same_polyline, double radius, const shape::Vec2d &pos);
+round_shapes(const shape::Shape *shp1, const shape::Vec2d &pos1,
+             const shape::Shape *shp2, const shape::Vec2d &pos2, bool trim,
+             bool samepolyline, double radius, const shape::Vec2d &solutionPos);
 
-std::unique_ptr<shape::Shape> lengthen(const shape::Shape *shape,
-                                       const shape::Vec2d &position,
-                                       bool trim_start, double amount);
+bool lengthen(shape::Shape *shape, const shape::Vec2d &position,
+              bool trim_start, double amount);
 
 std::vector<std::unique_ptr<Circle>> apollonius_solutions(const Shape *shape1,
                                                           const Shape *shape2,
@@ -1036,27 +1021,444 @@ bool break_out_gap(const shape::Vec2d &pos, const shape::Shape *shape,
     return false;
 }
 
-std::vector<std::unique_ptr<shape::Shape>>
-bevel_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
-             const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
-             double distance1, double distance2)
+std::vector<std::unique_ptr<Shape>>
+bevel_shapes(const shape::Shape *shp1, const shape::Vec2d &clickPos1,
+             const shape::Shape *shp2, const shape::Vec2d &clickPos2, bool trim,
+             bool samePolyline, double distance1, double distance2)
 {
-    return std::vector<std::unique_ptr<shape::Shape>>();
+    std::vector<std::unique_ptr<Shape>> results;
+
+    std::unique_ptr<Shape> shape1(shp1->clone());
+    std::unique_ptr<Shape> shape2(shp2->clone());
+
+    // convert circles to arcs:
+    if (isCircleShape(shape1.get())) {
+        auto &&circle = dynamic_cast<Circle *>(shape1.release());
+        shape1 = std::move(circle->toArc());
+    }
+    if (isCircleShape(shape2.get())) {
+        auto &&circle = dynamic_cast<Circle *>(shape2.release());
+        shape2 = std::move(circle->toArc());
+    }
+
+    std::unique_ptr<Shape> simpleShape1, simpleShape2;
+    int i1, i2;
+
+    if (isPolylineShape(shape1.get())) {
+        auto &&pline = dynamic_cast<Polyline *>(shape1.release());
+        i1 = pline->getClosestSegment(clickPos1);
+        if (i1 == -1) {
+            return results;
+        }
+        simpleShape1 = pline->getSegmentAt(i1);
+    }
+    else {
+        simpleShape1 = shape1->clone();
+    }
+
+    if (isPolylineShape(shape2.get())) {
+        auto &&pline = dynamic_cast<Polyline *>(shape2.release());
+        i2 = pline->getClosestSegment(clickPos2);
+        if (i2 == -1) {
+            return results;
+        }
+        simpleShape2 = pline->getSegmentAt(i2);
+    }
+    else {
+        simpleShape2 = shape2->clone();
+    }
+
+    // get intersection point(s) between two shapes:
+    auto &&sol = simpleShape1->getIntersectionPoints(simpleShape2.get(), false);
+
+    if (sol.size() == 0) {
+        return results;
+    }
+
+    // var trimmed1 = shape1.clone();
+    // var trimmed2 = shape2.clone();
+    std::unique_ptr<Shape> trimmed1, trimmed2;
+    if (samePolyline) {
+        trimmed1 = simpleShape1->clone();
+        trimmed2 = simpleShape2->clone();
+    }
+    else {
+        // maybe
+        trimmed1 = shape1->clone();
+        trimmed2 = shape2->clone();
+    }
+
+    // trim shapes to intersection:
+    auto start1 = NS::FromAny;
+    auto is = clickPos1.getClosest(sol);
+    auto ending1 = NS::EndingNone;
+
+    ending1 = trimmed1->getTrimEnd(is, clickPos1);
+    switch (ending1) {
+    case NS::EndingStart:
+        trimmed1 = TrimStartPoint(trimmed1.release(), is, clickPos1);
+        start1 = NS::FromStart;
+        break;
+    case NS::EndingEnd:
+        trimmed1 = TrimEndPoint(trimmed1.release(), is, clickPos1);
+        if (isRayShape(trimmed1.get())) {
+            start1 = NS::FromStart;
+            ending1 = NS::EndingStart;
+        }
+        else {
+            start1 = NS::FromEnd;
+        }
+        break;
+    default:
+        break;
+    }
+
+    auto start2 = NS::FromAny;
+    is = clickPos2.getClosest(sol);
+    auto ending2 = NS::EndingNone;
+
+    ending2 = trimmed2->getTrimEnd(is, clickPos2);
+    switch (ending2) {
+    case NS::EndingStart:
+        trimmed2 = TrimStartPoint(trimmed2.release(), is, clickPos2);
+        start2 = NS::FromStart;
+        break;
+    case NS::EndingEnd:
+        trimmed2 = TrimEndPoint(trimmed2.release(), is, clickPos2);
+        if (isRayShape(trimmed2.get())) {
+            start2 = NS::FromStart;
+            ending2 = NS::EndingStart;
+        }
+        else {
+            start2 = NS::FromEnd;
+        }
+
+        break;
+    default:
+        break;
+    }
+
+    // find definitive bevel points:
+    std::unique_ptr<Shape> t1, t2;
+    if (isCircleShape(trimmed1.get())) {
+        auto &&circle = dynamic_cast<Circle *>(trimmed1.get());
+        t1 = circle->toArc(circle->getCenter().getAngleTo(is));
+        start1 = NS::FromAny;
+    }
+    else {
+        t1 = trimmed1->clone();
+    }
+    if (isCircleShape(trimmed2.get())) {
+        auto &&circle = dynamic_cast<Circle *>(trimmed2.get());
+        t2 = circle->toArc(circle->getCenter().getAngleTo(is));
+        start2 = NS::FromAny;
+    }
+    else {
+        t2 = trimmed2->clone();
+    }
+
+    std::vector<Vec2d> bp1s = t1->getPointsWithDistanceToEnd(distance1, start1);
+    if (bp1s.size() == 0) {
+        return results;
+    }
+    Vec2d bp1 = clickPos2.getClosest(bp1s);
+
+    std::vector<Vec2d> bp2s = t2->getPointsWithDistanceToEnd(distance2, start2);
+    if (bp2s.size() == 0) {
+        return results;
+    }
+    Vec2d bp2 = clickPos2.getClosest(bp2s);
+
+    // final trim:
+    if (trim || samePolyline) {
+        switch (ending1) {
+        case NS::EndingStart:
+            trimmed1->trimStartPoint(bp1);
+            break;
+        case NS::EndingEnd:
+            trimmed1->trimEndPoint(bp1);
+            break;
+        default:
+            break;
+        }
+
+        switch (ending2) {
+        case NS::EndingStart:
+            trimmed2->trimStartPoint(bp2);
+            break;
+        case NS::EndingEnd:
+            trimmed2->trimEndPoint(bp2);
+            break;
+        default:
+            break;
+        }
+    }
+
+    auto &&bevel = ShapeFactory::instance()->createLine(bp1, bp2);
+    if (samePolyline) {
+        auto &&pline = dynamic_cast<const Polyline *>(shape1.get());
+        auto &&pl = pline->modifyPolylineCorner(trimmed1.release(), ending1, i1,
+                                                trimmed2.release(), ending2, i2,
+                                                bevel.release());
+
+        results.emplace_back(std::move(pl));
+    }
+    else {
+        results.emplace_back(std::move(trimmed1));
+        results.emplace_back(std::move(bevel));
+        results.emplace_back(std::move(trimmed2));
+    }
+    return results;
 }
 
 std::vector<std::unique_ptr<shape::Shape>>
-round_shapes(const shape::Shape *shap1, const shape::Vec2d &pos1,
-             const shape::Shape *shape2, const shape::Vec2d &pos2, bool trim,
-             bool same_polyline, double radius, const shape::Vec2d &pos)
+round_shapes(const shape::Shape *shp1, const shape::Vec2d &clickPos1,
+             const shape::Shape *shp2, const shape::Vec2d &clickPos2, bool trim,
+             bool samepolyline, double radius, const shape::Vec2d &pos)
 {
-    return std::vector<std::unique_ptr<shape::Shape>>();
+    std::vector<std::unique_ptr<shape::Shape>> results;
+
+    if (!shp1 || !clickPos1.isValid() || !shp2 || !clickPos2.isValid()) {
+        return results;
+    }
+
+    Vec2d p = pos;
+    if (!p.isValid()) {
+        p = clickPos2;
+    }
+
+    auto &&shape1 = shp1->clone();
+    auto &&shape2 = shp2->clone();
+
+    std::unique_ptr<Shape> s1, s2;
+
+    // convert circles to arcs:
+    if (isCircleShape(shape1.get())) {
+        auto &&circle = dynamic_cast<Circle *>(shape1.get());
+        s1 = circle->toArc();
+    }
+    else {
+        s1 = shape1->clone();
+    }
+
+    if (isCircleShape(shape2.get())) {
+        auto &&circle = dynamic_cast<Circle *>(shape2.get());
+        s2 = circle->toArc();
+    }
+    else {
+        s2 = shape2->clone();
+    }
+
+    std::unique_ptr<Shape> simpleShape1, simpleShape2;
+    int i1, i2;
+
+    // rounding polylines?
+    // round segments instead:
+    if (isPolylineShape(shape1.get())) {
+        auto &&pl1 = dynamic_cast<Polyline *>(shape1.get());
+        i1 = pl1->getClosestSegment(clickPos1);
+        if (i1 == -1) {
+            return results;
+        }
+        simpleShape1 = pl1->getSegmentAt(i1);
+    }
+    else {
+        simpleShape1 = s1->clone();
+    }
+
+    if (isPolylineShape(shape2.get())) {
+        auto &&pl2 = dynamic_cast<Polyline *>(shape2.get());
+        i2 = pl2->getClosestSegment(clickPos2);
+        if (i2 == -1) {
+            return results;
+        }
+        simpleShape2 = pl2->getSegmentAt(i2);
+    }
+    else {
+        simpleShape2 = s2->clone();
+    }
+
+    // create two temporary parallels:
+    auto &&parallels1 =
+        simpleShape1->getOffsetShapes(radius, 1, cada::NS::NoSide, p);
+    auto &&parallels2 =
+        simpleShape2->getOffsetShapes(radius, 1, cada::NS::NoSide, p);
+
+    if (parallels1.size() != 1 || parallels2.size() != 1) {
+        return results;
+    }
+
+    auto &&parallel1 = parallels1[0];
+    auto &&parallel2 = parallels2[0];
+
+    auto &&ipParallel =
+        parallel1->getIntersectionPoints(parallel2.get(), false);
+    if (ipParallel.empty()) {
+        return results;
+    }
+
+    auto &&sol2 =
+        simpleShape1->getIntersectionPoints(simpleShape2.get(), false);
+
+    // there might be two intersections: choose the closest:
+    Vec2d ip = p.getClosest(ipParallel);
+    Vec2d p1 = simpleShape1->getClosestPointOnShape(ip, false);
+    Vec2d p2 = simpleShape2->getClosestPointOnShape(ip, false);
+    double ang1 = ip.getAngleTo(p1);
+    double ang2 = ip.getAngleTo(p2);
+    bool reversed = (Math::getAngleDifference(ang1, ang2) > M_PI);
+
+    auto &&arc =
+        ShapeFactory::instance()->createArc(ip, radius, ang1, ang2, reversed);
+    // Vec2d bp1 = arc.getStartPoint();
+    // Vec2d bp2 = arc.getEndPoint();
+
+    std::unique_ptr<Shape> trimmed1, trimmed2;
+    if (samepolyline) {
+        trimmed1 = simpleShape1->clone();
+        trimmed2 = simpleShape2->clone();
+    }
+    else {
+        trimmed1 = shape1->clone();
+        trimmed2 = shape2->clone();
+    }
+
+    NS::Ending ending1 = NS::EndingNone;
+    NS::Ending ending2 = NS::EndingNone;
+
+    if (trim || samepolyline) {
+        // trim entities to intersection
+        Vec2d is2 = clickPos2.getClosest(sol2);
+        ending1 = trimmed1->getTrimEnd(is2, clickPos1);
+        switch (ending1) {
+        case NS::EndingStart:
+            trimmed1->trimStartPoint(p1, clickPos1);
+            if (isXLineShape(trimmed1.get())) {
+                trimmed1 = xLineToRay(trimmed1.release());
+            }
+            break;
+        case NS::EndingEnd:
+            trimmed1->trimEndPoint(p1, clickPos1);
+            if (isXLineShape(trimmed1.get())) {
+                trimmed1 = xLineToRay(trimmed1.release());
+            }
+            else if (isRayShape(trimmed1.get())) {
+                trimmed1 = rayToLine(trimmed1.release());
+            }
+            break;
+        default:
+            break;
+        }
+
+        is2 = clickPos1.getClosest(sol2);
+        ending2 = trimmed2->getTrimEnd(is2, clickPos2);
+        switch (ending2) {
+        case NS::EndingStart:
+            trimmed2->trimStartPoint(p2, clickPos2);
+            if (isXLineShape(trimmed2.get())) {
+                trimmed2 = xLineToRay(trimmed2.release());
+            }
+            break;
+        case NS::EndingEnd:
+            trimmed2->trimEndPoint(p2, clickPos2);
+            if (isXLineShape(trimmed2.get())) {
+                trimmed2 = xLineToRay(trimmed2.release());
+            }
+            else if (isRayShape(trimmed2.get())) {
+                trimmed2 = rayToLine(trimmed2.release());
+            }
+            break;
+        default:
+            break;
+        }
+    }
+
+    if (samepolyline) {
+        auto &&pl1 = dynamic_cast<Polyline *>(shape1.get());
+        auto &&pl =
+            pl1->modifyPolylineCorner(trimmed1.get(), ending1, i1,
+                                      trimmed2.get(), ending2, i2, arc.get());
+        results.emplace_back(std::move(pl));
+        return results;
+    }
+
+    if (Math::fuzzyAngleCompare(arc->getStartAngle(), arc->getEndAngle())) {
+        // rounding is full circle (two shapes are tangential):
+        return results;
+    }
+
+    if (isArcShape(trimmed1.get())) {
+        auto &&arc1 = dynamic_cast<Arc *>(trimmed1.get());
+        if (Math::fuzzyAngleCompare(arc1->getStartAngle(),
+                                    arc1->getEndAngle())) {
+            // trimmed shape is full circle (two shapes are tangential):
+            return results;
+        }
+    }
+    if (isArcShape(trimmed2.get())) {
+        auto &&arc2 = dynamic_cast<Arc *>(trimmed2.get());
+        if (Math::fuzzyAngleCompare(arc2->getStartAngle(),
+                                    arc2->getEndAngle())) {
+            // trimmed shape is full circle (two shapes are tangential):
+            return results;
+        }
+    }
+
+    results.emplace_back(std::move(trimmed1));
+    results.emplace_back(std::move(arc));
+    results.emplace_back(std::move(trimmed2));
+    return results;
 }
 
-std::unique_ptr<shape::Shape> lengthen(const shape::Shape *shape,
-                                       const shape::Vec2d &position,
-                                       bool trim_start, double amount)
+bool lengthen(shape::Shape *shape, const shape::Vec2d &position,
+              bool trimStartPoint, double amount)
 {
-    return nullptr;
+    assert(shape);
+
+    bool trimStartPoint = false;
+
+    if (isPolylineShape(shape)) {
+        auto &&pline = dynamic_cast<const shape::Polyline *>(shape);
+        trimStartPoint = pline->getLengthTo(position) < pline->getLength() / 2;
+    }
+    else {
+        trimStartPoint = position.getDistanceTo(shape->getStartPoint()) <
+                         position.getDistanceTo(shape->getEndPoint());
+    }
+
+    NS::From from;
+    if (trimStartPoint) {
+        from = NS::FromStart;
+    }
+    else {
+        from = NS::FromEnd;
+    }
+
+    std::vector<Vec2d> iss;
+    if (isPolylineShape(shape)) {
+        auto &&pline = dynamic_cast<const shape::Polyline *>(shape);
+        iss = pline->getPointsWithDistanceToEnd(-amount,
+                                                from | NS::AlongPolyline);
+    }
+    else {
+        iss = shape->getPointsWithDistanceToEnd(-amount,
+                                                from | NS::AlongPolyline);
+    }
+
+    auto &&is = position.getClosest(iss);
+
+    if (!is.isValid()) {
+        return false;
+    }
+
+    if (trimStartPoint) {
+        shape->trimStartPoint(is, is, amount > 0);
+    }
+    else {
+        shape->trimEndPoint(is, is, amount > 0);
+    }
+
+    return true;
 }
 
 std::vector<std::unique_ptr<Circle>> apollonius_solutions(const Shape *shape1,
@@ -1110,7 +1512,7 @@ std::vector<std::unique_ptr<Circle>> apollonius_solutions(const Shape *shape1,
     apollonius_solution *sulu;
     if (apollonius_solve(apo, &sulu) == 0) {
         std::vector<std::unique_ptr<Circle>> circles;
-        for (int i = 0; i < sulu->count; ++i) {
+        for (size_t i = 0; i < sulu->count; ++i) {
             circles.emplace_back(ShapeFactory::instance()->createCircle(
                 Vec2d(sulu->circles[i].cx, sulu->circles[i].cy),
                 sulu->circles[i].r));
@@ -1337,90 +1739,58 @@ std::unique_ptr<shape::Shape> cada__closest_intersection_point_distances(
     return shape;
 };
 
-/* -------------------------- foundation functions -------------------------- */
-bool cada__is_circle_shape(const Shape *shape)
+std::unique_ptr<Shape> TrimStartPoint(shape::Shape *shape,
+                                      const Vec2d &trimPoint,
+                                      const Vec2d &clickPoint)
 {
-    assert(shape);
-    return shape->getShapeType() == NS::Circle;
+    shape->trimStartPoint(trimPoint, clickPoint);
+    if (isXLineShape(shape)) {
+        auto &&xline = dynamic_cast<XLine *>(shape);
+        return ShapeFactory::instance()->createRay(xline->getBasePoint(),
+                                                   xline->getDirectionVector());
+    }
+    else {
+        return shape->clone();
+    }
 }
 
-bool cada__is_ellipse_shape(const Shape *shape)
+std::unique_ptr<Shape> TrimEndPoint(shape::Shape *shape, const Vec2d &trimPoint,
+                                    const Vec2d &clickPoint)
 {
-    assert(shape);
-    return shape->getShapeType() == NS::Ellipse;
+    shape->trimEndPoint(trimPoint, clickPoint);
+    if (isXLineShape(shape)) {
+        auto &&xline = dynamic_cast<XLine *>(shape);
+        return ShapeFactory::instance()->createRay(xline->getBasePoint(),
+                                                   xline->getDirectionVector());
+    }
+    else {
+        return shape->clone();
+    }
 }
 
-bool cada__is_full_ellipse(const Shape *shape)
+std::unique_ptr<Shape> xLineToRay(const shape::Shape *shape)
 {
-    assert(shape);
-    return shape->getShapeType() == NS::Ellipse &&
-           dynamic_cast<const Ellipse *>(shape)->isFullEllipse();
+    assert(isXLineShape(shape));
+    auto &&xline = dynamic_cast<const XLine *>(shape);
+    return ShapeFactory::instance()->createRay(xline->getBasePoint(),
+                                               xline->getDirectionVector());
 }
 
-bool cada__is_xline_shape(const Shape *shape)
+std::unique_ptr<Shape> rayToXLine(const shape::Shape *shape)
 {
-    assert(shape);
-    return shape->getShapeType() == NS::XLine;
+    assert(isRayShape(shape));
+    auto &&ray = dynamic_cast<const Ray *>(shape);
+    return ShapeFactory::instance()->createXLine(ray->getBasePoint(),
+                                                 ray->getDirectionVector());
 }
 
-bool cada__is_line_shape(const Shape *shape)
+std::unique_ptr<Shape> rayToLine(const shape::Shape *shape)
 {
-    assert(shape);
-    return shape->getShapeType() == NS::Line;
+    assert(isRayShape(shape));
+    auto &&ray = dynamic_cast<const Ray *>(shape);
+    return ShapeFactory::instance()->createLine(ray->getBasePoint(),
+                                                ray->getDirectionVector());
 }
-
-bool cada__is_polyline_shape(const Shape *shape)
-{
-    assert(shape);
-    return shape->getShapeType() == NS::Polyline;
-}
-
-bool cada__is_arc_shape(const Shape *shape)
-{
-    assert(shape);
-    return shape->getShapeType() == NS::Arc;
-}
-
-bool cada__is_geometrically_closed(const Shape *shape)
-{
-    assert(shape);
-
-    return (shape->getShapeType() == NS::Polyline &&
-            dynamic_cast<const Polyline *>(shape)->isGeometricallyClosed()) ||
-           (shape->getShapeType() == NS::BSpline &&
-            dynamic_cast<const BSpline *>(shape)->isGeometricallyClosed());
-}
-
-bool cada__is_spline_shape(const Shape *shape)
-{
-    assert(shape);
-    return shape->getShapeType() == NS::BSpline;
-}
-
-bool cada__is_closed(const Shape *shape)
-{
-    assert(shape);
-    return (shape->getShapeType() == NS::Polyline &&
-            dynamic_cast<const Polyline *>(shape)->isClosed()) ||
-           (shape->getShapeType() == NS::BSpline &&
-            dynamic_cast<const BSpline *>(shape)->isClosed());
-}
-
-bool cada__is_ray_shape(const Shape *shape)
-{
-    assert(shape);
-    return shape->getShapeType() == NS::Ray;
-}
-
-#undef isCircleShape
-#undef isFullEllipseShape
-#undef isXLineShape
-#undef isPolylineShape
-#undef shapeIsGeometricallyClosed
-#undef isSplineShape
-#undef shapeIsClosed
-#undef isRayShape
-#undef isArcShape2
 
 } // namespace algorithm
 } // namespace cada

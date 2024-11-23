@@ -54,8 +54,6 @@ Polyline *Polyline::cloneImpl() const
     Polyline *pClone = new Polyline();
     pClone->mVertices = mVertices;
     pClone->mBulges = mBulges;
-    pClone->mEndWidths = mEndWidths;
-    pClone->mStartWidths = mStartWidths;
     pClone->mClosed = mClosed;
     return pClone;
 }
@@ -64,20 +62,14 @@ void Polyline::clear()
 {
     mVertices.clear();
     mBulges.clear();
-    mStartWidths.clear();
-    mEndWidths.clear();
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
 void Polyline::normalize(double tolerance)
 {
     std::vector<Vec2d> newVertices;
     std::vector<double> newBulges;
-    std::vector<double> newStartWidths;
-    std::vector<double> newEndWidths;
 
     Vec2d vPrev;
     int newIndex = 0;
@@ -85,21 +77,15 @@ void Polyline::normalize(double tolerance)
     for (size_t i = 0; i < mVertices.size(); i++) {
         Vec2d v = mVertices[i];
         double b = mBulges[i];
-        double s = mStartWidths[i];
-        double e = mEndWidths[i];
 
         if (i == 0 || !v.equalsFuzzy(vPrev, tolerance)) {
             newVertices.push_back(v);
             newBulges.push_back(b);
-            newStartWidths.push_back(s);
-            newEndWidths.push_back(e);
             newIndex = newIndex + 1;
             vPrev = v;
         }
         else if (i > 0) {
             newBulges[newIndex - 1] = b;
-            newStartWidths[newIndex - 1] = s;
-            newEndWidths[newIndex - 1] = e;
         }
     }
 
@@ -108,19 +94,13 @@ void Polyline::normalize(double tolerance)
         if (newVertices.front().equalsFuzzy(newVertices.back(), tolerance)) {
             newVertices.pop_back();
             newBulges.pop_back();
-            newStartWidths.pop_back();
-            newEndWidths.pop_back();
         }
     }
 
     mVertices = newVertices;
     mBulges = newBulges;
-    mStartWidths = newStartWidths;
-    mEndWidths = newEndWidths;
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
 bool Polyline::prependShape(const Shape *shape)
@@ -191,8 +171,6 @@ bool Polyline::appendShape(const Shape *shape, bool prepend)
                         continue;
                     }
                     ret = prependShape(s.release()) && ret;
-                    setStartWidthAt(0, pl->getStartWidthAt(i));
-                    setEndWidthAt(0, pl->getEndWidthAt(i));
                 }
             }
             else {
@@ -201,9 +179,6 @@ bool Polyline::appendShape(const Shape *shape, bool prepend)
                     if (!s) {
                         continue;
                     }
-                    setStartWidthAt(mVertices.size() - 1,
-                                    pl->getStartWidthAt(i));
-                    setEndWidthAt(mVertices.size() - 1, pl->getEndWidthAt(i));
                     ret = appendShape(s.release()) && ret;
                 }
             }
@@ -260,8 +235,6 @@ bool Polyline::appendShape(const Shape *shape, bool prepend)
     }
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 
     return ret;
 }
@@ -345,36 +318,25 @@ bool Polyline::closeTrim()
     return false;
 }
 
-void Polyline::appendVertex(const Vec2d &vertex, double bulge, double w1,
-                            double w2)
+void Polyline::appendVertex(const Vec2d &vertex, double bulge)
 {
     mVertices.push_back(vertex);
     mBulges.push_back(bulge);
-    mStartWidths.push_back(w1);
-    mEndWidths.push_back(w2);
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
-void Polyline::appendVertex(double x, double y, double bulge, double w1,
-                            double w2)
+void Polyline::appendVertex(double x, double y, double bulge)
 {
-    appendVertex(Vec2d(x, y), bulge, w1, w2);
+    appendVertex(Vec2d(x, y), bulge);
 }
 
-void Polyline::prependVertex(const Vec2d &vertex, double bulge, double w1,
-                             double w2)
+void Polyline::prependVertex(const Vec2d &vertex, double bulge)
 {
     mVertices.insert(mVertices.begin(), vertex);
     mBulges.insert(mBulges.begin(), bulge);
-    mStartWidths.insert(mStartWidths.begin(), w1);
-    mEndWidths.insert(mEndWidths.begin(), w2);
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
 void Polyline::insertVertex(int index, const Vec2d &vertex, double bulgeBefore,
@@ -385,12 +347,8 @@ void Polyline::insertVertex(int index, const Vec2d &vertex, double bulgeBefore,
         mBulges[index - 1] = bulgeBefore;
     }
     mBulges.insert(mBulges.begin() + index, bulgeAfter);
-    mStartWidths.insert(mStartWidths.begin() + index, 0.0);
-    mEndWidths.insert(mEndWidths.begin() + index, 0.0);
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
 void Polyline::insertVertexAt(const Vec2d &point)
@@ -435,8 +393,6 @@ void Polyline::insertVertexAt(const Vec2d &point)
     }
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
 Vec2d Polyline::insertVertexAtDistance(double dist)
@@ -452,12 +408,8 @@ void Polyline::removeFirstVertex()
 
     mVertices.erase(mVertices.begin());
     mBulges.erase(mBulges.begin());
-    mStartWidths.erase(mStartWidths.begin());
-    mEndWidths.erase(mEndWidths.begin());
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
 void Polyline::removeLastVertex()
@@ -468,48 +420,32 @@ void Polyline::removeLastVertex()
 
     mVertices.pop_back();
     mBulges.pop_back();
-    mStartWidths.pop_back();
-    mEndWidths.pop_back();
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
 void Polyline::removeVertex(int index)
 {
     mVertices.erase(mVertices.begin() + index);
     mBulges.erase(mBulges.begin() + index);
-    mStartWidths.erase(mStartWidths.begin() + index);
-    mEndWidths.erase(mEndWidths.begin() + index);
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
 void Polyline::removeVerticesAfter(int index)
 {
     mVertices = {mVertices.begin(), mVertices.begin() + index + 1};
     mBulges = {mBulges.begin(), mBulges.begin() + index + 1};
-    mStartWidths = {mStartWidths.begin(), mStartWidths.begin() + index + 1};
-    mEndWidths = {mEndWidths.begin(), mEndWidths.begin() + index + 1};
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
 void Polyline::removeVerticesBefore(int index)
 {
     mVertices = {mVertices.begin() + index, mVertices.end()};
     mBulges = {mBulges.begin() + index, mBulges.end()};
-    mStartWidths = {mStartWidths.begin() + index, mStartWidths.end()};
-    mEndWidths = {mEndWidths.begin() + index, mEndWidths.end()};
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
 bool Polyline::isEmpty() const
@@ -522,17 +458,11 @@ void Polyline::setVertices(const std::vector<Vec2d> &vertices)
     mVertices = vertices;
 
     mBulges.clear();
-    mStartWidths.clear();
-    mEndWidths.clear();
     for (size_t i = 0; i < mVertices.size(); ++i) {
         mBulges.push_back(0.0);
-        mStartWidths.push_back(0.0);
-        mEndWidths.push_back(0.0);
     }
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 }
 
 std::vector<Vec2d> Polyline::getVertices() const
@@ -684,99 +614,6 @@ double Polyline::getVertexAngle(int i, NS::Orientation orientation) const
     }
 }
 
-void Polyline::setGlobalWidth(double w)
-{
-    for (size_t i = 0; i < mStartWidths.size(); i++) {
-        mStartWidths[i] = w;
-    }
-    for (size_t i = 0; i < mEndWidths.size(); i++) {
-        mEndWidths[i] = w;
-    }
-}
-
-void Polyline::setStartWidthAt(int i, double w)
-{
-    if (i < 0 || i >= mStartWidths.size()) {
-        return;
-    }
-    mStartWidths[i] = w;
-}
-
-double Polyline::getStartWidthAt(int i) const
-{
-    if (i < 0 || i >= mStartWidths.size()) {
-        return -1.0;
-    }
-
-    return mStartWidths.at(i);
-}
-
-void Polyline::setEndWidthAt(int i, double w)
-{
-    if (i < 0 || i >= mEndWidths.size()) {
-        return;
-    }
-    mEndWidths[i] = w;
-}
-
-double Polyline::getEndWidthAt(int i) const
-{
-    if (i < 0 || i >= mEndWidths.size()) {
-        return -1.0;
-    }
-
-    return mEndWidths.at(i);
-}
-
-bool Polyline::hasWidths() const
-{
-    for (size_t i = 0; i < mStartWidths.size() && i < mEndWidths.size(); i++) {
-        if (!Math::isNaN(mStartWidths[i]) && mStartWidths[i] > 0.0) {
-            // widths in last vertex only count if closed:
-            if (i != mStartWidths.size() - 1 || isClosed()) {
-                return true;
-            }
-        }
-        if (!Math::isNaN(mEndWidths[i]) && mEndWidths[i] > 0.0) {
-            if (i != mStartWidths.size() - 1 || isClosed()) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-void Polyline::setStartWidths(const std::vector<double> &sw)
-{
-    mStartWidths = sw;
-}
-
-std::vector<double> Polyline::getStartWidths() const
-{
-    return mStartWidths;
-}
-
-std::vector<double> &Polyline::getStartWidths()
-{
-    return mStartWidths;
-}
-
-void Polyline::setEndWidths(const std::vector<double> &ew)
-{
-    mEndWidths = ew;
-}
-
-std::vector<double> Polyline::getEndWidths() const
-{
-    return mEndWidths;
-}
-
-std::vector<double> &Polyline::getEndWidths()
-{
-    return mEndWidths;
-}
-
 void Polyline::setClosed(bool on)
 {
     mClosed = on;
@@ -812,8 +649,6 @@ bool Polyline::toLogicallyClosed(double tolerance)
     setClosed(true);
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 
     return true;
 }
@@ -828,8 +663,6 @@ bool Polyline::toLogicallyOpen()
     setClosed(false);
 
     assert(mVertices.size() == mBulges.size());
-    assert(mVertices.size() == mStartWidths.size());
-    assert(mVertices.size() == mEndWidths.size());
 
     return true;
 }
@@ -877,33 +710,6 @@ NS::Orientation Polyline::getOrientation(bool implicitelyClosed) const
 
         previousShape = std::move(shape);
     }
-
-    // TODO: fails for large arc (>180d) at bottom left corner, creating round
-    // bottom left shape:
-    //    double l;
-    //    Vec2d p;
-    //    std::vector<Vec2d> list;
-    //    std::unique_ptr<Arc> arcBefore = shapeBefore.dynamicCast<Arc>();
-    //    if (!arcBefore.isNull()) {
-    //        l = arcBefore->getLength();
-    //        list = arcBefore->getPointsWithDistanceToEnd(l/10, NS::FromEnd);
-    //        if (!list.empty()) {
-    //            p = list[0];
-    //            shapeBefore = std::unique_ptr<Line>(new Line(p,
-    //            arcBefore->getEndPoint()));
-    //        }
-    //    }
-
-    //    std::unique_ptr<Arc> arcAfter = shapeAfter.dynamicCast<Arc>();
-    //    if (!arcAfter.isNull()) {
-    //        l = arcAfter->getLength();
-    //        list = arcAfter->getPointsWithDistanceToEnd(l/10, NS::FromStart);
-    //        if (!list.empty()) {
-    //            p = list[0];
-    //            shapeAfter = std::unique_ptr<Line>(new
-    //            Line(arcAfter->getStartPoint(), p));
-    //        }
-    //    }
 
     if (!shapeBefore || !shapeAfter) {
         return NS::Any;
@@ -975,30 +781,6 @@ Polyline::convertArcToLineSegmentsLength(double segmentLength) const
 
     ret->autoClose();
     return ret;
-}
-
-void Polyline::stripWidths()
-{
-    for (size_t i = 0; i < mStartWidths.size(); i++) {
-        mStartWidths[i] = 0.0;
-    }
-    for (size_t i = 0; i < mEndWidths.size(); i++) {
-        mEndWidths[i] = 0.0;
-    }
-}
-
-void Polyline::setMinimumWidth(double w)
-{
-    for (size_t i = 0; i < mStartWidths.size(); i++) {
-        if (mStartWidths[i] > NS::PointTolerance) {
-            mStartWidths[i] = std::max(mStartWidths[i], w);
-        }
-    }
-    for (size_t i = 0; i < mEndWidths.size(); i++) {
-        if (mEndWidths[i] > NS::PointTolerance) {
-            mEndWidths[i] = std::max(mEndWidths[i], w);
-        }
-    }
 }
 
 int Polyline::getSegmentAtDist(double dist)
@@ -1080,8 +862,6 @@ bool Polyline::relocateStartPoint(const Vec2d &p)
 
     mVertices = newShape->getVertices();
     mBulges = newShape->getBulges();
-    mStartWidths = newShape->getStartWidths();
-    mEndWidths = newShape->getEndWidths();
     mClosed = newShape->isClosed();
     return true;
 }
@@ -1164,28 +944,6 @@ bool Polyline::contains(const Vec2d &point, bool borderIsInside,
                         double tolerance) const
 {
     return false;
-}
-
-std::vector<std::unique_ptr<Polyline>> Polyline::getOutline() const
-{
-    return std::vector<std::unique_ptr<Polyline>>();
-}
-
-std::vector<std::pair<std::unique_ptr<Polyline>, std::unique_ptr<Polyline>>>
-Polyline::getLeftRightOutline() const
-{
-    return std::vector<
-        std::pair<std::unique_ptr<Polyline>, std::unique_ptr<Polyline>>>();
-}
-
-std::vector<std::unique_ptr<Polyline>> Polyline::getLeftOutline() const
-{
-    return std::vector<std::unique_ptr<Polyline>>();
-}
-
-std::vector<std::unique_ptr<Polyline>> Polyline::getRightOutline() const
-{
-    return std::vector<std::unique_ptr<Polyline>>();
 }
 
 int Polyline::countSegments() const
@@ -1586,9 +1344,6 @@ Polyline::modifyPolylineCorner(const Shape *trimmedShape1, NS::Ending ending1,
         for (size_t i = 0; i < segmentIndex1; i++) {
             segment = getSegmentAt(i);
             pl->appendShape(segment.release());
-            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
-                                getStartWidthAt(i));
-            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
 
         pl->appendShapeAuto(trimmedShape1);
@@ -1600,9 +1355,6 @@ Polyline::modifyPolylineCorner(const Shape *trimmedShape1, NS::Ending ending1,
         for (size_t i = segmentIndex2 + 1; i < countSegments(); i++) {
             segment = getSegmentAt(i);
             pl->appendShape(segment.release());
-            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
-                                getStartWidthAt(i));
-            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
     }
     else if (segmentIndex1 > segmentIndex2 && ending1 == NS::EndingStart &&
@@ -1610,9 +1362,6 @@ Polyline::modifyPolylineCorner(const Shape *trimmedShape1, NS::Ending ending1,
         for (size_t i = 0; i < segmentIndex2; i++) {
             segment = getSegmentAt(i);
             pl->appendShape(segment.release());
-            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
-                                getStartWidthAt(i));
-            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
 
         pl->appendShapeAuto(trimmedShape2);
@@ -1624,9 +1373,6 @@ Polyline::modifyPolylineCorner(const Shape *trimmedShape1, NS::Ending ending1,
         for (size_t i = segmentIndex1 + 1; i < countSegments(); i++) {
             segment = getSegmentAt(i);
             pl->appendShape(segment.release());
-            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
-                                getStartWidthAt(i));
-            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
     }
     else if (segmentIndex1 < segmentIndex2 && ending1 == NS::EndingStart &&
@@ -1635,9 +1381,6 @@ Polyline::modifyPolylineCorner(const Shape *trimmedShape1, NS::Ending ending1,
         for (size_t i = segmentIndex1 + 1; i < segmentIndex2; i++) {
             segment = getSegmentAt(i);
             pl->appendShape(segment.release());
-            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
-                                getStartWidthAt(i));
-            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
         pl->appendShapeAuto(trimmedShape2);
         if (cornerShape != NULL) {
@@ -1650,9 +1393,6 @@ Polyline::modifyPolylineCorner(const Shape *trimmedShape1, NS::Ending ending1,
         for (size_t i = segmentIndex2 + 1; i < segmentIndex1; i++) {
             segment = getSegmentAt(i);
             pl->appendShape(segment.release());
-            pl->setStartWidthAt(pl->mStartWidths.size() - 2,
-                                getStartWidthAt(i));
-            pl->setEndWidthAt(pl->mEndWidths.size() - 2, getEndWidthAt(i));
         }
         pl->appendShapeAuto(trimmedShape1);
         if (cornerShape != NULL) {
@@ -1806,8 +1546,6 @@ bool Polyline::simplify(double angleTolerance)
     mVertices = newPolyline->getVertices();
     mBulges = newPolyline->getBulges();
     mClosed = newPolyline->isClosed();
-    mStartWidths = newPolyline->getStartWidths();
-    mEndWidths = newPolyline->getEndWidths();
 
     return ret;
 }

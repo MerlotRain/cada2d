@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+add_subdirectory(CavalierContours)
 find_package(Eigen3 REQUIRED)
 
 set(cada_srcs
@@ -55,10 +56,6 @@ set(cada_srcs
     apollonius/circle.c
     apollonius/line.c
     apollonius/point.c
-
-    polyline/arraylist.c
-    polyline/polyline.c
-    polyline/quickindex.c
 )
 
 add_library(cada2d STATIC ${cada_srcs}) 
@@ -73,7 +70,7 @@ target_include_directories(cada2d PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/algorithm
 )
 
-target_link_libraries(cada2d PRIVATE Eigen3::Eigen OpenNURBS)
+target_link_libraries(cada2d PRIVATE Eigen3::Eigen CavalierContours)
 
 add_subdirectory(examples)
 add_subdirectory(tools)

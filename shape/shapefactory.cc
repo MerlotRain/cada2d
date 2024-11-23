@@ -95,16 +95,14 @@ std::unique_ptr<Polyline> ShapeFactory::createPolyline() const
     return std::unique_ptr<Polyline>(new Polyline());
 }
 
-std::unique_ptr<Polyline> ShapeFactory::createPolyline(
-    std::vector<Vec2d> &&vertrices, bool closed, std::vector<double> &&bulges,
-    std::vector<double> &&endWidths, std::vector<double> &&startWidths) const
+std::unique_ptr<Polyline>
+ShapeFactory::createPolyline(std::vector<Vec2d> &&vertrices, bool closed,
+                             std::vector<double> &&bulges) const
 
 {
     auto polyline =
         std::unique_ptr<Polyline>(new Polyline(std::move(vertrices), closed));
     polyline->setBulges(std::move(bulges));
-    polyline->setEndWidths(std::move(endWidths));
-    polyline->setStartWidths(std::move(startWidths));
     return polyline;
 }
 
@@ -406,7 +404,6 @@ ShapeFactory::createEllipse(const Vec2d &center, const Vec2d &majorPoint,
         new Ellipse(center, majorPoint, ratio, startParam, endParam, reversed));
 }
 
-
 std::unique_ptr<Ellipse>
 ShapeFactory::createEllipseFromQuadratic(double a, double b, double c) const
 {
@@ -531,7 +528,7 @@ ShapeFactory::createEllipseFromInscribed(const Vec2d &p1, const Vec2d &p2,
     for (size_t i = 0; i < tangent.size(); i++) {
         // relative to ellipse center
         tangent[i] -= ellipseCenter;
-    }   
+    }
     std::vector<std::vector<double>> mt;
     mt.clear();
     const double symTolerance = 20. * NS::PointTolerance;

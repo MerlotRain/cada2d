@@ -108,6 +108,26 @@ inline shape::Vec2d centerOfACE(const shape::Shape *shape)
     return shape::Vec2d::nullVector;
 }
 
+inline bool shapeIsGeometricallyClosed(const shape::Shape *shape)
+{
+    assert(shape);
+    return (shape->getShapeType() == NS::Polyline &&
+            dynamic_cast<const shape::Polyline *>(shape)
+                ->isGeometricallyClosed()) ||
+           (shape->getShapeType() == NS::BSpline &&
+            dynamic_cast<const shape::BSpline *>(shape)
+                ->isGeometricallyClosed());
+}
+
+inline bool shapeIsClosed(const shape::Shape *shape)
+{
+    assert(shape);
+    return (shape->getShapeType() == NS::Polyline &&
+            dynamic_cast<const shape::Polyline *>(shape)->isClosed()) ||
+           (shape->getShapeType() == NS::BSpline &&
+            dynamic_cast<const shape::BSpline *>(shape)->isClosed());
+}
+
 } // namespace algorithm
 } // namespace cada
 

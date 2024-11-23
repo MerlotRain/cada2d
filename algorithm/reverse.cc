@@ -74,19 +74,15 @@ bool cada_reverse(shape::Shape *shape)
 
         std::vector<Vec2d> vs = poly->getVertices();
         std::vector<double> bs = poly->getBulges();
-        std::vector<double> sws = poly->getStartWidths();
-        std::vector<double> ews = poly->getEndWidths();
         if (poly->isClosed()) {
             vs.push_back(vs.front());
         }
 
         auto nPolyline = ShapeFactory::instance()->createPolyline();
-        for (int i = vs.size() - 1, k = 0; i >= 0; i--, k++) {
+        for (size_t i = vs.size() - 1, k = 0; i >= 0; i--, k++) {
             nPolyline->appendVertex(vs[i]);
             if (i > 0) {
                 nPolyline->setBulgeAt(k, -bs[i - 1]);
-                nPolyline->setStartWidthAt(k, ews[i - 1]);
-                nPolyline->setEndWidthAt(k, sws[i - 1]);
             }
             if (poly->isClosed()) {
                 nPolyline->convertToClosed();
@@ -94,8 +90,6 @@ bool cada_reverse(shape::Shape *shape)
 
             poly->setVertices(nPolyline->getVertices());
             poly->setBulges(nPolyline->getBulges());
-            poly->setStartWidths(nPolyline->getStartWidths());
-            poly->setEndWidths(nPolyline->getEndWidths());
             poly->setClosed(nPolyline->isClosed());
             return true;
         }
