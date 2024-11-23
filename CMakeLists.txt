@@ -9,7 +9,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 find_package(Eigen3 REQUIRED)
-add_subdirectory(opennurbs)
 
 set(cada_srcs
     shape/arc.cc
@@ -77,3 +76,4 @@ target_include_directories(cada2d PRIVATE
 target_link_libraries(cada2d PRIVATE Eigen3::Eigen OpenNURBS)
 
 add_subdirectory(examples)
+add_subdirectory(tools)
