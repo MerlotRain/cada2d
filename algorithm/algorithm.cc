@@ -1415,7 +1415,7 @@ bool lengthen(shape::Shape *shape, const shape::Vec2d &position,
 {
     assert(shape);
 
-    bool trimStartPoint = false;
+    trimStartPoint = false;
 
     if (isPolylineShape(shape)) {
         auto &&pline = dynamic_cast<const shape::Polyline *>(shape);
