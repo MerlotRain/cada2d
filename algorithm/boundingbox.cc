@@ -147,6 +147,35 @@ shape::BBox cada_getXLineBoundingBox(const shape::Shape *shape)
         Vec2d::getMaximum(xline->getStartPoint(), xline->getEndPoint()));
 }
 
+shape::BBox cada_getPolylineBoundingBox(const shape::Polyline* pline)
+{
+    assert(pline);
+    BBox ret;
+
+    if (pline->hasWidths()) {
+        auto&& outline = pline->getOutline();
+        for (int i = 0; i < outline.size(); i++) {
+            BBox bb = outline[i]->getBoundingBox();
+            ret.growToInclude(bb);
+        }
+        return ret;
+    }
+
+    if (pline->countVertices() == 1) {
+        ret = BBox(pline->getVertexAt(0), pline->getVertexAt(0));
+    }
+
+    auto&& sub = pline->getExploded();
+    for (auto&& ss : sub)
+    {
+        BBox bb = ss->getBoundingBox();
+        ret.growToInclude(bb);
+    }
+
+    return ret;
+}
+     
+
 shape::BBox cada_getBoundingBox(const shape::Shape *shape)
 {
     assert(shape);
@@ -174,10 +203,11 @@ shape::BBox cada_getBoundingBox(const shape::Shape *shape)
     case NS::Ray: {
         return cada_getXLineBoundingBox(shape);
     }
-    case NS::Polyline:
+    case NS::Polyline: {
+        return cada_getPolylineBoundingBox(dynamic_cast<const Polyline*>(shape));
+    }
     case NS::BSpline:
         break;
-
     default:
         break;
     }
