@@ -26,7 +26,6 @@
 #include <cmath>
 #include <cada_math.h>
 
-#include <cavaliercontours.h>
 
 extern "C" {
 #include <apollonius.h>

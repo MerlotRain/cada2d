@@ -72,5 +72,6 @@ target_include_directories(cada2d PRIVATE
 
 target_link_libraries(cada2d PRIVATE Eigen3::Eigen CavalierContours)
 
-add_subdirectory(examples)
-add_subdirectory(tools)
+add_subdirectory(capi)
+# add_subdirectory(examples)
+# add_subdirectory(tools)

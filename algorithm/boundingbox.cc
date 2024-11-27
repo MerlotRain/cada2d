@@ -152,15 +152,6 @@ shape::BBox cada_getPolylineBoundingBox(const shape::Polyline* pline)
     assert(pline);
     BBox ret;
 
-    if (pline->hasWidths()) {
-        auto&& outline = pline->getOutline();
-        for (int i = 0; i < outline.size(); i++) {
-            BBox bb = outline[i]->getBoundingBox();
-            ret.growToInclude(bb);
-        }
-        return ret;
-    }
-
     if (pline->countVertices() == 1) {
         ret = BBox(pline->getVertexAt(0), pline->getVertexAt(0));
     }
