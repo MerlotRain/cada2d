@@ -151,7 +151,7 @@ ShapeFactory::createArcFrom3Point(const Vec2d &startPoint, const Vec2d &point,
     auto midLine2 = createLine(mp2, mp2 + dir2);
 
     std::vector<Vec2d> ips =
-        midLine1->getIntersectionPoints(midLine2.release(), false);
+        midLine1->getIntersectionPoints(midLine2.get(), false);
     if (ips.size() != 1) {
         return nullptr;
     }
@@ -378,7 +378,7 @@ ShapeFactory::createCircleFrom3Points(const Vec2d &p1, const Vec2d &p2,
     auto midLine2 = createLine(mp2, mp2 + dir2);
 
     std::vector<Vec2d> ips =
-        midLine1->getIntersectionPoints(midLine2.release(), false);
+        midLine1->getIntersectionPoints(midLine2.get(), false);
     if (ips.size() != 1) {
         return nullptr;
     }
@@ -444,7 +444,7 @@ ShapeFactory::createEllipseFromInscribed(const Vec2d &p1, const Vec2d &p2,
             createLine(quad[0]->getStartPoint(), quad[1]->getEndPoint());
         auto &&deigonal2 =
             createLine(quad[1]->getStartPoint(), quad[2]->getEndPoint());
-        auto sol = deigonal1->getIntersectionPoints(deigonal2.release());
+        auto sol = deigonal1->getIntersectionPoints(deigonal2.get());
         if (sol.size() == 0) // this should not happen
             return nullptr;
 
@@ -485,7 +485,7 @@ ShapeFactory::createEllipseFromInscribed(const Vec2d &p1, const Vec2d &p2,
             createLine(quad[1]->getEndPoint(), (tangent[0] + tangent[2]) * 0.5);
         auto cl1 =
             createLine(quad[2]->getEndPoint(), (tangent[1] + tangent[2]) * 0.5);
-        auto sol = cl0->getIntersectionPoints(cl1.release(), false);
+        auto sol = cl0->getIntersectionPoints(cl1.get(), false);
         if (sol.size() == 0) {
             return nullptr;
         }
@@ -679,17 +679,17 @@ std::unique_ptr<Ray> ShapeFactory::createRay(const Vec2d &basePoint,
     return std::unique_ptr<Ray>(new Ray(basePoint, angle, distance));
 }
 
-std::unique_ptr<BSpline> ShapeFactory::createBSpline() const
+std::unique_ptr<Spline> ShapeFactory::createBSpline() const
 {
-    return std::unique_ptr<BSpline>(new BSpline());
+    return std::unique_ptr<Spline>(new Spline());
 }
 
-std::unique_ptr<BSpline>
+std::unique_ptr<Spline>
 ShapeFactory::createBSpline(std::vector<Vec2d> &&controlPoints,
                             int degree) const
 {
-    return std::unique_ptr<BSpline>(
-        new BSpline(std::move(controlPoints), degree));
+    return std::unique_ptr<Spline>(
+        new Spline(std::move(controlPoints), degree));
 }
 
 std::vector<std::unique_ptr<Shape>>
@@ -808,7 +808,7 @@ inner_create_shapes:
                 s2->getPointWithDistanceToEnd(s2->getLength() / 3);
             Vec2d pos = Vec2d::getAverage(clickPos1, clickPos2);
             auto &&res =
-                algorithm::round_shapes(s1.release(), clickPos1, s2.release(),
+                algorithm::round_shapes(s1.get(), clickPos1, s2.get(),
                                         clickPos2, true, false, radius, pos);
             if (res.size() > 2) {
                 if (!cursor.isValid()) {
@@ -830,7 +830,7 @@ inner_create_shapes:
     if (create_polyline) {
         auto pl = createPolyline();
         for (auto &&s : shapes) {
-            pl->appendShape(s.release());
+            pl->appendShape(s.get());
         }
         pl->autoClose();
         std::vector<std::unique_ptr<Shape>> res;

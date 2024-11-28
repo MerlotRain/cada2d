@@ -143,8 +143,8 @@ bool cada_equalsPolyline(const shape::Polyline *polyline1,
     return true;
 }
 
-bool cada_equalsBSpline(const shape::BSpline *bspline1,
-                        const shape::BSpline *bspline2, double tolerance)
+bool cada_equalsBSpline(const shape::Spline *bspline1,
+                        const shape::Spline *bspline2, double tolerance)
 {
     return false;
 }
@@ -192,9 +192,9 @@ bool cada_equals(const shape::Shape *shape1, const shape::Shape *shape2,
         return cada_equalsPolyline(
             dynamic_cast<const shape::Polyline *>(shape1),
             dynamic_cast<const shape::Polyline *>(shape2), tolerance);
-    case NS::BSpline:
-        return cada_equalsBSpline(dynamic_cast<const shape::BSpline *>(shape1),
-                                  dynamic_cast<const shape::BSpline *>(shape2),
+    case NS::Spline:
+        return cada_equalsBSpline(dynamic_cast<const shape::Spline *>(shape1),
+                                  dynamic_cast<const shape::Spline *>(shape2),
                                   tolerance);
     default:
         break;

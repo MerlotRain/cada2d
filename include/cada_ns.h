@@ -78,7 +78,7 @@ public:
         XLine,
         Ray,
         Polyline,
-        BSpline
+        Spline
     };
 
     enum DimensionType {

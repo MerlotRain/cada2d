@@ -121,7 +121,7 @@ shape::Vec2d cada_getVectorTo(const shape::Shape *shape,
 
         return ret;
     }
-    case NS::BSpline:
+    case NS::Spline:
     default:
         break;
     }
@@ -289,7 +289,7 @@ shape::Vec2d cada_xline_getVectorTo(const shape::XLine *x,
     std::unique_ptr<Line> l = ShapeFactory::instance()->createLine(
         x->getBasePoint(), x->getDirectionVector());
 
-    return cada_line_getVectorTo(l.release(), point, limited, strictRange);
+    return cada_line_getVectorTo(l.get(), point, limited, strictRange);
 }
 
 shape::Vec2d cada_ray_getVectorTo(const shape::Ray *r,

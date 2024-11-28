@@ -44,7 +44,7 @@ cada_get_polyline_self_intersection_points(const shape::Polyline *poly,
         for (size_t j = i + 1; j < segments.size(); ++j) {
             auto &&other_segment = poly->getSegmentAt(j);
             std::vector<Vec2d> ips =
-                segment->getIntersectionPoints(other_segment.release());
+                segment->getIntersectionPoints(other_segment.get());
             for (size_t n = 0; n < ips.size(); ++n) {
                 Vec2d ip = ips[n];
                 if (j == i + 1 &&
@@ -66,7 +66,7 @@ cada_get_polyline_self_intersection_points(const shape::Polyline *poly,
 }
 
 std::vector<shape::Vec2d>
-cada_get_polyline_self_intersection_points(const shape::BSpline *spline,
+cada_get_polyline_self_intersection_points(const shape::Spline *spline,
                                            double tolerance)
 {
     return std::vector<shape::Vec2d>();
@@ -80,9 +80,9 @@ cada_getSelfIntersectionPoints(const shape::Shape *shape, double tolerance)
         return cada_get_polyline_self_intersection_points(
             dynamic_cast<const shape::Polyline *>(shape), tolerance);
     }
-    else if (shape->getShapeType() == NS::BSpline) {
+    else if (shape->getShapeType() == NS::Spline) {
         return cada_get_polyline_self_intersection_points(
-            dynamic_cast<const shape::BSpline *>(shape), tolerance);
+            dynamic_cast<const shape::Spline *>(shape), tolerance);
     }
     else {
         throw UnsupportedOperationException();

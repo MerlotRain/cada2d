@@ -101,12 +101,12 @@ NS::Side cada_polyline_sideOfPoint(const shape::Polyline *poly,
     }
 
     if (segment->getShapeType() == NS::Line) {
-        return cada_line_sideOfPoint(
-            dynamic_cast<shape::Line *>(segment.release()), point);
+        return cada_line_sideOfPoint(dynamic_cast<shape::Line *>(segment.get()),
+                                     point);
     }
     else if (segment->getShapeType() == NS::Arc) {
-        return cada_arc_sideOfPoint(
-            dynamic_cast<shape::Arc *>(segment.release()), point);
+        return cada_arc_sideOfPoint(dynamic_cast<shape::Arc *>(segment.get()),
+                                    point);
     }
     else {
         return NS::NoSide;
@@ -133,13 +133,13 @@ NS::Side cada_getSideOfPoint(const shape::Shape *shape,
     case NS::XLine:
     case NS::Ray: {
         auto xl = dynamic_cast<const shape::XLine *>(shape);
-        return cada_line_sideOfPoint(xl->getLineShape().release(), point);
+        return cada_line_sideOfPoint(xl->getLineShape().get(), point);
     }
     case NS::Polyline: {
         auto poly = dynamic_cast<const shape::Polyline *>(shape);
         return cada_polyline_sideOfPoint(poly, point);
     }
-    case NS::BSpline:
+    case NS::Spline:
         // TODO
     default:
         break;

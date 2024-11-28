@@ -743,7 +743,7 @@ protected:
     Ray *cloneImpl() const override;
 };
 
-class BSpline : public Shape {
+class Spline : public Shape {
     mutable std::vector<Vec2d> mControlPoints;
     mutable std::vector<double> mKnotVector;
     mutable std::vector<double> mWeights;
@@ -765,9 +765,12 @@ private:
 public:
     friend class ShapeFactory;
 
-    std::unique_ptr<BSpline> clone() const
+    static std::vector<std::unique_ptr<Spline>>
+    createSplineFromArc(const Arc *arc);
+
+    std::unique_ptr<Spline> clone() const
     {
-        return std::unique_ptr<BSpline>(cloneImpl());
+        return std::unique_ptr<Spline>(cloneImpl());
     }
     bool isValid() const override;
     NS::ShapeType getShapeType() const override;
@@ -851,15 +854,15 @@ public:
     std::vector<std::unique_ptr<Shape>> getExplodedBezier(int segments) const;
     std::vector<std::unique_ptr<Shape>>
     getExplodedWithSegmentLength(double segmentLength) const;
-    std::vector<BSpline> getBezierSegments(const BBox &queryBox = BBox()) const;
-    std::vector<BSpline> getSegments(const std::vector<Vec2d> &points) const;
+    std::vector<Spline> getBezierSegments(const BBox &queryBox = BBox()) const;
+    std::vector<Spline> getSegments(const std::vector<Vec2d> &points) const;
     std::vector<Vec2d> getDiscontinuities() const;
-    BSpline *simplify(double tolerance);
+    Spline *simplify(double tolerance);
 
 protected:
-    BSpline();
-    BSpline(const std::vector<Vec2d> &controlPoints, int degree);
-    BSpline *cloneImpl() const override;
+    Spline();
+    Spline(const std::vector<Vec2d> &controlPoints, int degree);
+    Spline *cloneImpl() const override;
 
     void appendToExploded(const Line *line) const;
     void invalidate() const;
@@ -953,9 +956,9 @@ public:
     std::unique_ptr<Ray> createRay(const Vec2d &basePoint, double angle,
                                    double distance) const;
 
-    std::unique_ptr<BSpline> createBSpline() const;
-    std::unique_ptr<BSpline> createBSpline(std::vector<Vec2d> &&controlPoints,
-                                           int degree) const;
+    std::unique_ptr<Spline> createBSpline() const;
+    std::unique_ptr<Spline> createBSpline(std::vector<Vec2d> &&controlPoints,
+                                          int degree) const;
 
     std::vector<std::unique_ptr<Shape>>
     createPolygon(const Vec2d &position1, const Vec2d &position2,

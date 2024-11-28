@@ -20,8 +20,8 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef APOLLONIUS_GRAPHICS_H
-#define APOLLONIUS_GRAPHICS_H
+#ifndef __APO_FOUNATION_H__
+#define __APO_FOUNATION_H__
 
 typedef int boolean;
 #define APO_TRUE  (1)
@@ -254,4 +254,4 @@ extern void apo_intersection_cc(const apo_circle_t circle1,
                                 const apo_circle_t circle2, apo_point_t *ips,
                                 int *ip_size);
 
-#endif
+#endif /* __APO_FOUNATION_H__ */

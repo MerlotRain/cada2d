@@ -270,7 +270,7 @@ static std::vector<Vec2d>
 cada_getIntersectionPointsLX(const Line *line1, const Polyline *explodable2,
                              bool limited);
 static std::vector<Vec2d> cada_getIntersectionPointsLS(const Line *line1,
-                                                       const BSpline *spline2,
+                                                       const Spline *spline2,
                                                        bool limited);
 static std::vector<Vec2d>
 cada_getIntersectionPointsAA(const Arc *arc1, const Arc *arc2, bool limited);
@@ -281,7 +281,7 @@ static std::vector<Vec2d> cada_getIntersectionPointsAE(const Arc *arc1,
                                                        const Ellipse *ellipse2,
                                                        bool limited);
 static std::vector<Vec2d> cada_getIntersectionPointsAS(const Arc *arc1,
-                                                       const BSpline *spline2,
+                                                       const Spline *spline2,
                                                        bool limited);
 static std::vector<Vec2d>
 cada_getIntersectionPointsAX(const Arc *arc1, const Polyline *explodable2,
@@ -291,7 +291,7 @@ static std::vector<Vec2d> cada_getIntersectionPointsCC(const Circle *circle1,
 static std::vector<Vec2d> cada_getIntersectionPointsCE(const Circle *circle1,
                                                        const Ellipse *ellipse2);
 static std::vector<Vec2d> cada_getIntersectionPointsCS(const Circle *circle1,
-                                                       const BSpline *spline2,
+                                                       const Spline *spline2,
                                                        bool limited);
 static std::vector<Vec2d>
 cada_getIntersectionPointsCX(const Circle *circle1, const Polyline *explodable2,
@@ -302,18 +302,18 @@ static std::vector<Vec2d> cada_getIntersectionPointsEE(const Ellipse *ellipse1,
                                                        const Ellipse *ellipse2,
                                                        bool limited);
 static std::vector<Vec2d> cada_getIntersectionPointsES(const Ellipse *ellipse1,
-                                                       const BSpline *spline2,
+                                                       const Spline *spline2,
                                                        bool limited);
 static std::vector<Vec2d>
 cada_getIntersectionPointsEX(const Ellipse *ellipse1,
                              const Polyline *explodable2, bool limited);
-static std::vector<Vec2d> cada_getIntersectionPointsSS(const BSpline *spline1,
-                                                       const BSpline *spline2,
+static std::vector<Vec2d> cada_getIntersectionPointsSS(const Spline *spline1,
+                                                       const Spline *spline2,
                                                        bool limited, bool same,
                                                        double tol);
 static std::vector<Vec2d>
-cada_getIntersectionPointsSX(const BSpline *spline1,
-                             const Polyline *explodable2, bool limited);
+cada_getIntersectionPointsSX(const Spline *spline1, const Polyline *explodable2,
+                             bool limited);
 static std::vector<Vec2d>
 cada_getIntersectionPointsXX(const Polyline *explodable1,
                              const Polyline *explodable2, bool limited,
@@ -370,7 +370,7 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
                 return cada_getIntersectionPointsLE(line1, ellipse2, limited,
                                                     limited);
             }
-            const BSpline *spline2 = dynamic_cast<const BSpline *>(shape2);
+            const Spline *spline2 = dynamic_cast<const Spline *>(shape2);
             if (spline2) {
                 return cada_getIntersectionPointsLS(line1, spline2, limited);
             }
@@ -386,7 +386,7 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
             const XLine *xline2 = dynamic_cast<const XLine *>(shape2);
             if (xline2) {
                 return cada_getIntersectionPointsLL(
-                    line1, xline2->getLineShape().release(), limited, false);
+                    line1, xline2->getLineShape().get(), limited, false);
             }
             const Polyline *explodable2 =
                 dynamic_cast<const Polyline *>(shape2);
@@ -422,33 +422,33 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
 
             const Line *line2 = dynamic_cast<const Line *>(shape2);
             if (line2) {
-                return cada_getIntersectionPointsLL(line1.release(), line2,
-                                                    false, limited);
+                return cada_getIntersectionPointsLL(line1.get(), line2, false,
+                                                    limited);
             }
             const Arc *arc2 = dynamic_cast<const Arc *>(shape2);
             if (arc2) {
-                return cada_getIntersectionPointsLA(line1.release(), arc2,
-                                                    false, limited);
+                return cada_getIntersectionPointsLA(line1.get(), arc2, false,
+                                                    limited);
             }
             const Circle *circle2 = dynamic_cast<const Circle *>(shape2);
             if (circle2) {
-                return cada_getIntersectionPointsLC(line1.release(), circle2,
+                return cada_getIntersectionPointsLC(line1.get(), circle2,
                                                     false);
             }
             const Ellipse *ellipse2 = dynamic_cast<const Ellipse *>(shape2);
             if (ellipse2) {
-                return cada_getIntersectionPointsLE(line1.release(), ellipse2,
+                return cada_getIntersectionPointsLE(line1.get(), ellipse2,
                                                     false, limited);
             }
-            const BSpline *spline2 = dynamic_cast<const BSpline *>(shape2);
+            const Spline *spline2 = dynamic_cast<const Spline *>(shape2);
             if (spline2) {
-                return cada_getIntersectionPointsLS(line1.release(), spline2,
+                return cada_getIntersectionPointsLS(line1.get(), spline2,
                                                     false);
             }
             const Ray *ray2 = dynamic_cast<const Ray *>(shape2);
             if (ray2) {
                 std::vector<Vec2d> ret = cada_getIntersectionPointsLL(
-                    line1.release(), ray2->getLineShape().get(), false, false);
+                    line1.get(), ray2->getLineShape().get(), false, false);
                 if (limited)
                     ret = ray2->filterOnShape(ret, true);
                 return ret;
@@ -456,15 +456,14 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
             const XLine *xline2 = dynamic_cast<const XLine *>(shape2);
             if (xline2) {
                 return cada_getIntersectionPointsLL(
-                    line1.release(), xline2->getLineShape().release(), false,
-                    false);
+                    line1.get(), xline2->getLineShape().get(), false, false);
             }
 
             const Polyline *explodable2 =
                 dynamic_cast<const Polyline *>(shape2);
             if (explodable2) {
-                return cada_getIntersectionPointsLX(line1.release(),
-                                                    explodable2, false);
+                return cada_getIntersectionPointsLX(line1.get(), explodable2,
+                                                    false);
             }
         }
     }
@@ -493,7 +492,7 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
             if (ellipse2) {
                 return cada_getIntersectionPointsAE(arc1, ellipse2, limited);
             }
-            const BSpline *spline2 = dynamic_cast<const BSpline *>(shape2);
+            const Spline *spline2 = dynamic_cast<const Spline *>(shape2);
             if (spline2 != NULL) {
                 return cada_getIntersectionPointsAS(arc1, spline2, limited);
             }
@@ -508,7 +507,7 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
             const XLine *xline2 = dynamic_cast<const XLine *>(shape2);
             if (xline2 != NULL) {
                 return cada_getIntersectionPointsLA(
-                    xline2->getLineShape().release(), arc1, false, limited);
+                    xline2->getLineShape().get(), arc1, false, limited);
             }
 
             // polyline, ...:
@@ -541,7 +540,7 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
             if (ellipse2 != NULL) {
                 return cada_getIntersectionPointsCE(circle1, ellipse2);
             }
-            const BSpline *spline2 = dynamic_cast<const BSpline *>(shape2);
+            const Spline *spline2 = dynamic_cast<const Spline *>(shape2);
             if (spline2 != NULL) {
                 return cada_getIntersectionPointsCS(circle1, spline2, limited);
             }
@@ -556,7 +555,7 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
             const XLine *xline2 = dynamic_cast<const XLine *>(shape2);
             if (xline2 != NULL) {
                 return cada_getIntersectionPointsLC(
-                    xline2->getLineShape().release(), circle1, false);
+                    xline2->getLineShape().get(), circle1, false);
             }
 
             // spline, polyline, ...:
@@ -593,7 +592,7 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
                 return cada_getIntersectionPointsEE(ellipse2, ellipse1,
                                                     limited);
             }
-            const BSpline *spline2 = dynamic_cast<const BSpline *>(shape2);
+            const Spline *spline2 = dynamic_cast<const Spline *>(shape2);
             if (spline2 != NULL) {
                 return cada_getIntersectionPointsES(ellipse1, spline2, limited);
             }
@@ -608,7 +607,7 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
             const XLine *xline2 = dynamic_cast<const XLine *>(shape2);
             if (xline2 != NULL) {
                 return cada_getIntersectionPointsLE(
-                    xline2->getLineShape().release(), ellipse1, false, limited);
+                    xline2->getLineShape().get(), ellipse1, false, limited);
             }
 
             // spline, polyline, ...:
@@ -622,7 +621,7 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
     }
 
     {
-        const BSpline *spline1 = dynamic_cast<const BSpline *>(shape1);
+        const Spline *spline1 = dynamic_cast<const Spline *>(shape1);
         if (spline1 != NULL) {
             const Line *line2 = dynamic_cast<const Line *>(shape2);
             if (line2 != NULL) {
@@ -651,9 +650,9 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
             const XLine *xline2 = dynamic_cast<const XLine *>(shape2);
             if (xline2 != NULL) {
                 return cada_getIntersectionPointsLS(
-                    xline2->getLineShape().release(), spline1, false);
+                    xline2->getLineShape().get(), spline1, false);
             }
-            const BSpline *spline2 = dynamic_cast<const BSpline *>(shape2);
+            const Spline *spline2 = dynamic_cast<const Spline *>(shape2);
             if (spline2 != NULL) {
                 return cada_getIntersectionPointsSS(spline1, spline2, limited,
                                                     same, NS::PointTolerance);
@@ -704,9 +703,9 @@ std::vector<Vec2d> cada_getIntersectionPoints(const Shape *shape1,
                 const XLine *xline2 = dynamic_cast<const XLine *>(shape2);
                 if (xline2 != NULL) {
                     return cada_getIntersectionPointsLX(
-                        xline2->getLineShape().release(), explodable1, false);
+                        xline2->getLineShape().get(), explodable1, false);
                 }
-                const BSpline *spline2 = dynamic_cast<const BSpline *>(shape2);
+                const Spline *spline2 = dynamic_cast<const Spline *>(shape2);
                 if (spline2 != NULL) {
                     return cada_getIntersectionPointsSX(spline2, explodable1,
                                                         limited);
@@ -769,7 +768,7 @@ std::vector<Vec2d> cada_getIntersectionPointsLA(const Line *line1,
     std::unique_ptr<Circle> arc_c = ShapeFactory::instance()->createCircle(
         arc2->getCenter(), arc2->getRadius());
     std::vector<Vec2d> candidates =
-        cada_getIntersectionPointsLC(line1, arc_c.release(), limited1);
+        cada_getIntersectionPointsLC(line1, arc_c.get(), limited1);
 
     if (!limited2) {
         return candidates;
@@ -977,7 +976,7 @@ std::vector<Vec2d> cada_getIntersectionPointsLX(const Line *line1,
 }
 
 std::vector<Vec2d> cada_getIntersectionPointsLS(const Line *line1,
-                                                const BSpline *spline2,
+                                                const Spline *spline2,
                                                 bool limited)
 {
     return std::vector<Vec2d>();
@@ -995,7 +994,7 @@ std::vector<Vec2d> cada_getIntersectionPointsAA(const Arc *arc1,
         arc2->getCenter(), arc2->getRadius());
 
     std::vector<Vec2d> candidates =
-        cada_getIntersectionPointsCC(c1.release(), c2.release());
+        cada_getIntersectionPointsCC(c1.get(), c2.get());
     if (!limited) {
         return candidates;
     }
@@ -1021,7 +1020,7 @@ std::vector<Vec2d> cada_getIntersectionPointsAC(const Arc *arc1,
         arc1->getCenter(), arc1->getRadius());
 
     std::vector<Vec2d> candidates =
-        cada_getIntersectionPointsCC(c1.release(), circle2);
+        cada_getIntersectionPointsCC(c1.get(), circle2);
     if (!limited) {
         return candidates;
     }
@@ -1047,7 +1046,7 @@ std::vector<Vec2d> cada_getIntersectionPointsAE(const Arc *arc1,
         arc1->getCenter(), arc1->getRadius());
 
     std::vector<Vec2d> candidates =
-        cada_getIntersectionPointsCE(c1.release(), ellipse2);
+        cada_getIntersectionPointsCE(c1.get(), ellipse2);
 
     if (!limited) {
         return candidates;
@@ -1074,7 +1073,7 @@ std::vector<Vec2d> cada_getIntersectionPointsAE(const Arc *arc1,
 }
 
 std::vector<Vec2d> cada_getIntersectionPointsAS(const Arc *arc1,
-                                                const BSpline *spline2,
+                                                const Spline *spline2,
                                                 bool limited)
 {
     return std::vector<Vec2d>();
@@ -1151,7 +1150,7 @@ std::vector<Vec2d> cada_getIntersectionPointsCC(const Circle *circle1,
 
     s = 1.0 / 2.0 * ((r1 * r1 - r2 * r2) / (std::pow(uMag, 2.0)) + 1.0);
 
-    term = (r1 * r1) / (std::pow(uMag, 2.0)) - s * s;
+    term = (r1 * r1) / (std::pow(uMag, 2.0))-s * s;
 
     // no intersection:
     if (term < 0.0) {
@@ -1183,11 +1182,11 @@ std::vector<Vec2d> cada_getIntersectionPointsCE(const Circle *circle1,
         circle1->getCenter(), Vec2d(circle1->getRadius(), 0.), 1.0, 0.0,
         2.0 * M_PI, false);
 
-    return cada_getIntersectionPointsEE(ellipse1.release(), ellipse2);
+    return cada_getIntersectionPointsEE(ellipse1.get(), ellipse2);
 }
 
 std::vector<Vec2d> cada_getIntersectionPointsCS(const Circle *circle1,
-                                                const BSpline *spline2,
+                                                const Spline *spline2,
                                                 bool limited)
 {
     return std::vector<Vec2d>();
@@ -1311,8 +1310,7 @@ std::vector<Vec2d> cada_getIntersectionPointsEE(const Ellipse *ellipse1,
         auto circle2 = ShapeFactory::instance()->createCircle(
             circleCenter2, ellipse2Copy->getMajorRadius());
 
-        ret =
-            cada_getIntersectionPointsCC(circle1.release(), circle2.release());
+        ret = cada_getIntersectionPointsCC(circle1.get(), circle2.get());
 
         scaleList(ret, Vec2d(1.0, 1.0 / yScale));
         rotateList(ret, -angle);
@@ -1336,8 +1334,8 @@ std::vector<Vec2d> cada_getIntersectionPointsEE(const Ellipse *ellipse1,
 
         auto line = ShapeFactory::instance()->createLine(
             Vec2d(-majorRadius1, 0.0), Vec2d(majorRadius1, 0.0));
-        ret = cada_getIntersectionPointsLE(line.release(),
-                                           ellipse2Copy.release(), true, true);
+        ret = cada_getIntersectionPointsLE(line.get(), ellipse2Copy.get(), true,
+                                           true);
         rotateList(ret, -angleOffset);
         moveList(ret, -centerOffset);
         return ret;
@@ -1354,8 +1352,8 @@ std::vector<Vec2d> cada_getIntersectionPointsEE(const Ellipse *ellipse1,
             Vec2d(-majorRadius2, 0.), Vec2d(majorRadius2, 0.));
         line->rotate(ellipse2Copy->getAngle(), Vec2d(0., 0.));
         line->move(ellipse2Copy->getCenter());
-        ret = cada_getIntersectionPointsLE(line.release(),
-                                           ellipse1Copy.release(), true, true);
+        ret = cada_getIntersectionPointsLE(line.get(), ellipse1Copy.get(), true,
+                                           true);
         rotateList(ret, -angleOffset);
         moveList(ret, -centerOffset);
         return ret;
@@ -1659,7 +1657,7 @@ std::vector<Vec2d> cada_getIntersectionPointsEE(const Ellipse *ellipse1,
 }
 
 std::vector<Vec2d> cada_getIntersectionPointsES(const Ellipse *ellipse1,
-                                                const BSpline *spline2,
+                                                const Spline *spline2,
                                                 bool limited)
 {
     return std::vector<Vec2d>();
@@ -1693,15 +1691,15 @@ std::vector<Vec2d> cada_getIntersectionPointsEX(const Ellipse *ellipse1,
     return res;
 }
 
-std::vector<Vec2d> cada_getIntersectionPointsSS(const BSpline *spline1,
-                                                const BSpline *spline2,
+std::vector<Vec2d> cada_getIntersectionPointsSS(const Spline *spline1,
+                                                const Spline *spline2,
                                                 bool limited, bool same,
                                                 double tol)
 {
     return std::vector<Vec2d>();
 }
 
-std::vector<Vec2d> cada_getIntersectionPointsSX(const BSpline *spline1,
+std::vector<Vec2d> cada_getIntersectionPointsSX(const Spline *spline1,
                                                 const Polyline *explodable2,
                                                 bool limited)
 {

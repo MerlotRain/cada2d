@@ -82,7 +82,7 @@ bool cada_move(shape::Shape *shape, const shape::Vec2d &offset)
         }
         return true;
     }
-    case NS::BSpline:
+    case NS::Spline:
     default:
         break;
     }

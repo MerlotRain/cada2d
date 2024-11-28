@@ -153,7 +153,7 @@ double cada_getPolylineLength(const shape::Shape *shape)
 
     std::vector<std::unique_ptr<shape::Shape>> sub = polyline->getExploded();
     for (auto it = sub.begin(); it != sub.end(); ++it) {
-        double l = cada_getLength(it->release());
+        double l = cada_getLength(it->get());
         if (Math::isNormal(l)) {
             ret += l;
         }
@@ -186,7 +186,7 @@ double cada_getLength(const shape::Shape *shape)
     case NS::Ray:
         return std::numeric_limits<double>::quiet_NaN();
     case NS::Polyline:
-    case NS::BSpline:
+    case NS::Spline:
         break;
     default:
         break;

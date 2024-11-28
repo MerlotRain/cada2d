@@ -133,7 +133,7 @@ bool cada_scale(shape::Shape *shape, const shape::Vec2d &scaleFactors,
         return cada_polyline_scale(dynamic_cast<Polyline *>(shape),
                                    scaleFactors, c);
     }
-    case NS::BSpline:
+    case NS::Spline:
     default:
         break;
     }
@@ -212,7 +212,7 @@ std::unique_ptr<Shape> cada_arc_scale_new(const shape::Shape *shp,
         }
     }
 
-    return cada__ellipse_to_arc_circle_ellipse(ellipse.release());
+    return cada__ellipse_to_arc_circle_ellipse(ellipse.get());
 }
 
 bool cada_polyline_scale(shape::Polyline *polyline,
@@ -220,6 +220,7 @@ bool cada_polyline_scale(shape::Polyline *polyline,
                          const shape::Vec2d &c)
 {
     assert(polyline);
+    std::unique_ptr<Polyline> polylineWarpper(polyline);
     if (polyline->hasArcSegments() &&
         !Math::fuzzyCompare(scaleFactors.x, scaleFactors.y)) {
         // non-uniform scaling of polyline with arcs:
@@ -238,14 +239,15 @@ bool cada_polyline_scale(shape::Polyline *polyline,
                 newSeg->scale(scaleFactors, c);
             }
             else {
-                newSeg = cada_arc_scale_new(seg.release(), scaleFactors, c);
+                newSeg = cada_arc_scale_new(seg.get(), scaleFactors, c);
             }
 
             if (newSeg) {
-                pl->appendShape(newSeg.release());
+                pl->appendShape(newSeg.get());
             }
         }
-        polyline = pl.release();
+        polylineWarpper.swap(pl);
+        polyline = polylineWarpper.release();
         return true;
     }
 

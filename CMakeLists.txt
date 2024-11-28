@@ -14,7 +14,7 @@ find_package(Eigen3 REQUIRED)
 set(cada_srcs
     shape/arc.cc
     shape/bbox.cc
-    shape/bspline.cc
+    shape/spline.cc
     shape/circle.cc
     shape/ellipse.cc
     shape/line.cc
@@ -41,6 +41,7 @@ set(cada_srcs
     algorithm/offset.cc
     algorithm/pointonshape.cc
     algorithm/pointstobspline.cc
+    algorithm/polylinecontains.cc
     algorithm/reverse.cc
     algorithm/rotate.cc
     algorithm/roundallcorners.cc
@@ -53,9 +54,7 @@ set(cada_srcs
     algorithm/vectorto.cc
 
     apollonius/apollonius.c
-    apollonius/circle.c
-    apollonius/line.c
-    apollonius/point.c
+    apollonius/apo_foundation.c
 )
 
 add_library(cada2d STATIC ${cada_srcs}) 
@@ -73,5 +72,5 @@ target_include_directories(cada2d PRIVATE
 target_link_libraries(cada2d PRIVATE Eigen3::Eigen CavalierContours)
 
 add_subdirectory(capi)
-# add_subdirectory(examples)
+add_subdirectory(examples)
 # add_subdirectory(tools)

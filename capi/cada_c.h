@@ -47,16 +47,31 @@ CadaShapeType GetShapeType(CadaShapeH shape);
 CadaShapeH CadaShape_CreatePoint_r();
 CadaShapeH CadaShape_CreatePointFromXY_r(double x, double y);
 CadaShapeH CadaShape_CreateLine_r();
-CadaShapeH CadaShape_CreateLineFrom2Point_r(double x1, double y1, double x2,
+CadaShapeH CadaShape_CreateLineFromPoints_r(double x1, double y1, double x2,
                                             double y2);
-CadaShapeH CadaShape_CreateLineFromPointAngleDistance_r(double x, double y,
-                                                        double angle,
-                                                        double distance);
+CadaShapeH CadaShape_CreateLineFromAngleAndDistance_r(double x, double y,
+                                                      double angle,
+                                                      double distance);
 CadaShapeH CadaShape_CreateArc_r();
 CadaShapeH CadaShape_CreateArcFromAttribute_r(double x, double y, double radius,
                                               double startAngle,
                                               double endAngle, char reversed);
 CadaShapeH CadaShape_CreateArcFrom3Points_r(double x1, double y1, double x2,
                                             double y2, double x3, double y3);
+CadaShapeH CadaShape_CreateArc_r();
+
+CadaShapeH CadaShape_CreateArcFromCenter_r(double centerX, double centerY,
+                                           double radius, double startAngle,
+                                           double endAngle, char reversed);
+
+CadaShapeH CadaShape_CreateArcFrom3Points_r(double x1, double y1, double x2,
+                                            double y2, double x3, double y3);
+
+CadaShapeH CadaShape_CreateArcFromBulge_r(double x1, double y1, double x2,
+                                          double y2, double bulge);
+
+CadaShapeH CadaShape_CreateArcFromTangential_r(double startX, double startY,
+                                               double posX, double posY,
+                                               double direction, double radius);
 
 #endif

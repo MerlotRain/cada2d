@@ -323,7 +323,7 @@ cada_getOffsetShapes(const shape::Shape *shape, double distance, int number,
         auto pline = dynamic_cast<const shape::Polyline *>(shape);
         return cada_offset_polyline(pline, distance, number, side, position);
     }
-    case NS::BSpline:
+    case NS::Spline:
         break;
     default:
         break;

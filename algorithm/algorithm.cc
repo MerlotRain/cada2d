@@ -26,7 +26,6 @@
 #include <cmath>
 #include <cada_math.h>
 
-
 extern "C" {
 #include <apollonius.h>
 }
@@ -49,67 +48,19 @@ std::unique_ptr<Shape> rayToLine(const shape::Shape *shape);
 
 /* ---------------------------- extern functions ---------------------------- */
 
-/**
- * @brief Calculate the coordinates of points evenly distributed on a line
- * segment.
- *
- * @param v1
- * @param v2
- * @param n
- * @return std::vector<shape::Vec2d>
- */
 std::vector<shape::Vec2d>
 calculate_equidistant_points_on_line(const shape::Vec2d &v1,
                                      const shape::Vec2d &v2, size_t n);
 
-/**
- * @brief Calculate the coordinates of a point matrix uniformly distributed
- * within a surface range.
- *
- * The first and third line segments are divided into \a col parts, and the
- * second and fourth line segments are divided into \a col parts, with all
- * points falling at the intersection of the lines formed by these symmetrical
- * points.
- *
- * @param v1
- * @param v2
- * @param v3
- * @param v4
- * @param col
- * @param row
- * @return std::vector<shape::Vec2d>
- */
 std::vector<shape::Vec2d> calculate_equidistant_distribution_points_on_surface(
     const shape::Vec2d &v1, const shape::Vec2d &v2, const shape::Vec2d &v3,
     const shape::Vec2d &v4, size_t col, size_t row);
 
-/**
- * @brief Calculate the angle bisector of the line between two line segments
- *
- * Two intersecting lines divide the plane into four regions, and the lines are
- * divided into four rays. Based on the two output position coordinates, two
- * rays are obtained, and the angle bisector is distributed within the rays.
- *
- * @param l1
- * @param l2
- * @param pos1
- * @param pos2
- * @param line_length
- * @param line_number
- * @return std::vector<std::unique_ptr<shape::Line>>
- */
 std::vector<std::unique_ptr<shape::Line>>
 calculate_angle_bisector_of_two_line_segments(
     const shape::Line *l1, const shape::Line *l2, const shape::Vec2d &pos1,
     const shape::Vec2d &pos2, double line_length, int line_number);
 
-/**
- * @brief Calculate the common tangent of any two circles.
- *
- * @param c1
- * @param c2
- * @return std::vector<std::unique_ptr<shape::Line>>
- */
 std::vector<std::unique_ptr<shape::Line>>
 calculate_common_tangent_between_two_circles(const shape::Circle *c1,
                                              const shape::Circle *c2);
@@ -323,12 +274,12 @@ calculate_orthogonal_tangent_between_shape_and_line(const shape::Line *line,
                                                         lineAngle, 100.0);
 
         // intersections of parallel with circle:
-        ips1 = shape->getIntersectionPoints(auxLine1.release(), false);
+        ips1 = shape->getIntersectionPoints(auxLine1.get(), false);
         for (size_t i = 0; i < ips1.size(); i++) {
             // candidate:
             auxLine2 = ShapeFactory::instance()->createLine(
                 ips1[i], lineAngle + M_PI / 2, 100.0);
-            ips2 = line->getIntersectionPoints(auxLine2.release(), false);
+            ips2 = line->getIntersectionPoints(auxLine2.get(), false);
             if (ips2.size() == 1) {
                 ret.emplace_back(std::move(
                     ShapeFactory::instance()->createLine(ips1[i], ips2[0])));
@@ -348,8 +299,8 @@ calculate_orthogonal_tangent_between_shape_and_line(const shape::Line *line,
         auxLine2 =
             ShapeFactory::instance()->createLine(foci[1], lineAngle, 100.0);
 
-        ips1 = auxLine1->getIntersectionPoints(auxCircle.release(), false);
-        ips2 = auxLine2->getIntersectionPoints(auxCircle.release(), false);
+        ips1 = auxLine1->getIntersectionPoints(auxCircle.get(), false);
+        ips2 = auxLine2->getIntersectionPoints(auxCircle.get(), false);
         Vec2d pointOfContact1 = Vec2d::invalid;
         Vec2d pointOfContact2 = Vec2d::invalid;
 
@@ -360,7 +311,7 @@ calculate_orthogonal_tangent_between_shape_and_line(const shape::Line *line,
             else {
                 auxLine1 =
                     ShapeFactory::instance()->createLine(ips1[0], ips2[0]);
-                ips = shape->getIntersectionPoints(auxLine1.release(), false);
+                ips = shape->getIntersectionPoints(auxLine1.get(), false);
                 if (ips.size() >= 1) {
                     pointOfContact1 = ips[0];
                 }
@@ -374,7 +325,7 @@ calculate_orthogonal_tangent_between_shape_and_line(const shape::Line *line,
             else {
                 auxLine2 =
                     ShapeFactory::instance()->createLine(ips1[1], ips2[1]);
-                ips = shape->getIntersectionPoints(auxLine2.release(), false);
+                ips = shape->getIntersectionPoints(auxLine2.get(), false);
                 if (ips.size() >= 1) {
                     pointOfContact2 = ips[0];
                 }
@@ -398,19 +349,6 @@ calculate_orthogonal_tangent_between_shape_and_line(const shape::Line *line,
     return ret;
 }
 
-/**
- * Breaks the closest segment in shape to position between two intersections
- * with otherShapes or
- * extends a shape to the next two (imaginary) intersections with otherShapes.
- *
- * \param extend True: extending instead of breaking out.
- *
- * \return Array of three new shapes which each might be undefined if its
- * length would otherwise be 0.
- * The first shape is the rest at the start of the shape.
- * The second shape is the rest at the end of the shape.
- * The third shape is the segment self in its new shape.
- */
 std::vector<std::unique_ptr<shape::Shape>>
 auto_split(const shape::Vec2d &pos, const shape::Shape *shp,
            const std::vector<shape::Shape *> &otherShapes, bool extend)
@@ -561,9 +499,9 @@ auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
             rest2 = nullptr;
         }
 
-        res.emplace_back(rest1.release());
-        res.emplace_back(rest2.release());
-        res.emplace_back(segment.release());
+        res.emplace_back(std::move(rest1));
+        res.emplace_back(std::move(rest2));
+        res.emplace_back(std::move(segment));
     }
     // xline:
     else if (isXLineShape(shp)) {
@@ -610,9 +548,9 @@ auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
             }
             rest2 = nullptr;
         }
-        res.emplace_back(rest1.release());
-        res.emplace_back(rest2.release());
-        res.emplace_back(segment.release());
+        res.emplace_back(std::move(rest1));
+        res.emplace_back(std::move(rest2));
+        res.emplace_back(std::move(segment));
     }
     // ray:
     else if (isRayShape(shp)) {
@@ -652,9 +590,9 @@ auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
                 std::swap(rest1, segment);
             }
         }
-        res.emplace_back(rest1.release());
-        res.emplace_back(rest2.release());
-        res.emplace_back(segment.release());
+        res.emplace_back(std::move(rest1));
+        res.emplace_back(std::move(rest2));
+        res.emplace_back(std::move(segment));
     }
     // arc:
     else if (shp->getShapeType() == NS::Arc) {
@@ -707,9 +645,9 @@ auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
             }
         }
 
-        res.emplace_back(rest1.release());
-        res.emplace_back(rest2.release());
-        res.emplace_back(segment.release());
+        res.emplace_back(std::move(rest1));
+        res.emplace_back(std::move(rest2));
+        res.emplace_back(std::move(segment));
     }
     // circles:
     else if (isCircleShape(shp)) {
@@ -745,9 +683,9 @@ auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
                 rest1 = nullptr;
             }
         }
-        res.emplace_back(rest1.release());
-        res.emplace_back(rest2.release());
-        res.emplace_back(segment.release());
+        res.emplace_back(std::move(rest1));
+        res.emplace_back(std::move(rest2));
+        res.emplace_back(std::move(segment));
     }
     // ellipse arcs:
     else if (isEllipseShape(shp) && !isFullEllipseShape(shp)) {
@@ -784,9 +722,9 @@ auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
         if (angleLength2 < 1.0e-5) {
             rest2 = nullptr;
         }
-        res.emplace_back(rest1.release());
-        res.emplace_back(rest2.release());
-        res.emplace_back(segment.release());
+        res.emplace_back(std::move(rest1));
+        res.emplace_back(std::move(rest2));
+        res.emplace_back(std::move(segment));
     }
     // full ellipses:
     else if (isEllipseShape(shp) && isFullEllipseShape(shp)) {
@@ -828,9 +766,9 @@ auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
                 rest1 = nullptr;
             }
         }
-        res.emplace_back(rest1.release());
-        res.emplace_back(rest2.release());
-        res.emplace_back(segment.release());
+        res.emplace_back(std::move(rest1));
+        res.emplace_back(std::move(rest2));
+        res.emplace_back(std::move(segment));
     }
     // polyline:
     else if (isPolylineShape(shp)) {
@@ -914,16 +852,16 @@ auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
             }
         }
 
-        res.emplace_back(rest1.release());
-        res.emplace_back(rest2.release());
-        res.emplace_back(segment.release());
+        res.emplace_back(std::move(rest1));
+        res.emplace_back(std::move(rest2));
+        res.emplace_back(std::move(segment));
     }
     // spline:
     else if (isSplineShape(shp)) {
-        auto &&shape = dynamic_cast<const BSpline *>(shp);
-        std::unique_ptr<BSpline> rest1;
-        std::unique_ptr<BSpline> rest2;
-        std::unique_ptr<BSpline> segment;
+        auto &&shape = dynamic_cast<const Spline *>(shp);
+        std::unique_ptr<Spline> rest1;
+        std::unique_ptr<Spline> rest2;
+        std::unique_ptr<Spline> segment;
         rest1 = shape->clone();
         rest2 = shape->clone();
         segment = shape->clone();
@@ -1007,9 +945,9 @@ auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
             }
         }
 
-        res.emplace_back(rest1.release());
-        res.emplace_back(rest2.release());
-        res.emplace_back(segment.release());
+        res.emplace_back(std::move(rest1));
+        res.emplace_back(std::move(rest2));
+        res.emplace_back(std::move(segment));
     }
     return res;
 }

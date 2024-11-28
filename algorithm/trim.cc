@@ -79,7 +79,7 @@ bool cada_trimStartPoint(shape::Shape *shape, const shape::Vec2d &trimPoint,
     case NS::Polyline:
         // TODO
         break;
-    case NS::BSpline:
+    case NS::Spline:
         // TODO
         break;
     default:
@@ -127,7 +127,7 @@ bool cada_trimEndPoint(shape::Shape *shape, const shape::Vec2d &trimPoint,
     case NS::Polyline:
         // TODO
         break;
-    case NS::BSpline:
+    case NS::Spline:
         // TODO
         break;
     default:
@@ -188,12 +188,12 @@ NS::Ending cada_getTrimEnd(shape::Shape *shape, const shape::Vec2d &trimPoint,
     case NS::Ray: {
         auto xl = dynamic_cast<shape::XLine *>(shape);
         auto l = xl->getLineShape();
-        return cada_line_trimEnd(l.release(), trimPoint, clickPoint);
+        return cada_line_trimEnd(l.get(), trimPoint, clickPoint);
     }
     case NS::Polyline:
         // TODO
         break;
-    case NS::BSpline:
+    case NS::Spline:
         // TODO
         break;
     default:

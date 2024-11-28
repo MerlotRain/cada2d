@@ -68,7 +68,7 @@ inline bool isPolylineShape(const shape::Shape *shape)
 inline bool isSplineShape(const shape::Shape *shape)
 {
     assert(shape);
-    return shape->getShapeType() == NS::BSpline;
+    return shape->getShapeType() == NS::Spline;
 }
 
 inline bool isFullEllipseShape(const shape::Shape *shape)
@@ -114,8 +114,8 @@ inline bool shapeIsGeometricallyClosed(const shape::Shape *shape)
     return (shape->getShapeType() == NS::Polyline &&
             dynamic_cast<const shape::Polyline *>(shape)
                 ->isGeometricallyClosed()) ||
-           (shape->getShapeType() == NS::BSpline &&
-            dynamic_cast<const shape::BSpline *>(shape)
+           (shape->getShapeType() == NS::Spline &&
+            dynamic_cast<const shape::Spline *>(shape)
                 ->isGeometricallyClosed());
 }
 
@@ -124,8 +124,8 @@ inline bool shapeIsClosed(const shape::Shape *shape)
     assert(shape);
     return (shape->getShapeType() == NS::Polyline &&
             dynamic_cast<const shape::Polyline *>(shape)->isClosed()) ||
-           (shape->getShapeType() == NS::BSpline &&
-            dynamic_cast<const shape::BSpline *>(shape)->isClosed());
+           (shape->getShapeType() == NS::Spline &&
+            dynamic_cast<const shape::Spline *>(shape)->isClosed());
 }
 
 } // namespace algorithm

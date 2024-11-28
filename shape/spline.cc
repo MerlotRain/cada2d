@@ -29,49 +29,49 @@
 namespace cada {
 namespace shape {
 
-BSpline::BSpline()
+Spline::Spline()
     : mDegree(3), mPeriodic(false), mDirty(true), mUpdateInProgress(false),
       mLength(std::numeric_limits<double>::quiet_NaN())
 {
 }
 
-BSpline::BSpline(const std::vector<Vec2d> &controlPoints, int degree)
+Spline::Spline(const std::vector<Vec2d> &controlPoints, int degree)
     : mControlPoints(controlPoints), mDegree(degree), mPeriodic(false),
       mDirty(true), mUpdateInProgress(false),
       mLength(std::numeric_limits<double>::quiet_NaN())
 {
 }
 
-void BSpline::appendControlPoint(const Vec2d &point)
+void Spline::appendControlPoint(const Vec2d &point)
 {
     mControlPoints.push_back(point);
     update();
 }
 
-void BSpline::appendControlPoints(const std::vector<Vec2d> &points)
+void Spline::appendControlPoints(const std::vector<Vec2d> &points)
 {
     mControlPoints.insert(mControlPoints.end(), points.begin(), points.end());
     update();
 }
 
-void BSpline::removeLastControlPoint()
+void Spline::removeLastControlPoint()
 {
     mControlPoints.pop_back();
     update();
 }
 
-void BSpline::setControlPoints(const std::vector<Vec2d> &controlPoints)
+void Spline::setControlPoints(const std::vector<Vec2d> &controlPoints)
 {
     this->mControlPoints = controlPoints;
     update();
 }
 
-std::vector<Vec2d> BSpline::getControlPoints() const
+std::vector<Vec2d> Spline::getControlPoints() const
 {
     return mControlPoints;
 }
 
-std::vector<Vec2d> BSpline::getControlPointsWrapped() const
+std::vector<Vec2d> Spline::getControlPointsWrapped() const
 {
     std::vector<Vec2d> ret;
 
@@ -80,12 +80,12 @@ std::vector<Vec2d> BSpline::getControlPointsWrapped() const
     return ret;
 }
 
-int BSpline::countControlPoints() const
+int Spline::countControlPoints() const
 {
     return mControlPoints.size();
 }
 
-Vec2d BSpline::getControlPointAt(int i) const
+Vec2d Spline::getControlPointAt(int i) const
 {
     if (i >= 0 && i < mControlPoints.size()) {
         return mControlPoints.at(i);
@@ -93,17 +93,17 @@ Vec2d BSpline::getControlPointAt(int i) const
     return Vec2d::invalid;
 }
 
-void BSpline::appendFitPoint(const Vec2d &point)
+void Spline::appendFitPoint(const Vec2d &point)
 {
     mFitPoints.push_back(point);
     update();
 }
 
-void BSpline::prependFitPoint(const Vec2d &point)
+void Spline::prependFitPoint(const Vec2d &point)
 {
 }
 
-void BSpline::insertFitPointAt(const Vec2d &point)
+void Spline::insertFitPointAt(const Vec2d &point)
 {
     Vec2d p = getClosestPointOnShape(point);
 
@@ -113,44 +113,44 @@ void BSpline::insertFitPointAt(const Vec2d &point)
     insertFitPointAt(t, p);
 }
 
-void BSpline::insertFitPointAt(double t, const Vec2d &p)
+void Spline::insertFitPointAt(double t, const Vec2d &p)
 {
 }
 
-void BSpline::removeFitPointAt(const Vec2d &point)
+void Spline::removeFitPointAt(const Vec2d &point)
 {
 }
 
-void BSpline::removeLastFitPoint()
+void Spline::removeLastFitPoint()
 {
 }
 
-void BSpline::removeFirstFitPoint()
+void Spline::removeFirstFitPoint()
 {
 }
 
-void BSpline::setFitPoints(const std::vector<Vec2d> &fitPoints)
+void Spline::setFitPoints(const std::vector<Vec2d> &fitPoints)
 {
     this->mFitPoints = mFitPoints;
     update();
 }
 
-std::vector<Vec2d> BSpline::getFitPoints() const
+std::vector<Vec2d> Spline::getFitPoints() const
 {
     return mFitPoints;
 }
 
-int BSpline::countFitPoints() const
+int Spline::countFitPoints() const
 {
     return mFitPoints.size();
 }
 
-bool BSpline::hasFitPoints() const
+bool Spline::hasFitPoints() const
 {
     return !mFitPoints.empty();
 }
 
-Vec2d BSpline::getFitPointAt(int i) const
+Vec2d Spline::getFitPointAt(int i) const
 {
     if (i >= 0 && i < mFitPoints.size()) {
         return mFitPoints.at(i);
@@ -158,143 +158,143 @@ Vec2d BSpline::getFitPointAt(int i) const
     return Vec2d::invalid;
 }
 
-std::vector<double> BSpline::getKnotVector() const
+std::vector<double> Spline::getKnotVector() const
 {
     return mKnotVector;
 }
 
-std::vector<double> BSpline::getActualKnotVector() const
+std::vector<double> Spline::getActualKnotVector() const
 {
     return std::vector<double>();
 }
 
-void BSpline::setKnotVector(const std::vector<double> &knots)
+void Spline::setKnotVector(const std::vector<double> &knots)
 {
     mKnotVector = knots;
     update();
 }
 
-void BSpline::appendKnot(double k)
+void Spline::appendKnot(double k)
 {
     mKnotVector.push_back(k);
     update();
 }
 
-std::vector<double> BSpline::getWeights() const
+std::vector<double> Spline::getWeights() const
 {
     return mWeights;
 }
 
-void BSpline::setWeights(std::vector<double> &w)
+void Spline::setWeights(std::vector<double> &w)
 {
     mWeights = w;
 }
 
-void BSpline::setDegree(int d)
+void Spline::setDegree(int d)
 {
     mDegree = d;
     update();
 }
 
-int BSpline::getDegree() const
+int Spline::getDegree() const
 {
     return mDegree;
 }
 
-int BSpline::getOrder() const
+int Spline::getOrder() const
 {
     return mDegree + 1;
 }
 
-void BSpline::setPeriodic(bool on)
+void Spline::setPeriodic(bool on)
 {
     mPeriodic = on;
     update();
 }
 
-bool BSpline::isClosed() const
+bool Spline::isClosed() const
 {
     return mPeriodic;
 }
 
-bool BSpline::isGeometricallyClosed(double tolerance) const
+bool Spline::isGeometricallyClosed(double tolerance) const
 {
     return isClosed() ||
            getStartPoint().getDistanceTo(getEndPoint()) < tolerance;
 }
 
-bool BSpline::isPeriodic() const
+bool Spline::isPeriodic() const
 {
     return mPeriodic;
 }
 
-Vec2d BSpline::getStartPoint() const
+Vec2d Spline::getStartPoint() const
 {
     return getPointAt(getTMin());
 }
 
-void BSpline::setStartPoint(const Vec2d &v)
+void Spline::setStartPoint(const Vec2d &v)
 {
     mControlPoints[0] = v;
     update();
 }
 
-Vec2d BSpline::getEndPoint() const
+Vec2d Spline::getEndPoint() const
 {
     return getPointAt(getTMax());
 }
 
-void BSpline::setEndPoint(const Vec2d &v)
+void Spline::setEndPoint(const Vec2d &v)
 {
     mControlPoints[mControlPoints.size() - 1] = v;
     update();
 }
 
-void BSpline::setTangents(const Vec2d &start, const Vec2d &end)
+void Spline::setTangents(const Vec2d &start, const Vec2d &end)
 {
     mTangentStart = start;
     mTangentEnd = end;
     update();
 }
 
-void BSpline::setTangentAtStart(const Vec2d &t)
+void Spline::setTangentAtStart(const Vec2d &t)
 {
     mTangentStart = t;
     update();
 }
 
-Vec2d BSpline::getTangentAtStart() const
+Vec2d Spline::getTangentAtStart() const
 {
     return mTangentStart;
 }
 
-void BSpline::setTangentAtEnd(const Vec2d &t)
+void Spline::setTangentAtEnd(const Vec2d &t)
 {
     mTangentEnd = t;
     update();
 }
 
-Vec2d BSpline::getTangentAtEnd() const
+Vec2d Spline::getTangentAtEnd() const
 {
     return mTangentEnd;
 }
 
-void BSpline::unsetTangentAtStart()
+void Spline::unsetTangentAtStart()
 {
     setTangentAtStart(Vec2d::invalid);
 }
 
-void BSpline::unsetTangentAtEnd()
+void Spline::unsetTangentAtEnd()
 {
     setTangentAtEnd(Vec2d::invalid);
 }
 
-void BSpline::unsetTangents()
+void Spline::unsetTangents()
 {
     setTangents(Vec2d::invalid, Vec2d::invalid);
 }
 
-void BSpline::updateTangentsPeriodic()
+void Spline::updateTangentsPeriodic()
 {
     unsetTangents();
 
@@ -306,48 +306,48 @@ void BSpline::updateTangentsPeriodic()
     setTangents(t, t);
 }
 
-std::unique_ptr<Polyline> BSpline::approximateWithArcs(double tolerance,
-                                                       double radiusLimit) const
+std::unique_ptr<Polyline> Spline::approximateWithArcs(double tolerance,
+                                                      double radiusLimit) const
 {
     return std::unique_ptr<Polyline>();
 }
 
-std::unique_ptr<Polyline> BSpline::toPolyline(int segments) const
+std::unique_ptr<Polyline> Spline::toPolyline(int segments) const
 {
     return std::unique_ptr<Polyline>();
 }
 
 std::vector<std::unique_ptr<Shape>>
-BSpline::getExplodedBezier(int segments) const
+Spline::getExplodedBezier(int segments) const
 {
     std::vector<std::unique_ptr<Shape>> ret;
     return ret;
 }
 
-void BSpline::appendToExploded(const Line *line) const
+void Spline::appendToExploded(const Line *line) const
 {
 }
 
 std::vector<std::unique_ptr<Shape>>
-BSpline::getExplodedWithSegmentLength(double segmentLength) const
+Spline::getExplodedWithSegmentLength(double segmentLength) const
 {
     std::vector<std::unique_ptr<Shape>> ret;
     return ret;
 }
 
-Vec2d BSpline::getPointAt(double t) const
+Vec2d Spline::getPointAt(double t) const
 {
     updateInternal();
     return Vec2d::invalid;
 }
 
-Vec2d BSpline::getPointAtDistance(double distance) const
+Vec2d Spline::getPointAtDistance(double distance) const
 {
     double t = getTAtDistance(distance);
     return getPointAt(t);
 }
 
-std::vector<Vec2d> BSpline::getEndPoints() const
+std::vector<Vec2d> Spline::getEndPoints() const
 {
     std::vector<Vec2d> ret;
 
@@ -357,12 +357,12 @@ std::vector<Vec2d> BSpline::getEndPoints() const
     return ret;
 }
 
-Vec2d BSpline::getMiddlePoint() const
+Vec2d Spline::getMiddlePoint() const
 {
     return getPointAt(getTMin() + (getTDelta() / 2.0));
 }
 
-std::vector<Vec2d> BSpline::getMiddlePoints() const
+std::vector<Vec2d> Spline::getMiddlePoints() const
 {
     std::vector<Vec2d> ret;
 
@@ -371,65 +371,69 @@ std::vector<Vec2d> BSpline::getMiddlePoints() const
     return ret;
 }
 
-std::vector<Vec2d> BSpline::getCenterPoints() const
+std::vector<Vec2d> Spline::getCenterPoints() const
 {
     return std::vector<Vec2d>();
 }
 
-bool BSpline::isValid() const
+std::vector<std::unique_ptr<Spline>> Spline::createSplineFromArc(const Arc *arc)
+{
+    return std::vector<std::unique_ptr<Spline>>();
+}
+
+bool Spline::isValid() const
 {
     return false;
 }
 
-NS::ShapeType BSpline::getShapeType() const
+NS::ShapeType Spline::getShapeType() const
 {
-    return NS::BSpline;
+    return NS::Spline;
 }
 
-BSpline *BSpline::cloneImpl() const
+Spline *Spline::cloneImpl() const
 {
     return nullptr;
 }
 
-double BSpline::getTDelta() const
+double Spline::getTDelta() const
 {
     return getTMax() - getTMin();
 }
 
-double BSpline::getTMin() const
+double Spline::getTMin() const
 {
     updateInternal();
     return 0.0;
 }
 
-double BSpline::getTMax() const
+double Spline::getTMax() const
 {
     updateInternal();
     return 0.0;
 }
 
-double BSpline::getTAtPoint(const Vec2d &point) const
+double Spline::getTAtPoint(const Vec2d &point) const
 {
     return 0.0;
 }
 
-double BSpline::getTAtDistance(double distance) const
+double Spline::getTAtDistance(double distance) const
 {
     return 0.0;
 }
 
-double BSpline::getDistanceAtT(double t) const
+double Spline::getDistanceAtT(double t) const
 {
     return 0.0;
 }
 
-std::vector<BSpline>
-BSpline::getSegments(const std::vector<Vec2d> &points) const
+std::vector<Spline> Spline::getSegments(const std::vector<Vec2d> &points) const
 {
-    return std::vector<BSpline>();
+    return std::vector<Spline>();
 }
 
-std::vector<Vec2d> BSpline::getDiscontinuities() const
+std::vector<Vec2d> Spline::getDiscontinuities() const
 {
     updateInternal();
 
@@ -437,18 +441,18 @@ std::vector<Vec2d> BSpline::getDiscontinuities() const
     return ret;
 }
 
-BSpline *BSpline::simplify(double tolerance)
+Spline *Spline::simplify(double tolerance)
 {
     return nullptr;
 }
 
-void BSpline::invalidate() const
+void Spline::invalidate() const
 {
     mExploded.clear();
     mLength = std::numeric_limits<double>::quiet_NaN();
 }
 
-void BSpline::updateInternal() const
+void Spline::updateInternal() const
 {
     if (!mDirty || mUpdateInProgress) {
         return;
@@ -477,41 +481,41 @@ void BSpline::updateInternal() const
     mUpdateInProgress = false;
 }
 
-void BSpline::updateFromControlPoints() const
+void Spline::updateFromControlPoints() const
 {
 }
 
-void BSpline::updateFromFitPoints() const
+void Spline::updateFromFitPoints() const
 {
 }
 
-void BSpline::updateBoundingBox() const
+void Spline::updateBoundingBox() const
 {
 }
 
-std::vector<BSpline> BSpline::getBezierSegments(const BBox &queryBox) const
+std::vector<Spline> Spline::getBezierSegments(const BBox &queryBox) const
 {
-    std::vector<BSpline> ret;
+    std::vector<Spline> ret;
     return ret;
 }
 
-void BSpline::update() const
+void Spline::update() const
 {
     mDirty = true;
     mBoundingBox = BBox();
     mExploded.clear();
 }
 
-bool BSpline::isDirty() const
+bool Spline::isDirty() const
 {
     return false;
 }
 
-std::string BSpline::to_string() const
+std::string Spline::to_string() const
 {
     std::stringstream ss;
     ss << std::fixed << std::setprecision(6);
-    ss << "BSpline: ";
+    ss << "Spline: ";
     ss << "degree: " << mDegree << ", ";
     ss << "controlPoints: " << mControlPoints.size() << ", ";
     for (auto &cp : mControlPoints) {

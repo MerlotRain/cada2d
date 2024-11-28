@@ -90,7 +90,7 @@ bool cada_mirror(shape::Shape *shape, const shape::Vec2d &v1,
         }
         return true;
     }
-    case NS::BSpline:
+    case NS::Spline:
         break;
     default:
         break;

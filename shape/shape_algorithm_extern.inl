@@ -64,6 +64,7 @@ extern bool cada_stretch(shape::Shape *shape, std::vector<shape::Vec2d> &&vertex
 extern std::vector<std::unique_ptr<shape::Shape>> cada_getOffsetShapes(const shape::Shape *shape, double distance, int number, NS::Side side, const shape::Vec2d &position);
 extern std::vector<std::unique_ptr<shape::Shape>> cada_splitAt(const shape::Shape *shape, const std::vector<shape::Vec2d> &points);
 
+extern bool cada_polylineContains(const shape::Polyline *pline, const shape::Vec2d &pt);
 } // namespace algorithm
 } // namespace cada
 

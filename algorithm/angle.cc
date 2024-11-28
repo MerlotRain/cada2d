@@ -71,7 +71,7 @@ double cada_getAngleAt(const shape::Shape *shape, double distance,
     case NS::Polyline:
         return cada_polyline_getAngleAt(dynamic_cast<const Polyline *>(shape),
                                         distance, from);
-    case NS::BSpline:
+    case NS::Spline:
         // TODO
     default:
         break;

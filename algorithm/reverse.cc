@@ -94,7 +94,7 @@ bool cada_reverse(shape::Shape *shape)
             return true;
         }
     }
-    case NS::BSpline:
+    case NS::Spline:
         break;
     default:
         break;

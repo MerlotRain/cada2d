@@ -82,7 +82,7 @@ bool cada_rotate(shape::Shape *shape, double rotation,
         }
         return true;
     }
-    case NS::BSpline:
+    case NS::Spline:
     default:
         break;
     }

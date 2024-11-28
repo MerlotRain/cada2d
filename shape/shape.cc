@@ -192,7 +192,7 @@ bool Shape::isDirected() const
 {
     auto type = getShapeType();
     if (type == NS::Arc || type == NS::Line || type == NS::Ellipse ||
-        type == NS::Polyline || type == NS::XLine || type == NS::BSpline ||
+        type == NS::Polyline || type == NS::XLine || type == NS::Spline ||
         type == NS::Ray) {
         return true;
     }

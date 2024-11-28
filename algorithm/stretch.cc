@@ -86,11 +86,11 @@ bool cada_stretch(shape::Shape *shape, std::vector<shape::Vec2d> &&vertex,
     switch (shape->getShapeType()) {
     case NS::Line: {
         auto l = dynamic_cast<shape::Line *>(shape);
-        return cada_line_stretch(l, area.release(), offset);
+        return cada_line_stretch(l, area.get(), offset);
     }
     case NS::Arc: {
         auto a = dynamic_cast<shape::Arc *>(shape);
-        return cada_arc_stretch(a, area.release(), offset);
+        return cada_arc_stretch(a, area.get(), offset);
     }
     case NS::Ray: {
         auto r = dynamic_cast<shape::Ray *>(shape);
@@ -112,7 +112,7 @@ bool cada_stretch(shape::Shape *shape, std::vector<shape::Vec2d> &&vertex,
         }
         return true;
     }
-    case NS::BSpline:
+    case NS::Spline:
         break;
     default: {
         if (area->containsShape(shape)) {

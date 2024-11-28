@@ -21,7 +21,7 @@
  */
 
 #include "apollonius.h"
-#include "apo.h"
+#include "apo_foundation.h"
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>

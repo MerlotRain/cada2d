@@ -114,7 +114,7 @@ cada_getPointsWithDistanceToEnd(const shape::Shape *shape, double distance,
     case NS::Polyline:
         return cada_polyline_getPointsWithDistanceToEnd(
             dynamic_cast<const Polyline *>(shape), distance, from);
-    case NS::BSpline:
+    case NS::Spline:
     default:
         break;
     }

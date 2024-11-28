@@ -1,8 +1,6 @@
 apo_files = files(
     'apollonius.c',
-    'circle.c',
-    'line.c',
-    'point.c',
+    'apo_foundation.c',
 )
 
 apo_include = include_directories('.')

@@ -93,11 +93,11 @@ double cada_getDirection1(const shape::Shape *shape)
         }
         else {
             if (seg->getShapeType() == NS::Line) {
-                return cada_line_getDirection(
-                    dynamic_cast<Line *>(seg.release()), true);
+                return cada_line_getDirection(dynamic_cast<Line *>(seg.get()),
+                                              true);
             }
             else if (seg->getShapeType() == NS::Arc) {
-                return cada_arc_getDirection(dynamic_cast<Arc *>(seg.release()),
+                return cada_arc_getDirection(dynamic_cast<Arc *>(seg.get()),
                                              true);
             }
             else {
@@ -105,7 +105,7 @@ double cada_getDirection1(const shape::Shape *shape)
             }
         }
     }
-    case NS::BSpline:
+    case NS::Spline:
         // TODO
     default:
         break;
@@ -153,11 +153,11 @@ double cada_getDirection2(const shape::Shape *shape)
         }
         else {
             if (seg->getShapeType() == NS::Line) {
-                return cada_line_getDirection(
-                    dynamic_cast<Line *>(seg.release()), false);
+                return cada_line_getDirection(dynamic_cast<Line *>(seg.get()),
+                                              false);
             }
             else if (seg->getShapeType() == NS::Arc) {
-                return cada_arc_getDirection(dynamic_cast<Arc *>(seg.release()),
+                return cada_arc_getDirection(dynamic_cast<Arc *>(seg.get()),
                                              false);
             }
             else {
@@ -165,7 +165,7 @@ double cada_getDirection2(const shape::Shape *shape)
             }
         }
     }
-    case NS::BSpline:
+    case NS::Spline:
         // TODO
     default:
         break;

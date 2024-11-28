@@ -37,7 +37,7 @@ cada_split_arc(const shape::Arc *a, const std::vector<shape::Vec2d> &points)
     if (a->isReversed()) {
         auto arc = a->clone();
         arc->reverse();
-        res = cada_split_arc(arc.release(), points);
+        res = cada_split_arc(arc.get(), points);
         for (auto &r : res) {
             r->reverse();
         }
@@ -124,7 +124,7 @@ cada_split_ellipse(const shape::Ellipse *e,
     if (e->isReversed()) {
         auto ellipse = e->clone();
         ellipse->reverse();
-        ret = cada_split_ellipse(ellipse.release(), points);
+        ret = cada_split_ellipse(ellipse.get(), points);
         for (auto &item : ret) {
             item->reverse();
         }
@@ -281,7 +281,7 @@ cada_splitAt(const shape::Shape *shape, const std::vector<shape::Vec2d> &points)
     case NS::Polyline:
         // TODO
         break;
-    case NS::BSpline:
+    case NS::Spline:
         // TODO
         break;
     default:
