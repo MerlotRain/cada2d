@@ -1,3 +1,12 @@
-[submodule "CavalierContours"]
-	path = CavalierContours
+[submodule "thirdparty/opennurbs"]
+	path = thirdparty/opennurbs
+	url = https://github.com/mcneel/opennurbs.git
+[submodule "thirdparty/CavalierContours"]
+	path = thirdparty/CavalierContours
 	url = https://github.com/jbuckmccready/CavalierContours.git
+[submodule "LBFGSpp"]
+	path = LBFGSpp
+	url = https://github.com/yixuan/LBFGSpp.git
+[submodule "thirdparty/LBFGSpp"]
+	path = thirdparty/LBFGSpp
+	url = https://github.com/yixuan/LBFGSpp.git
