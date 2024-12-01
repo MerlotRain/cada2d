@@ -8,7 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-add_subdirectory(CavalierContours)
+add_subdirectory(thirdparty/CavalierContours)
 find_package(Eigen3 REQUIRED)
 
 set(cada_srcs
@@ -52,9 +52,6 @@ set(cada_srcs
     algorithm/stretch.cc
     algorithm/trim.cc
     algorithm/vectorto.cc
-
-    apollonius/apollonius.c
-    apollonius/apo_foundation.c
 )
 
 add_library(cada2d STATIC ${cada_srcs}) 
