@@ -516,7 +516,7 @@ Ellipse::getTangents(const Vec2d &point) const
 Vec2d Ellipse::getTangentPoint(const Line *line) const
 {
     assert(line);
-    Line *lineNeutral = const_cast<Line *>(line);
+    auto &&lineNeutral = line->clone();
     assert(lineNeutral);
 
     lineNeutral->move(getCenter().getNegated());
