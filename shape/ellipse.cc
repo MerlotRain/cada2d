@@ -51,7 +51,7 @@ bool Ellipse::isValid() const
 
 NS::ShapeType Ellipse::getShapeType() const
 {
-    return NS::ShapeType();
+    return NS::Ellipse;
 }
 
 Ellipse *Ellipse::cloneImpl() const
