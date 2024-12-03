@@ -1,7 +1,6 @@
 shape_src = files(
     'arc.cc',
     'bbox.cc',
-    'bspline.cc',
     'circle.cc',
     'ellipse.cc',
     'line.cc',
@@ -11,6 +10,7 @@ shape_src = files(
     'ray.cc',
     'shape.cc',
     'shapefactory.cc',
+    'spline.cc',
     'vec2d.cc',
     'xline.cc',
 )

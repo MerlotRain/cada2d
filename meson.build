@@ -10,7 +10,6 @@ project(
 build_test = get_option('build_test')
 
 # apo library
-subdir('apollonius')
 
 inc_dirs = include_directories('include')
 
@@ -21,7 +20,6 @@ cada2d_lib = static_library(
     'cada2d',
     shape_src + algorithm_src,
     include_directories: inc_dirs,
-    dependencies: [apo_dep],
     cpp_args: ['-D_USE_MATH_DEFINES'],
 )
 
