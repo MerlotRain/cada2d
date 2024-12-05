@@ -7,6 +7,3 @@
 [submodule "thirdparty/apollonius"]
 	path = thirdparty/apollonius
 	url = https://github.com/MerlotRain/apollonius.git
-[submodule "thirdparty/PolylineOffsetting"]
-	path = thirdparty/PolylineOffsetting
-	url = https://github.com/MerlotRain/PolylineOffsetting.git

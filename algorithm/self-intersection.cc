@@ -21,7 +21,6 @@
  */
 
 #include <cada_shape.h>
-#include <cada_excption.h>
 #include <assert.h>
 
 using namespace cada::shape;
@@ -85,7 +84,7 @@ cada_getSelfIntersectionPoints(const shape::Shape *shape, double tolerance)
             dynamic_cast<const shape::Spline *>(shape), tolerance);
     }
     else {
-        throw UnsupportedOperationException();
+        return std::vector<shape::Vec2d>();
     }
 }
 

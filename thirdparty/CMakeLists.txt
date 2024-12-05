@@ -1,4 +1,1 @@
 add_subdirectory(apollonius)
-add_subdirectory(LBFGSpp)
-add_subdirectory(opennurbs)
-add_subdirectory(PolylineOffsetting)

@@ -7,8 +7,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+option(BUILD_EXAMPLES "Build examples" OFF)
 
-add_subdirectory(thirdparty/CavalierContours)
+add_subdirectory(thirdparty)
 find_package(Eigen3 REQUIRED)
 
 set(cada_srcs
@@ -66,8 +67,10 @@ target_include_directories(cada2d PRIVATE
     ${CMAKE_CURRENT_LIST_DIR}/algorithm
 )
 
-target_link_libraries(cada2d PRIVATE Eigen3::Eigen CavalierContours)
+target_link_libraries(cada2d Eigen3::Eigen apollonius)
 
 add_subdirectory(capi)
-add_subdirectory(examples)
+if(BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
 # add_subdirectory(tools)

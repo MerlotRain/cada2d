@@ -471,7 +471,7 @@ auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
     }
 
     // lines:
-    if (isXLineShape(shp)) {
+    if (isLineShape(shp)) {
         std::unique_ptr<shape::Line> rest1;
         std::unique_ptr<shape::Line> rest2;
         std::unique_ptr<shape::Line> segment;
@@ -1406,62 +1406,286 @@ std::vector<std::unique_ptr<Circle>> apollonius_solutions(const Shape *shape1,
     assert(shape2);
     assert(shape3);
 
-    apollonius_t *apo = apollonius_init();
+    apo_t *apo = apo_init();
     if (!apo) {
-        return {};
+        return std::vector<std::unique_ptr<Circle>>();
     }
 
 #define apo_append_shape(shp)                                                 \
     {                                                                         \
         if (shp->getShapeType() == NS::Point) {                               \
             auto p = dynamic_cast<const shape::Point *>(shp);                 \
-            if (0 != apollonius_add_point(apo, p->getPosition().x,            \
-                                          p->getPosition().y))                \
-                goto apo_error;                                               \
+            if (0 !=                                                          \
+                apo_add_point(apo, p->getPosition().x, p->getPosition().y)) { \
+                apo_destroy(apo);                                             \
+                return {};                                                    \
+            }                                                                 \
         }                                                                     \
         else if (shp->getShapeType() == NS::Line) {                           \
             auto l = dynamic_cast<const shape::Line *>(shp);                  \
-            if (0 != apollonius_add_line(                                     \
-                         apo, l->getStartPoint().x, l->getStartPoint().y,     \
-                         l->getEndPoint().x, l->getEndPoint().y))             \
-                goto apo_error;                                               \
+            if (0 != apo_add_line(apo, l->getStartPoint().x,                  \
+                                  l->getStartPoint().y, l->getEndPoint().x,   \
+                                  l->getEndPoint().y)) {                      \
+                apo_destroy(apo);                                             \
+                return {};                                                    \
+            }                                                                 \
         }                                                                     \
         else if (shp->getShapeType() == NS::Circle) {                         \
             auto c = dynamic_cast<const shape::Circle *>(shp);                \
-            if (0 != apollonius_add_circle(apo, c->getCenter().x,             \
-                                           c->getCenter().y, c->getRadius())) \
-                goto apo_error;                                               \
+            if (0 != apo_add_circle(apo, c->getCenter().x, c->getCenter().y,  \
+                                    c->getRadius())) {                        \
+                apo_destroy(apo);                                             \
+                return {};                                                    \
+            }                                                                 \
         }                                                                     \
         else if (shp->getShapeType() == NS::Arc) {                            \
             auto a = dynamic_cast<const shape::Arc *>(shp);                   \
-            if (0 != apollonius_add_circle(apo, a->getCenter().x,             \
-                                           a->getCenter().y, a->getRadius())) \
-                goto apo_error;                                               \
+            if (0 != apo_add_circle(apo, a->getCenter().x, a->getCenter().y,  \
+                                    a->getRadius())) {                        \
+                apo_destroy(apo);                                             \
+                return {};                                                    \
+            }                                                                 \
         }                                                                     \
         else {                                                                \
-            goto apo_error;                                                   \
+            apo_destroy(apo);                                                 \
+            return {};                                                        \
         }                                                                     \
     }
 
     apo_append_shape(shape1);
     apo_append_shape(shape2);
     apo_append_shape(shape3);
-    apollonius_solution *sulu;
-    if (apollonius_solve(apo, &sulu) == 0) {
+    apo_solution_t *solution = nullptr;
+    if (apo_solve(apo, &solution) == 0) {
         std::vector<std::unique_ptr<Circle>> circles;
-        for (size_t i = 0; i < sulu->count; ++i) {
-            circles.emplace_back(ShapeFactory::instance()->createCircle(
-                Vec2d(sulu->circles[i].cx, sulu->circles[i].cy),
-                sulu->circles[i].r));
+        int sol_size = apo_solution_get_count(solution);
+        for (size_t i = 0; i < sol_size; ++i) {
+            double cx, cy, radius;
+            apo_solution_get_circle(solution, i, &cx, &cy, &radius);
+            circles.emplace_back(
+                ShapeFactory::instance()->createCircle(Vec2d(cx, cy), radius));
         }
-        apollonius_free(apo);
-        apollonius_solution_free(sulu);
+        apo_destroy(apo);
+        apo_solution_destroy(solution);
         return circles;
     }
+    return std::vector<std::unique_ptr<Circle>>();
+}
 
-apo_error:
-    apollonius_free(apo);
-    return {};
+std::vector<std::unique_ptr<shape::Shape>>
+trim_shape(const shape::Shape *trimShape, const shape::Vec2d &trimClickPos,
+           const shape::Shape *limitingShape,
+           const shape::Vec2d &limitingClickPos, bool trimBoth,
+           bool samePolyline)
+{
+    assert(trimShape);
+    assert(limitingShape);
+
+    int i1 = 0;
+    std::unique_ptr<shape::Shape> trimShapeSimple;
+    if (isPolylineShape(trimShape)) {
+        auto &&polyline = dynamic_cast<const Polyline *>(trimShape);
+        i1 = polyline->getClosestSegment(trimClickPos);
+        if (i1 < 0) {
+            return std::vector<std::unique_ptr<shape::Shape>>();
+        }
+        auto &&segment = polyline->getSegmentAt(i1);
+        if (!segment) {
+            return std::vector<std::unique_ptr<shape::Shape>>();
+        }
+        trimShapeSimple.swap(segment);
+    }
+    else {
+        trimShapeSimple = trimShape->clone();
+    }
+
+    int i2 = 0;
+    std::unique_ptr<shape::Shape> limitingShapeSimple;
+    if (isPolylineShape(limitingShape)) {
+        auto &&polyline = dynamic_cast<const Polyline *>(limitingShape);
+        i2 = polyline->getClosestSegment(limitingClickPos);
+        if (i2 < 0) {
+            return std::vector<std::unique_ptr<shape::Shape>>();
+        }
+        auto &&segment = polyline->getSegmentAt(i2);
+        if (segment) {
+            return std::vector<std::unique_ptr<shape::Shape>>();
+        }
+        limitingShapeSimple.swap(segment);
+    }
+    else {
+        limitingShapeSimple = limitingShape->clone();
+    }
+
+    // possible trim points:
+    auto &&sol = trimShapeSimple->getIntersectionPoints(
+        limitingShapeSimple.get(), false);
+    if (sol.empty()) {
+        return std::vector<std::unique_ptr<shape::Shape>>();
+    }
+
+    std::unique_ptr<shape::Shape> trimmedTrimShape;
+    std::unique_ptr<shape::Shape> trimmedLimitingShape;
+    Vec2d c;
+    double r, am, a1, a2;
+    Vec2d mp;
+
+    if (isCircleShape(trimShape)) {
+        auto &&circle = dynamic_cast<const Circle *>(trimShape);
+        // convert circle to trimmable arc:
+        c = circle->getCenter();
+        r = circle->getRadius();
+        am = c.getAngleTo(trimClickPos);
+        a1 = Math::getNormalizedAngle(am - M_PI / 2);
+        a2 = Math::getNormalizedAngle(am + M_PI / 2);
+        trimmedTrimShape =
+            ShapeFactory::instance()->createArc(c, r, a1, a2, false);
+    }
+    else if (isFullEllipseShape(trimShape)) {
+        auto &&ellipse = dynamic_cast<const Ellipse *>(trimShape);
+        c = ellipse->getCenter();
+        mp = ellipse->getMajorPoint();
+        r = ellipse->getRatio();
+        am = ellipse->getParamTo(trimClickPos);
+        a1 = Math::getNormalizedAngle(am - M_PI / 2);
+        a2 = Math::getNormalizedAngle(am + M_PI / 2);
+        trimmedTrimShape =
+            ShapeFactory::instance()->createEllipse(c, mp, r, a1, a2, false);
+    }
+    else {
+        if (samePolyline) {
+            trimmedTrimShape = trimShapeSimple->clone();
+        }
+        else {
+            trimmedTrimShape = trimShape->clone();
+        }
+    }
+
+    if (trimBoth) {
+        if (isCircleShape(limitingShape)) {
+            auto &&circle = dynamic_cast<const Circle *>(limitingShape);
+            // convert circle to trimmable arc:
+            c = circle->getCenter();
+            r = circle->getRadius();
+            am = c.getAngleTo(trimClickPos);
+            a1 = Math::getNormalizedAngle(am - M_PI / 2);
+            a2 = Math::getNormalizedAngle(am + M_PI / 2);
+            trimmedLimitingShape =
+                ShapeFactory::instance()->createArc(c, r, a1, a2, false);
+        }
+        else {
+            if (samePolyline) {
+                trimmedLimitingShape = limitingShapeSimple->clone();
+            }
+            else {
+                trimmedLimitingShape = limitingShape->clone();
+            }
+        }
+    }
+
+    // find trim (intersection) point:
+    bool isIdx;
+    if (trimBoth || isEllipseShape(trimShape)) {
+        isIdx = trimClickPos.getClosestIndex(sol);
+    }
+    else {
+        isIdx = limitingClickPos.getClosestIndex(sol);
+    }
+    Vec2d is = sol[isIdx];
+
+    Vec2d is2;
+    if (sol.size() == 1 || isIdx != 0) {
+        is2 = sol[0];
+    }
+    else {
+        is2 = sol[1];
+    }
+
+    // trim trim entity:
+    NS::Ending ending1 = trimmedTrimShape->getTrimEnd(is, trimClickPos);
+
+    switch (ending1) {
+    case NS::EndingStart:
+        trimmedTrimShape->trimStartPoint(is, trimClickPos);
+        if (isCircleShape(trimShape) || isFullEllipseShape(trimShape)) {
+            trimmedTrimShape->trimEndPoint(is2, trimClickPos);
+        }
+        break;
+    case NS::EndingEnd:
+        trimmedTrimShape->trimEndPoint(is, trimClickPos);
+        if (isCircleShape(trimShape) || isFullEllipseShape(trimShape)) {
+            trimmedTrimShape->trimStartPoint(is2, trimClickPos);
+        }
+        break;
+    default:
+        break;
+    }
+
+    if (isXLineShape(trimmedTrimShape.get())) {
+        auto &&xline = dynamic_cast<XLine *>(trimmedTrimShape.get());
+        trimmedTrimShape = ShapeFactory::instance()->createRay(
+            xline->getBasePoint(), xline->getDirectionVector());
+    }
+    else if (isRayShape(trimShape) && ending1 == NS::EndingEnd) {
+        auto &&ray = dynamic_cast<Ray *>(trimmedTrimShape.get());
+        trimmedTrimShape = ShapeFactory::instance()->createLine(
+            ray->getBasePoint(),
+            ray->getDirectionVector() + ray->getBasePoint());
+    }
+
+    // trim limiting shape if possible (not possible for splines):
+    NS::Ending ending2 = NS::EndingNone;
+    if (trimBoth && trimmedLimitingShape) {
+        ending2 = trimmedLimitingShape->getTrimEnd(is, limitingClickPos);
+
+        switch (ending2) {
+        case NS::EndingStart:
+            trimmedLimitingShape->trimStartPoint(is, limitingClickPos);
+            if (isCircleShape(limitingShape) ||
+                isFullEllipseShape(limitingShape)) {
+                trimmedLimitingShape->trimEndPoint(is2, limitingClickPos);
+            }
+            break;
+        case NS::EndingEnd:
+            trimmedLimitingShape->trimEndPoint(is, limitingClickPos);
+            if (isCircleShape(limitingShape) ||
+                isFullEllipseShape(limitingShape)) {
+                trimmedLimitingShape->trimStartPoint(is2, limitingClickPos);
+            }
+            break;
+        default:
+            break;
+        }
+
+        if (isXLineShape(trimmedLimitingShape.get())) {
+            auto &&xline = dynamic_cast<XLine *>(trimmedLimitingShape.get());
+            trimmedLimitingShape = ShapeFactory::instance()->createRay(
+                xline->getBasePoint(), xline->getDirectionVector());
+        }
+        else if (isRayShape(trimmedLimitingShape.get()) &&
+                 ending2 == NS::EndingEnd) {
+            auto &&ray = dynamic_cast<Ray *>(trimmedLimitingShape.get());
+            trimmedLimitingShape = ShapeFactory::instance()->createLine(
+                ray->getBasePoint(),
+                ray->getBasePoint() + ray->getDirectionVector());
+        }
+    }
+
+    std::vector<std::unique_ptr<shape::Shape>> ret;
+
+    if (samePolyline && isPolylineShape(trimShape)) {
+        auto &&polyline = dynamic_cast<const Polyline *>(trimShape);
+        auto &&pl = polyline->modifyPolylineCorner(
+            trimmedTrimShape.get(), ending1, i1, trimmedLimitingShape.get(),
+            ending2, i2);
+        ret.emplace_back(pl->clone().release());
+    }
+    else {
+        ret.emplace_back(trimmedTrimShape.release());
+        ret.emplace_back(trimmedLimitingShape.release());
+    }
+
+    return ret;
 }
 
 /* ------------------------- inner static functions ------------------------- */

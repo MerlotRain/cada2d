@@ -125,13 +125,89 @@ cada_getPointsWithDistanceToEnd(const shape::Shape *shape, double distance,
 double cada_getDistanceFromStart(const shape::Shape *shape,
                                  const shape::Vec2d &p)
 {
-    return 0.0;
+    assert(shape);
+    switch (shape->getShapeType()) {
+    case NS::Line: {
+        auto &&l = dynamic_cast<const shape::Line *>(shape);
+
+        double ret = l->getStartPoint().getDistanceTo(p);
+
+        Vec2d p2 = l->getClosestPointOnShape(p, false);
+        double angle = l->getStartPoint().getAngleTo(p2);
+        if (Math::isSameDirection(l->getAngle(), angle, M_PI / 2)) {
+            return ret;
+        }
+        else {
+            return -ret;
+        }
+    }
+    case NS::Arc: {
+        auto a = dynamic_cast<const shape::Arc *>(shape);
+        double a1 = a->getStartAngle();
+        double ap = a->getCenter().getAngleTo(p);
+        if (a->isReversed()) {
+            return Math::getAngleDifference(ap, a1) * a->getRadius();
+        }
+        else {
+            return Math::getAngleDifference(a1, ap) * a->getRadius();
+        }
+    }
+    case NS::Ellipse: {
+        std::vector<double> res = shape->getDistancesFromStart(p);
+        if (res.empty()) {
+            return std::numeric_limits<double>::max();
+        }
+        return res.front();
+    }
+    case NS::XLine:
+    case NS::Ray: {
+        auto &&xline = dynamic_cast<const XLine *>(shape);
+        double ret = xline->getBasePoint().getDistanceTo(p);
+
+        Vec2d p2 = xline->getClosestPointOnShape(p, false);
+        double angle = xline->getBasePoint().getAngleTo(p2);
+        if (Math::isSameDirection(xline->getAngle(), angle, M_PI / 2)) {
+            return ret;
+        }
+        else {
+            return -ret;
+        }
+    }
+    default:
+        break;
+    }
+
+    return std::numeric_limits<double>::max();
 }
 
 std::vector<double> cada_getDistancesFromStart(const shape::Shape *shape,
                                                const shape::Vec2d &p)
 {
-    return std::vector<double>();
+    assert(shape);
+    std::vector<double> ret;
+    if (shape->getShapeType() == NS::Polyline) {
+        auto &&pline = dynamic_cast<const shape::Polyline *>(shape);
+        double len = 0.0;
+        for (int i = 0; i < pline->countSegments(); i++) {
+            auto &&segment = pline->getSegmentAt(i);
+            if (segment->getDistanceTo(p) < 0.0001) {
+                ret.push_back(len + segment->getDistanceFromStart(p));
+            }
+            len += segment->getLength();
+        }
+
+        // point is not on polyline, return distance to point closest to
+        // position:
+        if (ret.empty()) {
+            ret.push_back(pline->getLengthTo(p, true));
+        }
+
+        return ret;
+    }
+    else {
+        ret.push_back(shape->getDistanceFromStart(p));
+    }
+    return ret;
 }
 
 std::vector<shape::Vec2d>
