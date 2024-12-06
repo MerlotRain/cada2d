@@ -37,6 +37,7 @@ struct CubicBezier {
         bezier.pt2 = p2;
         bezier.pt3 = p3;
         bezier.pt4 = p4;
+        return bezier;
     }
 
     BBox bounds() const;
