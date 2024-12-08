@@ -20,49 +20,11 @@
  * IN THE SOFTWARE.
  */
 
-#include "cada_shape.h"
-#include <sstream>
-#include <iomanip>
+#ifndef CADA2D_RSHAPEALGORITHM_H
+#define CADA2D_RSHAPEALGORITHM_H
 
-namespace cada {
-namespace shape {
+#include "cada_export.h"
 
-Ray::Ray() : XLine()
-{
-}
+class CADA_API RShapeAlgorithm{};
 
-Ray::Ray(const Vec2d &basePoint, const Vec2d &directionVector)
-    : XLine(basePoint, directionVector)
-{
-}
-
-Ray::Ray(const Vec2d &basePoint, double angle, double distance)
-    : XLine(basePoint, angle, distance)
-{
-}
-
-NS::ShapeType Ray::getShapeType() const
-{
-    return NS::Ray;
-}
-
-Ray *Ray::cloneImpl() const
-{
-    Ray *pClone = new Ray();
-    pClone->mBasePoint = mBasePoint;
-    pClone->mDirectionVector = mDirectionVector;
-    return pClone;
-}
-
-std::string Ray::to_string() const
-{
-    std::stringstream ss;
-    ss << std::fixed << std::setprecision(6);
-    ss << "Ray: ";
-    ss << "basePoint: " << mBasePoint.to_string() << ", ";
-    ss << "directionVector: " << mDirectionVector.to_string();
-    return ss.str();
-}
-
-} // namespace shape
-} // namespace cada
+#endif /* CADA2D_RSHAPEALGORITHM_H */

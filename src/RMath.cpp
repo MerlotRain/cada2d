@@ -20,14 +20,12 @@
  * IN THE SOFTWARE.
  */
 
-#include "cada_math.h"
-#include "cada_ns.h"
+#include <cada2d/RMath.h>
+#include <cada2d/RS.h>
 #include <cmath>
 #include <algorithm>
 
-namespace cada {
-
-bool Math::isNaN(double v)
+bool RMath::isNaN(double v)
 {
 #ifdef __APPLE__
     return std::fpclassify(v) == FP_NAN;
@@ -38,7 +36,7 @@ bool Math::isNaN(double v)
 #endif
 }
 
-bool Math::isInf(double v)
+bool RMath::isInf(double v)
 {
 #ifdef __APPLE__
     return std::fpclassify(v) == FP_INFINITE;
@@ -49,7 +47,7 @@ bool Math::isInf(double v)
 #endif
 }
 
-bool Math::isNormal(double v)
+bool RMath::isNormal(double v)
 {
     if (isNaN(v) || isInf(v)) {
         return false;
@@ -57,7 +55,7 @@ bool Math::isNormal(double v)
     return true;
 }
 
-bool Math::isSane(double v)
+bool RMath::isSane(double v)
 {
     return !isNaN(v) && !isInf(v) && v > -1e12 && v < 1e12;
 }
@@ -67,7 +65,7 @@ bool Math::isSane(double v)
  *
  * \param a angle in radians
  */
-double Math::rad2deg(double a)
+double RMath::rad2deg(double a)
 {
     return (a / (2.0 * M_PI) * 360.0);
 }
@@ -77,7 +75,7 @@ double Math::rad2deg(double a)
  *
  * \param a angle in grad (gon)
  */
-double Math::gra2deg(double a)
+double RMath::gra2deg(double a)
 {
     return a / 400.0 * 360.0;
 }
@@ -87,7 +85,7 @@ double Math::gra2deg(double a)
  *
  * \param a angle in degrees
  */
-double Math::deg2rad(double a)
+double RMath::deg2rad(double a)
 {
     return ((a / 360.0) * (2.0 * M_PI));
 }
@@ -97,12 +95,12 @@ double Math::deg2rad(double a)
  *
  * \param a angle in radians
  */
-double Math::rad2gra(double a)
+double RMath::rad2gra(double a)
 {
     return (a / (2.0 * M_PI) * 400.0);
 }
 
-bool Math::isAngleBetween(double a, double a1, double a2, bool reversed)
+bool RMath::isAngleBetween(double a, double a1, double a2, bool reversed)
 {
     a = getNormalizedAngle(a);
     a1 = getNormalizedAngle(a1);
@@ -116,20 +114,20 @@ bool Math::isAngleBetween(double a, double a1, double a2, bool reversed)
         a2 = tmp;
     }
 
-    if (a1 >= a2 - NS::AngleTolerance) {
-        if (a >= a1 - NS::AngleTolerance || a <= a2 + NS::AngleTolerance) {
+    if (a1 >= a2 - RS::AngleTolerance) {
+        if (a >= a1 - RS::AngleTolerance || a <= a2 + RS::AngleTolerance) {
             ret = true;
         }
     }
     else {
-        if (a >= a1 - NS::AngleTolerance && a <= a2 + NS::AngleTolerance) {
+        if (a >= a1 - RS::AngleTolerance && a <= a2 + RS::AngleTolerance) {
             ret = true;
         }
     }
     return ret;
 }
 
-double Math::getNormalizedAngle(double a)
+double RMath::getNormalizedAngle(double a)
 {
     if (a >= 0.0) {
         int n = (int)floor(a / (2 * M_PI));
@@ -140,14 +138,14 @@ double Math::getNormalizedAngle(double a)
         a += 2 * M_PI * n;
     }
 
-    if (a > 2 * M_PI - NS::AngleTolerance) {
+    if (a > 2 * M_PI - RS::AngleTolerance) {
         a = 0.0;
     }
 
     return a;
 }
 
-double Math::getAngleDifference(double a1, double a2)
+double RMath::getAngleDifference(double a1, double a2)
 {
     double ret;
 
@@ -163,7 +161,7 @@ double Math::getAngleDifference(double a1, double a2)
     return ret;
 }
 
-double Math::getAngleDifference180(double a1, double a2)
+double RMath::getAngleDifference180(double a1, double a2)
 {
     double ret;
 
@@ -178,18 +176,18 @@ double Math::getAngleDifference180(double a1, double a2)
     return ret;
 }
 
-bool Math::fuzzyCompare(double v1, double v2, double tolerance)
+bool RMath::fuzzyCompare(double v1, double v2, double tolerance)
 {
     return fabs(v1 - v2) < tolerance;
 }
 
-bool Math::fuzzyAngleCompare(double v1, double v2, double tolerance)
+bool RMath::fuzzyAngleCompare(double v1, double v2, double tolerance)
 {
     return fabs(getAngleDifference180(v1, v2)) < tolerance;
 }
 
-bool Math::isBetween(double value, double limit1, double limit2, bool inclusive,
-                     double tolerance)
+bool RMath::isBetween(double value, double limit1, double limit2,
+                      bool inclusive, double tolerance)
 {
     if (fuzzyCompare(value, limit1, tolerance) ||
         fuzzyCompare(value, limit2, tolerance)) {
@@ -208,7 +206,7 @@ bool Math::isBetween(double value, double limit1, double limit2, bool inclusive,
  * \param b the second number
  * \return The greatest common divisor of \c a and \c b.
  */
-int Math::getGcd(int a, int b)
+int RMath::getGcd(int a, int b)
 {
     int rem;
 
@@ -225,7 +223,7 @@ int Math::getGcd(int a, int b)
  * \return Angle a as angle relative to baseAngle.
  *         Result is in range -PI < result < PI.
  */
-double Math::getRelativeAngle(double a, double baseAngle)
+double RMath::getRelativeAngle(double a, double baseAngle)
 {
     double ret = a - baseAngle;
     if (ret > M_PI) {
@@ -252,7 +250,7 @@ double Math::getRelativeAngle(double a, double baseAngle)
  * \return The given angle or the given \c angle + pi, depending which one
  * is readable from the bottom or right.
  */
-double Math::makeAngleReadable(double angle, bool readable, bool *corrected)
+double RMath::makeAngleReadable(double angle, bool readable, bool *corrected)
 {
     double ret;
 
@@ -283,7 +281,7 @@ double Math::makeAngleReadable(double angle, bool readable, bool *corrected)
  * \return true: If the given angle is in a range that is readable
  * for texts created with that angle.
  */
-bool Math::isAngleReadable(double angle, double tolerance)
+bool RMath::isAngleReadable(double angle, double tolerance)
 {
     double angleCorrected = getNormalizedAngle(angle);
     if (angleCorrected > M_PI / 2.0 * 3.0 + tolerance ||
@@ -295,7 +293,7 @@ bool Math::isAngleReadable(double angle, double tolerance)
     }
 }
 
-bool Math::isSameDirection(double dir1, double dir2, double tol)
+bool RMath::isSameDirection(double dir1, double dir2, double tol)
 {
     double diff = fabs(dir1 - dir2);
     if (diff < tol || diff > 2 * M_PI - tol) {
@@ -306,7 +304,7 @@ bool Math::isSameDirection(double dir1, double dir2, double tol)
     }
 }
 
-int Math::absmod(int a, int b)
+int RMath::absmod(int a, int b)
 {
     if (b == 0) {
         return a;
@@ -318,7 +316,7 @@ int Math::absmod(int a, int b)
     return m;
 }
 
-double Math::java_math_round(double val)
+double RMath::java_math_round(double val)
 {
     double n;
     double f = std::fabs(std::modf(val, &n));
@@ -347,8 +345,8 @@ double Math::java_math_round(double val)
     }
 }
 
-bool Math::linearSolver(const std::vector<std::vector<double>> &mt,
-                        std::vector<double> &sn)
+bool RMath::linearSolver(const std::vector<std::vector<double>> &mt,
+                         std::vector<double> &sn)
 {
     // verify the matrix size
     size_t mSize = mt.size(); // rows
@@ -398,18 +396,13 @@ bool Math::linearSolver(const std::vector<std::vector<double>> &mt,
     return true;
 }
 
-int Math::sign(double x)
+int RMath::sign(double x)
 {
-    if (std::isnan(x))
-    {
+    if (std::isnan(x)) {
         return 4;
     }
-    if (x == 0)
-    {
+    if (x == 0) {
         return std::signbit(x) ? 3 : 2;
     }
     return x > 0 ? 0 : 1;
 }
-
-
-} // namespace cada
