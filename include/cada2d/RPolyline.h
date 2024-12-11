@@ -113,8 +113,8 @@ public:
     bool toLogicallyClosed(double tolerance = RS::PointTolerance);
     bool toLogicallyOpen();
 
-    std::vector<RVector>
-    getSelfIntersectionPoints(double tolerance = RS::PointTolerance) const;
+    std::vector<RVector> getSelfIntersectionPoints(
+        double tolerance = RS::PointTolerance) const override;
 
     RS::Orientation getOrientation(bool implicitelyClosed = false) const;
     bool setOrientation(RS::Orientation orientation);

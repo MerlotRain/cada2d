@@ -64,6 +64,21 @@ REllipse REllipse::createFrom4Points(const RVector &p1, const RVector &p2,
     return ret;
 }
 
+RS::ShapeType REllipse::getShapeType() const
+{
+    return RS::ShapeType();
+}
+
+REllipse *REllipse::clone() const
+{
+    return nullptr;
+}
+
+bool REllipse::isDirected() const
+{
+    return false;
+}
+
 bool REllipse::isValid() const
 {
     return m_center.isValid() && m_majorPoint.isValid() &&
@@ -351,7 +366,7 @@ double REllipse::angleToParam(double a) const
         RLine line(RVector(0, 0),
                    RVector::createPolar(getMajorRadius() * 2, a));
         std::vector<RVector> r =
-            RShape::getIntersectionPoints(line, normEllipse, true);
+            RShapePrivate::getIntersectionPoints(line, normEllipse, true);
         if (r.size() != 1) {
             return RNANDOUBLE;
         }
@@ -400,6 +415,16 @@ double REllipse::getAngleLength(bool allowForZeroLength) const
     }
 
     return ret;
+}
+
+bool REllipse::isAngleWithinArc(double a) const
+{
+    return false;
+}
+
+bool REllipse::isParamWithinArc(double a) const
+{
+    return false;
 }
 
 RVector REllipse::getStartPoint() const
@@ -903,6 +928,16 @@ bool REllipse::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
 {
     setEndParam(getParamTo(trimPoint));
     return true;
+}
+
+bool REllipse::trimStartPoint(double trimDist)
+{
+    return false;
+}
+
+bool REllipse::trimEndPoint(double trimDist)
+{
+    return false;
 }
 
 void REllipse::correctMajorMinor()

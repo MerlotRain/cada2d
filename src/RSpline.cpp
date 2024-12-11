@@ -49,6 +49,28 @@ RSpline::RSpline(const std::vector<RVector> &controlPoints, int degree)
     updateInternal();
 }
 
+void RSpline::copySpline(const RSpline &other)
+{
+}
+
+RS::ShapeType RSpline::getShapeType() const
+{
+    return RS::ShapeType();
+}
+
+bool RSpline::isDirected() const
+{
+    return false;
+}
+
+RSpline *RSpline::clone() const
+{
+    return nullptr;
+}
+
+RSpline::~RSpline()
+{
+}
 std::vector<RSpline> RSpline::createSplinesFromArc(const RArc &arc)
 {
     RArc a = arc;
@@ -146,6 +168,11 @@ RSpline RSpline::createBezierFromSmallArc(double r, double a1, double a2)
 
     // this should be cubic but appears to be far off if cubic
     return RSpline(ctrlPts, 2);
+}
+
+bool RSpline::isInterpolated() const
+{
+    return false;
 }
 
 void RSpline::appendControlPoint(const RVector &point)
@@ -1275,6 +1302,16 @@ bool RSpline::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
     }
     update();
     return true;
+}
+
+bool RSpline::trimStartPoint(double trimDist)
+{
+    return false;
+}
+
+bool RSpline::trimEndPoint(double trimDist)
+{
+    return false;
 }
 
 double RSpline::getDistanceFromStart(const RVector &p) const

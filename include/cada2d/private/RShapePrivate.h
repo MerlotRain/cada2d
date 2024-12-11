@@ -23,11 +23,12 @@
 #ifndef CAD2D_PRIVATE_RSHAPEPRIVATE_H
 #define CAD2D_PRIVATE_RSHAPEPRIVATE_H
 
+#include <cada2d/exports.h>
 #include <cada2d/RShape.h>
 #include <vector>
 #include <memory>
 
-class RShapePrivate {
+class CADA_API RShapePrivate {
 public:
     static std::vector<std::shared_ptr<RShape>>
     getReversedShapeList(const std::vector<std::shared_ptr<RShape>> &shapes);
@@ -35,6 +36,12 @@ public:
     static std::shared_ptr<RShape>
     scaleArc(const RShape &shape, const RVector &scaleFactors,
              const RVector &center = RDEFAULT_RVECTOR);
+
+    static std::vector<RVector> getIntersectionPoints(const RShape &shape1,
+                                                      const RShape &shape2,
+                                                      bool limited = true,
+                                                      bool same = false,
+                                                      bool force = false);
 };
 
 #endif // CAD2D_PRIVATE_RSHAPEPRIVATE_H

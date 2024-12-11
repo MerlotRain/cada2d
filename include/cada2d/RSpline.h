@@ -202,8 +202,8 @@ public:
 
     bool isDirty() const { return m_dirty; }
 
-    std::vector<RVector>
-    getSelfIntersectionPoints(double tolerance = RS::PointTolerance) const;
+    std::vector<RVector> getSelfIntersectionPoints(
+        double tolerance = RS::PointTolerance) const override;
 
 protected:
     void appendToExploded(const RLine &line) const;
@@ -212,51 +212,14 @@ protected:
     void updateInternal() const;
     void updateBoundingBox() const;
 
-public:
-    // members are mutable, so the spline can update itself from fit points
-
-    /**
-     * \getter{getControlPoints}
-     * \setter{setControlPoints}
-     */
+private:
     mutable std::vector<RVector> m_controlPoints;
-
-    /**
-     * \getter{getKnotVector}
-     */
     mutable std::vector<double> m_knotVector;
-
-    /**
-     * \getter{getWeights}
-     * \setter{setWeights}
-     */
     mutable std::vector<double> m_weights;
-
-    /**
-     * \getter{getFitPoints}
-     * \setter{setFitPoints}
-     */
     std::vector<RVector> m_fitPoints;
-
-    /**
-     * \getter{getDegree}
-     * \setter{setDegree}
-     */
     mutable int m_degree;
-
-    /**
-     * Unit vector start tangent.
-     */
     mutable RVector m_tangentStart;
-
-    /**
-     * Unit vector end tangent.
-     */
     mutable RVector m_tangentEnd;
-
-    /**
-     * Closed periodic flag.
-     */
     mutable bool m_periodic;
 
     mutable bool m_dirty;

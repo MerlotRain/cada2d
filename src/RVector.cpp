@@ -617,6 +617,11 @@ double RVector::getClosestDistance(const std::vector<RVector> &list, int counts)
     return ret;
 }
 
+int RVector::getClosestIndex(const std::vector<RVector> &list) const
+{
+    return 0;
+}
+
 std::vector<RVector>
 RVector::getSortedByDistance(const std::vector<RVector> &list, const RVector &v)
 {

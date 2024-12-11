@@ -50,7 +50,7 @@ public:
     virtual ~RShape();
     virtual bool isValid() const;
 
-    virtual RS::ShapeType getShapeType() const;
+    virtual RS::ShapeType getShapeType() const = 0;
     virtual RShape *clone() const = 0;
     virtual std::shared_ptr<RShape> cloneToSharedPointer() const
     {
@@ -83,10 +83,7 @@ public:
     virtual std::vector<RVector> getEndPoints() const = 0;
     virtual std::vector<RVector> getMiddlePoints() const = 0;
     virtual std::vector<RVector> getCenterPoints() const = 0;
-    virtual std::vector<RVector> getArcReferencePoints() const
-    {
-        return std::vector<RVector>();
-    }
+    virtual std::vector<RVector> getArcReferencePoints() const;
 
     virtual RVector getPointOnShape() const;
 
@@ -137,11 +134,6 @@ public:
                                   const RVector &clickPoint);
     virtual double getDistanceFromStart(const RVector &p) const;
     virtual std::vector<double> getDistancesFromStart(const RVector &p) const;
-    static std::vector<RVector> getIntersectionPoints(const RShape &shape1,
-                                                      const RShape &shape2,
-                                                      bool limited = true,
-                                                      bool same = false,
-                                                      bool force = false);
 
     virtual bool move(const RVector &offset) = 0;
     virtual bool rotate(double rotation, const RVector &center = RVector()) = 0;

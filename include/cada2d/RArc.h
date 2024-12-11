@@ -62,7 +62,7 @@ public:
     std::vector<RVector> getEndPoints() const override;
     std::vector<RVector> getMiddlePoints() const override;
     std::vector<RVector> getCenterPoints() const override;
-    std::vector<RVector> getArcReferencePoints() const;
+    std::vector<RVector> getArcReferencePoints() const override;
     std::vector<RVector>
     getPointsWithDistanceToEnd(double distance,
                                int from = RS::FromAny) const override;
@@ -98,7 +98,7 @@ public:
 
     double getSweep() const;
     void setSweep(double s);
-    double getLength() const;
+    double getLength() const override;
 
     RVector getStartPoint() const override;
     RVector getEndPoint() const override;

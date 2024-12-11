@@ -42,6 +42,25 @@ RPoint::~RPoint()
 {
 }
 
+RS::ShapeType RPoint::getShapeType() const
+{
+    return RS::ShapeType();
+}
+
+RVector RPoint::getPosition() const
+{
+    return RVector();
+}
+
+void RPoint::setPosition(const RVector &p)
+{
+}
+
+RPoint *RPoint::clone() const
+{
+    return nullptr;
+}
+
 RBox RPoint::getBoundingBox() const
 {
     return RBox(m_position, m_position);

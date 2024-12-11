@@ -78,4 +78,4 @@ public:
     };
 };
 
-#endif //CADA_RS_H
+#endif // CADA_RS_H

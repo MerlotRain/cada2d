@@ -46,7 +46,7 @@ public:
 
     bool isDirected() const override;
 
-    RBox getBoundingBox() const;
+    RBox getBoundingBox() const override;
 
     std::vector<RVector> getEndPoints() const override;
     std::vector<RVector> getMiddlePoints() const override;
@@ -71,7 +71,7 @@ public:
 
     RVector getMiddlePoint() const override;
 
-    double getLength() const;
+    double getLength() const override;
     void setLength(double l);
     double getAngle() const;
     void setAngle(double a);

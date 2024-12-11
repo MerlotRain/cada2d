@@ -50,6 +50,21 @@ RArc::RArc(const RVector &center, double radius, double startAngle,
 {
 }
 
+RS::ShapeType RArc::getShapeType() const
+{
+    return RS::ShapeType();
+}
+
+bool RArc::isDirected() const
+{
+    return false;
+}
+
+RArc *RArc::clone() const
+{
+    return nullptr;
+}
+
 bool RArc::isValid() const
 {
     return m_center.isValid() && m_radius > 0.0;
@@ -432,6 +447,11 @@ double RArc::getAngleLength(bool allowForZeroLength) const
     }
 
     return ret;
+}
+
+bool RArc::isAngleWithinArc(double a) const
+{
+    return false;
 }
 
 double RArc::getSweep() const
@@ -842,6 +862,16 @@ bool RArc::trimStartPoint(const RVector &trimPoint, const RVector &clickPoint,
     return true;
 }
 
+bool RArc::trimStartPoint(double trimDist)
+{
+    return false;
+}
+
+bool RArc::trimEndPoint(double trimDist)
+{
+    return false;
+}
+
 bool RArc::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
                         bool extend)
 {
@@ -996,6 +1026,13 @@ std::vector<RLine> RArc::getTangents(const RVector &point) const
 {
     RCircle circle(m_center, m_radius);
     return circle.getTangents(point);
+}
+
+std::vector<std::shared_ptr<RShape>>
+RArc::getOffsetShapes(double distance, int number, RS::Side side,
+                      const RVector &position)
+{
+    return std::vector<std::shared_ptr<RShape>>();
 }
 
 std::vector<std::shared_ptr<RShape>>

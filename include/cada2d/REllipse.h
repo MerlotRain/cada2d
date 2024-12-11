@@ -112,7 +112,7 @@ public:
     void setAngle(double a);
     bool isFullEllipse() const;
     bool isCircular() const;
-    double getLength() const;
+    double getLength() const override;
     double getSimpsonLength(double f1, double f2) const;
 
     bool contains(const RVector &p) const;
@@ -120,11 +120,11 @@ public:
     double getAngleAt(double distance,
                       RS::From from = RS::FromStart) const override;
 
-    double getAngleAtPoint(const RVector &pos) const;
+    double getAngleAtPoint(const RVector &pos) const override;
     double getParamTo(const RVector &pos) const;
     double getRadiusAt(double param) const;
     RVector getPointAt(double param) const;
-    RVector getMiddlePoint() const;
+    RVector getMiddlePoint() const override;
 
     RVector getPointOnShape() const override;
 

@@ -46,6 +46,16 @@ RCircle::~RCircle()
 {
 }
 
+RS::ShapeType RCircle::getShapeType() const
+{
+    return RS::ShapeType();
+}
+
+RCircle *RCircle::clone() const
+{
+    return nullptr;
+}
+
 RCircle RCircle::createFrom2Points(const RVector &p1, const RVector &p2)
 {
     RVector center = (p1 + p2) / 2.0;
@@ -88,6 +98,11 @@ RArc RCircle::toArc(double startAngle) const
 {
     return RArc(getCenter(), getRadius(), startAngle, startAngle + 2 * M_PI,
                 false);
+}
+
+bool RCircle::isValid() const
+{
+    return false;
 }
 
 RVector RCircle::getCenter() const
@@ -300,6 +315,13 @@ std::vector<RLine> RCircle::getTangents(const RVector &point) const
     }
 
     return ret;
+}
+
+std::vector<std::shared_ptr<RShape>>
+RCircle::getOffsetShapes(double distance, int number, RS::Side side,
+                         const RVector &position)
+{
+    return std::vector<std::shared_ptr<RShape>>();
 }
 
 std::vector<std::shared_ptr<RShape>>

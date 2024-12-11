@@ -20,11 +20,11 @@
  * IN THE SOFTWARE.
  */
 
-
 #include <cada2d/RBox.h>
 #include <cada2d/RPolyline.h>
 #include <cada2d/RRay.h>
 #include <cada2d/RXLine.h>
+#include <cada2d/private/RShapePrivate.h>
 
 RXLine::RXLine()
     : m_basePoint(RVector::invalid), m_directionVector(RVector::invalid)
@@ -50,6 +50,26 @@ RXLine::RXLine(const RVector &basePoint, double angle, double distance)
 
 RXLine::~RXLine()
 {
+}
+
+RS::ShapeType RXLine::getShapeType() const
+{
+    return RS::ShapeType();
+}
+
+RLine RXLine::getLineShape() const
+{
+    return RLine();
+}
+
+RXLine *RXLine::clone() const
+{
+    return nullptr;
+}
+
+bool RXLine::isDirected() const
+{
+    return false;
 }
 
 RBox RXLine::getBoundingBox() const
@@ -124,6 +144,16 @@ bool RXLine::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
     m_basePoint = tp;
     m_directionVector = -m_directionVector;
     return true;
+}
+
+bool RXLine::trimStartPoint(double trimDist)
+{
+    return false;
+}
+
+bool RXLine::trimEndPoint(double trimDist)
+{
+    return false;
 }
 
 RS::Ending RXLine::getTrimEnd(const RVector &trimPoint,
@@ -225,7 +255,7 @@ RLine RXLine::getClippedLine(const RBox &box) const
     RPolyline pl = box.getPolyline();
 
     std::vector<RVector> ips =
-        RShape::getIntersectionPoints(getLineShape(), pl, false);
+        RShapePrivate::getIntersectionPoints(getLineShape(), pl, false);
     std::vector<RVector> sol;
     for (int i = 0; i < ips.size(); i++) {
         if (pl.isOnShape(ips[i])) {
@@ -281,6 +311,13 @@ bool RXLine::mirror(const RLine &axis)
     sp.mirror(axis.getStartPoint(), axis.getEndPoint());
     setSecondPoint(sp);
     return true;
+}
+
+std::vector<std::shared_ptr<RShape>>
+RXLine::getOffsetShapes(double distance, int number, RS::Side side,
+                        const RVector &position)
+{
+    return std::vector<std::shared_ptr<RShape>>();
 }
 
 bool RXLine::reverse()

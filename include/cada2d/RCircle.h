@@ -67,7 +67,7 @@ public:
     RVector getVectorTo(const RVector &point, bool limited = true,
                         double strictRange = RMAXDOUBLE) const override;
 
-    RVector getPointOnShape() const;
+    RVector getPointOnShape() const override;
 
     RVector getCenter() const;
     void setCenter(const RVector &vector);

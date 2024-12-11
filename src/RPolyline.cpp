@@ -77,6 +77,20 @@ RPolyline::~RPolyline()
 {
 }
 
+RS::ShapeType RPolyline::getShapeType() const
+{
+    return RS::ShapeType();
+}
+
+bool RPolyline::isDirected() const
+{
+    return false;
+}
+
+RPolyline *RPolyline::clone() const
+{
+    return nullptr;
+}
 void RPolyline::clear()
 {
     m_vertices.clear();
@@ -1117,6 +1131,21 @@ RPolyline::getLeftRightOutline() const
     return std::vector<std::pair<RPolyline, RPolyline>>();
 }
 
+std::vector<RPolyline> RPolyline::getLeftOutline() const
+{
+    return std::vector<RPolyline>();
+}
+
+std::vector<RPolyline> RPolyline::getRightOutline() const
+{
+    return std::vector<RPolyline>();
+}
+
+bool RPolyline::isInterpolated() const
+{
+    return false;
+}
+
 std::vector<RPolyline> RPolyline::getOutline() const
 {
 
@@ -1518,6 +1547,11 @@ double RPolyline::getSegmentsLength(int fromIndex, int toIndex) const
         len += segment->getLength();
     }
     return len;
+}
+
+double RPolyline::getDistanceFromStart(const RVector &p) const
+{
+    return 0.0;
 }
 
 std::vector<double> RPolyline::getDistancesFromStart(const RVector &p) const

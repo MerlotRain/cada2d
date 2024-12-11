@@ -46,9 +46,19 @@ RLine::RLine(const RVector &m_startPoint, double angle, double distance)
     m_endPoint = m_startPoint + RVector::createPolar(distance, angle);
 }
 
+bool RLine::isDirected() const
+{
+    return false;
+}
+
 bool RLine::isValid() const
 {
     return m_startPoint.isSane() && m_endPoint.isSane();
+}
+
+RBox RLine::getBoundingBox() const
+{
+    return RBox();
 }
 
 void RLine::setLength(double l, bool fromStart)
@@ -59,6 +69,11 @@ void RLine::setLength(double l, bool fromStart)
     else {
         m_startPoint = m_endPoint - RVector::createPolar(l, getAngle());
     }
+}
+
+double RLine::getLength() const
+{
+    return 0.0;
 }
 
 double RLine::getAngle() const
@@ -80,6 +95,121 @@ bool RLine::isParallel(const RLine &line) const
            RMath::isSameDirection(a, oa + M_PI);
 }
 
+bool RLine::isCollinear(const RLine &line) const
+{
+    return false;
+}
+
+double RLine::getDirection1() const
+{
+    return 0.0;
+}
+
+double RLine::getDirection2() const
+{
+    return 0.0;
+}
+
+RS::Side RLine::getSideOfPoint(const RVector &point) const
+{
+    return RS::Side();
+}
+
+void RLine::clipToXY(const RBox &box)
+{
+}
+
+bool RLine::move(const RVector &offset)
+{
+    return false;
+}
+
+bool RLine::scale(const RVector &scaleFactors, const RVector &center)
+{
+    return false;
+}
+
+bool RLine::flipHorizontal()
+{
+    return false;
+}
+
+bool RLine::flipVertical()
+{
+    return false;
+}
+
+bool RLine::stretch(const RPolyline &area, const RVector &offset)
+{
+    return false;
+}
+
+bool RLine::moveTo(const RVector &dest)
+{
+    return false;
+}
+
+bool RLine::trimStartPoint(const RVector &trimPoint, const RVector &clickPoint,
+                           bool extend)
+{
+    return false;
+}
+
+bool RLine::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
+                         bool extend)
+{
+    return false;
+}
+
+bool RLine::trimStartPoint(double trimDist)
+{
+    return false;
+}
+
+double RLine::getDistanceFromStart(const RVector &p) const
+{
+    return 0.0;
+}
+
+std::vector<std::shared_ptr<RShape>>
+RLine::splitAt(const std::vector<RVector> &points) const
+{
+    return std::vector<std::shared_ptr<RShape>>();
+}
+
+std::vector<std::shared_ptr<RShape>>
+RLine::getOffsetShapes(double distance, int number, RS::Side side,
+                       const RVector &position)
+{
+    return std::vector<std::shared_ptr<RShape>>();
+}
+
+bool RLine::trimEndPoint(double trimDist)
+{
+    return false;
+}
+
+RS::Ending RLine::getTrimEnd(const RVector &trimPoint,
+                             const RVector &clickPoint)
+{
+    return RS::Ending();
+}
+
+bool RLine::reverse()
+{
+    return false;
+}
+
+bool RLine::mirror(const RLine &axis)
+{
+    return false;
+}
+
+bool RLine::rotate(double rotation, const RVector &center)
+{
+    return false;
+}
+
 bool RLine::isVertical(double tolerance) const
 {
     return RMath::fuzzyCompare(m_startPoint.x, m_endPoint.x, tolerance);
@@ -88,6 +218,17 @@ bool RLine::isVertical(double tolerance) const
 bool RLine::isHorizontal(double tolerance) const
 {
     return RMath::fuzzyCompare(m_startPoint.y, m_endPoint.y, tolerance);
+}
+
+double RLine::getAngleAt(double distance, RS::From from) const
+{
+    return 0.0;
+}
+
+RVector RLine::getVectorTo(const RVector &point, bool limited,
+                           double strictRange) const
+{
+    return RVector();
 }
 
 RVector RLine::getStartPoint() const
@@ -115,6 +256,10 @@ RS::ShapeType RLine::getShapeType() const
     return RS::Line;
 }
 
+RLine *RLine::clone() const
+{
+    return nullptr;
+}
 RVector RLine::getMiddlePoint() const
 {
     return (m_startPoint + m_endPoint) / 2.0;
@@ -135,7 +280,18 @@ std::vector<RVector> RLine::getMiddlePoints() const
     return ret;
 }
 
+std::vector<RVector> RLine::getPointCloud(double segmentLength) const
+{
+    return std::vector<RVector>();
+}
+
 std::vector<RVector> RLine::getCenterPoints() const
 {
     return getMiddlePoints();
+}
+
+std::vector<RVector> RLine::getPointsWithDistanceToEnd(double distance,
+                                                       int from) const
+{
+    return std::vector<RVector>();
 }

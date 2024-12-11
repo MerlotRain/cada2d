@@ -66,7 +66,7 @@ public:
 
     RVector getMiddlePoint() const override;
 
-    double getLength() const;
+    double getLength() const override;
     double getAngle() const;
 
     void setLength(double l, bool fromStart = true);

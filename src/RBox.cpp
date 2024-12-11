@@ -74,6 +74,16 @@ RBox &RBox::grow(double offset)
     return *this;
 }
 
+RBox &RBox::growXY(double offset)
+{
+    // TODO: insert return statement here
+}
+
+RBox &RBox::growXY(double offsetX, double offsetY)
+{
+    // TODO: insert return statement here
+}
+
 void RBox::move(const RVector &offset)
 {
     c1.move(offset);
