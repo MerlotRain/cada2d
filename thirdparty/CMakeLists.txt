@@ -1,1 +1,2 @@
 add_subdirectory(apollonius)
+add_subdirectory(opennurbs)

@@ -1,0 +1,23 @@
+file(GLOB_RECURSE _headers ${CMAKE_CURRENT_LIST_DIR}/*.h  CONFIGURE_DEPEND)
+target_sources(cada2d PRIVATE ${_headers})
+unset(_headers)
+
+target_include_directories(cada2d
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+    $<INSTALL_INTERFACE:include/cada2d>)
+
+set(VERSION ${CADA_VERSION})
+set(VERSION_MAJOR ${CADA_VERSION_MAJOR})
+set(VERSION_MINOR ${CADA_VERSION_MINOR})
+set(VERSION_PATCH ${CADA_VERSION_PATCH})
+
+configure_file(${CMAKE_CURRENT_LIST_DIR}/cada2d/version.h.in
+  ${CMAKE_CURRENT_BINARY_DIR}/cada2d/version.h
+  @ONLY)
+
+unset(VERSION)
+unset(VERSION_MAJOR)
+unset(VERSION_MINOR)
+unset(VERSION_PATCH)
