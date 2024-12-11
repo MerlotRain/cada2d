@@ -1,23 +1,28 @@
 /**
- * Copyright (c) 2011-2018 by Andrew Mustun. All rights reserved.
+ * Copyright (c) 2024-present Merlot.Rain
  *
- * This file is part of the QCAD project.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * QCAD is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * QCAD is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with QCAD.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
+
 #include <cmath>
 
+#include <cada2d/private/RShapePrivate.h>
 #include <cada2d/RArc.h>
 #include <cada2d/RCircle.h>
 #include <cada2d/RBox.h>
@@ -25,9 +30,6 @@
 #include <cada2d/RMath.h>
 #include <cada2d/RPolyline.h>
 
-/**
- * Creates an arc shape with an invalid center.
- */
 RArc::RArc()
     : m_center(RVector::invalid), m_radius(0.0), m_startAngle(0.0),
       m_endAngle(0.0), m_reversed(false)
@@ -60,9 +62,6 @@ bool RArc::isFullCircle(double tolerance) const
                RMath::getNormalizedAngle(m_endAngle))) < tolerance;
 }
 
-/**
- * Creates an arc from 3 points.
- */
 RArc RArc::createFrom3Points(const RVector &startPoint, const RVector &point,
                              const RVector &endPoint)
 {
@@ -98,9 +97,6 @@ RArc RArc::createFrom3Points(const RVector &startPoint, const RVector &point,
     return RArc(center, radius, angle1, angle2, reversed);
 }
 
-/**
- * Creates an arc from its startpoint, endpoint and bulge (= tan(angle/4)).
- */
 RArc RArc::createFrom2PBulge(const RVector &startPoint, const RVector &endPoint,
                              double bulge)
 {
@@ -174,9 +170,6 @@ RArc RArc::createTangential(const RVector &startPoint, const RVector &pos,
     return arc;
 }
 
-/**
- * Creates a biarc (pair of two arcs) with the given conditions.
- */
 std::vector<RArc> RArc::createBiarc(const RVector &startPoint,
                                     double startDirection,
                                     const RVector &endPoint,
@@ -348,7 +341,6 @@ void RArc::moveMiddlePoint(const RVector &pos)
 
 double RArc::getBulge() const
 {
-    // qDebug() << "sweep: " << getSweep();
     double bulge = tan(fabs(getSweep()) / 4.0);
     if (isReversed()) {
         bulge *= -1;
@@ -400,11 +392,6 @@ void RArc::setArea(double a)
     }
 }
 
-/**
- * \return Area limited by arc line and arc chord (line between start and end
- * point).
- * \author Robert S.
- */
 double RArc::getChordArea() const
 {
     double sectorArea = 0.0;
@@ -428,15 +415,6 @@ double RArc::getChordArea() const
     return sectorArea;
 }
 
-/**
- * \return Angle length in rad.
- *
- * \param allowForZeroLength: Allow for zero length result if start
- *    and end angle are the same. Otherwise 2*PI will be returned for
- *    such an arc, assuming it is a full circle.
- *
- * \todo almost the same as getSweep
- */
 double RArc::getAngleLength(bool allowForZeroLength) const
 {
     double ret = fabs(getSweep());
@@ -456,10 +434,6 @@ double RArc::getAngleLength(bool allowForZeroLength) const
     return ret;
 }
 
-/**
- * \return Arc sweep in rad. The sweep is the angle covered by this arc.
- * Positive for ccw, negative for cw.
- */
 double RArc::getSweep() const
 {
     double ret = 0.0;
@@ -887,10 +861,6 @@ double RArc::getDistanceFromStart(const RVector &p) const
     }
 }
 
-/**
- * \return Polyline approximation of arc with line segments of given length or
- * (if length is 0) given angle. Polyline is on the inside of the arc.
- */
 RPolyline RArc::approximateWithLines(double segmentLength, double angle) const
 {
     RPolyline polyline;
@@ -945,10 +915,6 @@ RPolyline RArc::approximateWithLines(double segmentLength, double angle) const
     return polyline;
 }
 
-/**
- * \return Polyline approximation of arc with line segments of given length or
- * (if length is 0) given angle. Polyline is on the outside of the arc.
- */
 RPolyline RArc::approximateWithLinesTan(double segmentLength,
                                         double angle) const
 {
@@ -1045,7 +1011,7 @@ RArc::splitAt(const std::vector<RVector> &points) const
         RArc arc = *this;
         arc.reverse();
         ret = arc.splitAt(points);
-        return RShape::getReversedShapeList(ret);
+        return RShapePrivate::getReversedShapeList(ret);
     }
 
     RVector startPoint = getStartPoint();

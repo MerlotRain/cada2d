@@ -20,3 +20,16 @@
  * IN THE SOFTWARE.
  */
 
+#include <cada2d/private/RShapePrivate.h>
+
+std::vector<std::shared_ptr<RShape>> RShapePrivate::getReversedShapeList(
+    const std::vector<std::shared_ptr<RShape>> &shapes)
+{
+    return std::vector<std::shared_ptr<RShape>>();
+}
+std::shared_ptr<RShape> RShapePrivate::scaleArc(const RShape &shape,
+                                                const RVector &scaleFactors,
+                                                const RVector &center)
+{
+    return std::shared_ptr<RShape>();
+}

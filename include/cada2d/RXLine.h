@@ -23,10 +23,10 @@
 #ifndef RXLINE_H
 #define RXLINE_H
 
-#include "RLine.h"
-#include "RS.h"
-#include "RShape.h"
-#include "RVector.h"
+#include <cada2d/RLine.h>
+#include <cada2d/RS.h>
+#include <cada2d/RShape.h>
+#include <cada2d/RVector.h>
 
 class RBox;
 class RPolyline;

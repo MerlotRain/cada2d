@@ -23,9 +23,9 @@
 #ifndef RPOINT_H
 #define RPOINT_H
 
-#include "RShape.h"
-#include "RVector.h"
-#include "RBox.h"
+#include <cada2d/RShape.h>
+#include <cada2d/RVector.h>
+#include <cada2d/RBox.h>
 
 class RLine;
 

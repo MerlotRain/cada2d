@@ -23,12 +23,11 @@
 #ifndef RSPLINE_H
 #define RSPLINE_H
 
-#include "RArc.h"
-#include "RBox.h"
-#include "RShape.h"
-#include "RVector.h"
-
-#include "RPolyline.h"
+#include <cada2d/RArc.h>
+#include <cada2d/RBox.h>
+#include <cada2d/RShape.h>
+#include <cada2d/RVector.h>
+#include <cada2d/RPolyline.h>
 
 class RLine;
 
@@ -46,6 +45,8 @@ public:
     RSpline(const RSpline &other);
     RSpline(const std::vector<RVector> &controlPoints, int degree);
     ~RSpline();
+
+    void copySpline(const RSpline &other);
 
     RS::ShapeType getShapeType() const override;
     RSpline *clone() const override;

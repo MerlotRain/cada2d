@@ -60,41 +60,21 @@ bool RMath::isSane(double v)
     return !isNaN(v) && !isInf(v) && v > -1e12 && v < 1e12;
 }
 
-/**
- * Converts radians to degrees.
- *
- * \param a angle in radians
- */
 double RMath::rad2deg(double a)
 {
     return (a / (2.0 * M_PI) * 360.0);
 }
 
-/**
- * Converts grads to degrees.
- *
- * \param a angle in grad (gon)
- */
 double RMath::gra2deg(double a)
 {
     return a / 400.0 * 360.0;
 }
 
-/**
- * Converts degrees to radians.
- *
- * \param a angle in degrees
- */
 double RMath::deg2rad(double a)
 {
     return ((a / 360.0) * (2.0 * M_PI));
 }
 
-/**
- * Converts radians to gradians.
- *
- * \param a angle in radians
- */
 double RMath::rad2gra(double a)
 {
     return (a / (2.0 * M_PI) * 400.0);
@@ -198,14 +178,6 @@ bool RMath::isBetween(double value, double limit1, double limit2,
     return (value >= min && value <= max);
 }
 
-/**
- * Finds greatest common divider using Euclid's algorithm.
- * \sa http://en.wikipedia.org/wiki/Greatest_common_divisor
- *
- * \param a the first number
- * \param b the second number
- * \return The greatest common divisor of \c a and \c b.
- */
 int RMath::getGcd(int a, int b)
 {
     int rem;
@@ -219,10 +191,6 @@ int RMath::getGcd(int a, int b)
     return a;
 }
 
-/**
- * \return Angle a as angle relative to baseAngle.
- *         Result is in range -PI < result < PI.
- */
 double RMath::getRelativeAngle(double a, double baseAngle)
 {
     double ret = a - baseAngle;
@@ -235,21 +203,6 @@ double RMath::getRelativeAngle(double a, double baseAngle)
     return ret;
 }
 
-/**
- * Adds 180° to the given angle if a text constructed with that angle
- * otherwise wouldn't be readable.
- * Used for dimension texts and for mirroring texts.
- *
- * \param angle the original angle
- *
- * \param readable true: make angle readable, false: unreadable
- *
- * \param corrected Pointer to boolean that will point to true if the given
- * angle was corrected, false otherwise, or null.
- *
- * \return The given angle or the given \c angle + pi, depending which one
- * is readable from the bottom or right.
- */
 double RMath::makeAngleReadable(double angle, bool readable, bool *corrected)
 {
     double ret;
@@ -272,15 +225,6 @@ double RMath::makeAngleReadable(double angle, bool readable, bool *corrected)
     return ret;
 }
 
-/**
- * \param angle The text angle in rad
- *
- * \param tolerance The tolerance by which the angle still maybe
- * in the unreadable range.
- *
- * \return true: If the given angle is in a range that is readable
- * for texts created with that angle.
- */
 bool RMath::isAngleReadable(double angle, double tolerance)
 {
     double angleCorrected = getNormalizedAngle(angle);

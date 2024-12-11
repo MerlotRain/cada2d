@@ -23,12 +23,11 @@
 #ifndef RSHAPE_H
 #define RSHAPE_H
 
-#include "cada_export.h"
-
-#include "RS.h"
-#include "RMath.h"
-#include "RVector.h"
-#include "RBox.h"
+#include <cada2d/exports.h>
+#include <cada2d/RS.h>
+#include <cada2d/RMath.h>
+#include <cada2d/RVector.h>
+#include <cada2d/RBox.h>
 
 #include <memory>
 

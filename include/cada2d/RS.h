@@ -20,10 +20,12 @@
  * IN THE SOFTWARE.
  */
 
-#ifndef CADA_H
-#define CADA_H
+#ifndef CADA_RS_H
+#define CADA_RS_H
 
-class RS {
+#include <cada2d/exports.h>
+
+class CADA_API RS {
 public:
     static constexpr auto AngleTolerance = 1.0e-9;
     static constexpr auto PointTolerance = 1.0e-9;
@@ -76,4 +78,4 @@ public:
     };
 };
 
-#endif
+#endif //CADA_RS_H

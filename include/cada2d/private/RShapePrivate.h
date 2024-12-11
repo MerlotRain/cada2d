@@ -20,3 +20,21 @@
  * IN THE SOFTWARE.
  */
 
+#ifndef CAD2D_PRIVATE_RSHAPEPRIVATE_H
+#define CAD2D_PRIVATE_RSHAPEPRIVATE_H
+
+#include <cada2d/RShape.h>
+#include <vector>
+#include <memory>
+
+class RShapePrivate {
+public:
+    static std::vector<std::shared_ptr<RShape>>
+    getReversedShapeList(const std::vector<std::shared_ptr<RShape>> &shapes);
+
+    static std::shared_ptr<RShape>
+    scaleArc(const RShape &shape, const RVector &scaleFactors,
+             const RVector &center = RDEFAULT_RVECTOR);
+};
+
+#endif // CAD2D_PRIVATE_RSHAPEPRIVATE_H

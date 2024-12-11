@@ -23,8 +23,8 @@
 #ifndef RPOLYLINE_H
 #define RPOLYLINE_H
 
-#include "RShape.h"
-#include "RVector.h"
+#include <cada2d/RShape.h>
+#include <cada2d/RVector.h>
 
 class RBox;
 class RLine;

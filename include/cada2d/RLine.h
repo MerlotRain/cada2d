@@ -23,9 +23,9 @@
 #ifndef RLINE_H
 #define RLINE_H
 
-#include "RS.h"
-#include "RShape.h"
-#include "RVector.h"
+#include <cada2d/RS.h>
+#include <cada2d/RShape.h>
+#include <cada2d/RVector.h>
 
 class RBox;
 class RPolyline;

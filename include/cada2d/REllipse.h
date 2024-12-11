@@ -23,10 +23,10 @@
 #ifndef RELLIPSE_H
 #define RELLIPSE_H
 
-#include "RShape.h"
-#include "RSpline.h"
-#include "RLine.h"
-#include "RVector.h"
+#include <cada2d/RShape.h>
+#include <cada2d/RSpline.h>
+#include <cada2d/RLine.h>
+#include <cada2d/RVector.h>
 
 class RBox;
 

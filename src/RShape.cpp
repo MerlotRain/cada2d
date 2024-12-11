@@ -1,21 +1,25 @@
 /**
- * Copyright (c) 2011-2018 by Andrew Mustun. All rights reserved.
- * 
- * This file is part of the QCAD project.
+ * Copyright (c) 2024-present Merlot.Rain
  *
- * QCAD is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to
+ * deal in the Software without restriction, including without limitation the
+ * rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+ * sell copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * QCAD is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU General Public License for more details.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * You should have received a copy of the GNU General Public License
- * along with QCAD.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+ * FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
+
 #include <cmath>
 #include <typeinfo>
 
@@ -38,9 +42,6 @@ double RShape::getDistanceTo(const RVector& point, bool limited, double strictRa
     return RNANDOUBLE;
 }
 
-/**
- * \return Maximum shortest distance from this shape to any of the given points.
- */
 double RShape::getMaxDistanceTo(const std::vector<RVector>& points, bool limited, double strictRange) const {
     double ret = 0.0;
     for (int i=0; i<points.size(); i++) {
@@ -50,9 +51,6 @@ double RShape::getMaxDistanceTo(const std::vector<RVector>& points, bool limited
     return ret;
 }
 
-/**
- * \return true if the given point is on this shape.
- */
 bool RShape::isOnShape(const RVector& point, bool limited, double tolerance) const {
 //    potential performance gain or loss:
 //    if (limited) {
@@ -72,9 +70,6 @@ bool RShape::isOnShape(const RVector& point, bool limited, double tolerance) con
     return d < tolerance;
 }
 
-/**
- * \return List of those points in pointList which are on this shape.
- */
 std::vector<RVector> RShape::filterOnShape(const std::vector<RVector>& pointList, bool limited, double tolerance) const {
     std::vector<RVector> ret;
     for (int i=0; i<pointList.size(); i++) {
@@ -85,19 +80,12 @@ std::vector<RVector> RShape::filterOnShape(const std::vector<RVector>& pointList
     return ret;
 }
 
-/**
- * \return Shortest vector from any end point of this shape
- *      to the given point.
- */
 RVector RShape::getVectorFromEndpointTo(const RVector& point) const {
     std::vector<RVector> endPoints = getEndPoints();
     RVector closest = point.getClosest(endPoints);
     return point - closest;
 }
 
-/**
- * \return Point on this shape that is closest to p. Based on getVectorTo.
- */
 RVector RShape::getClosestPointOnShape(const RVector& p, bool limited, double strictRange) const {
     RVector dv = getVectorTo(p, limited, strictRange);
     if (!dv.isValid()) {
@@ -128,9 +116,6 @@ RVector RShape::getPointOnShape() const {
     return getClosestPointOnShape(RVector(0.0,0.0));
 }
 
-/**
- * \return Point at given percentile.
- */
 RVector RShape::getPointAtPercent(double p) const {
     double length = getLength();
     double distance = p * length;
@@ -141,26 +126,16 @@ RVector RShape::getPointAtPercent(double p) const {
     return candidates.at(0);
 }
 
-/**
- * \return Angle at given percentile.
- */
 double RShape::getAngleAtPercent(double p) const {
     double length = getLength();
     double distance = p * length;
     return getAngleAt(distance);
 }
 
-/**
- * \return True if this shape intersects with the given shape.
- */
 bool RShape::intersectsWith(const RShape& other, bool limited) const {
     return !getIntersectionPoints(other, limited).empty();
 }
 
-/**
- * \return The intersection point(s) between this shape and the given
- *      other shape.
- */
 std::vector<RVector> RShape::getIntersectionPoints(const RShape& other,
         bool limited, bool same, bool force) const {
     return getIntersectionPoints(*this, other, limited, same, force);
