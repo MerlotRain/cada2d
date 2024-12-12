@@ -76,6 +76,8 @@ public:
         WithCenterSide,
         WithSideSide,
     };
+
+    enum JoinType { JoinBevel, JoinRound, JoinMiter };
 };
 
 #endif // CADA_RS_H

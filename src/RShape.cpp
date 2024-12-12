@@ -64,7 +64,7 @@ double RShape::getMaxDistanceTo(const std::vector<RVector> &points,
     double ret = 0.0;
     for (int i = 0; i < points.size(); i++) {
         double d = getDistanceTo(points[i], limited, strictRange);
-        ret = std::max(ret, d);
+        ret = qMax(ret, d);
     }
     return ret;
 }
@@ -322,7 +322,7 @@ bool RShape::scale(double scaleFactor, const RVector &center)
 }
 
 std::vector<std::shared_ptr<RShape>>
-RShape::getOffsetShapes(double distance, int number, RS::Side side,
+RShape::getOffsetShapes(double distance, int number, RS::Side side, RS::JoinType join,
                         const RVector &position)
 {
     return std::vector<std::shared_ptr<RShape>>();

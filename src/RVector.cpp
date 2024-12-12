@@ -252,9 +252,24 @@ RVector RVector::rotate(double rotation)
     return *this;
 }
 
+RVector RVector::rotate(const RVector angleVector)
+{
+    double x0 = x * angleVector.x - y * angleVector.y;
+    y = x * angleVector.y + y * angleVector.x;
+    x = x0;
+
+    return *this;
+}
+
 RVector RVector::rotate(double rotation, const RVector &center)
 {
     *this = center + (*this - center).rotate(rotation);
+    return *this;
+}
+
+RVector RVector::rotate(const RVector &center, const RVector &angleVector)
+{
+    *this = center + (*this - center).rotate(angleVector);
     return *this;
 }
 

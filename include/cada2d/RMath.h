@@ -74,6 +74,17 @@
 #define RINFDOUBLE std::numeric_limits<double>::infinity()
 #endif
 
+template <typename T>
+constexpr inline const T &qMin(const T &a, const T &b)
+{
+    return (a < b) ? a : b;
+}
+template <typename T>
+constexpr inline const T &qMax(const T &a, const T &b)
+{
+    return (a < b) ? b : a;
+}
+
 class CADA_API RMath {
 public:
     static bool isNaN(double v);

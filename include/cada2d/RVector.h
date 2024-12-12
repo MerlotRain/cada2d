@@ -78,7 +78,9 @@ public:
     static void moveList(std::vector<RVector> &list, const RVector &offset);
 
     RVector rotate(double rotation);
+    RVector rotate(const RVector angleVector);
     RVector rotate(double rotation, const RVector &center);
+    RVector rotate(const RVector &center, const RVector &angleVector);
     RVector getRotated(double rotation, const RVector &center) const;
     RVector scale(double factor, const RVector &center = nullVector);
     RVector scale(const RVector &factors, const RVector &center = nullVector);

@@ -79,7 +79,7 @@ RPolyline::~RPolyline()
 
 RS::ShapeType RPolyline::getShapeType() const
 {
-    return RS::ShapeType();
+    return RS::Polyline;
 }
 
 bool RPolyline::isDirected() const
@@ -1030,12 +1030,12 @@ void RPolyline::setMinimumWidth(double w)
 {
     for (int i = 0; i < m_startWidths.size(); i++) {
         if (m_startWidths[i] > RS::PointTolerance) {
-            m_startWidths[i] = std::max(m_startWidths[i], w);
+            m_startWidths[i] = qMax(m_startWidths[i], w);
         }
     }
     for (int i = 0; i < m_endWidths.size(); i++) {
         if (m_endWidths[i] > RS::PointTolerance) {
-            m_endWidths[i] = std::max(m_endWidths[i], w);
+            m_endWidths[i] = qMax(m_endWidths[i], w);
         }
     }
 }
@@ -2225,4 +2225,11 @@ RPolyline RPolyline::getPolygonHull(double angle, double tolerance,
                                     bool inner) const
 {
     return *this;
+}
+
+std::vector<std::shared_ptr<RShape>>
+RPolyline::getOffsetShapes(double distance, int number, RS::Side side,
+                           RS::JoinType join, const RVector &position)
+{
+    return std::vector<std::shared_ptr<RShape>>();
 }

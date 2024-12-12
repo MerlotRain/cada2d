@@ -27,6 +27,7 @@
 #include <cada2d/RCircle.h>
 #include <cada2d/RLine.h>
 #include <cada2d/RPolyline.h>
+#include <cada2d/private/RShapePrivate.h>
 
 RCircle::RCircle() : m_center(RVector::invalid), m_radius(0.0)
 {
@@ -48,12 +49,12 @@ RCircle::~RCircle()
 
 RS::ShapeType RCircle::getShapeType() const
 {
-    return RS::ShapeType();
+    return RS::Circle;
 }
 
 RCircle *RCircle::clone() const
 {
-    return nullptr;
+    return new RCircle(*this);
 }
 
 RCircle RCircle::createFrom2Points(const RVector &p1, const RVector &p2)
@@ -102,7 +103,7 @@ RArc RCircle::toArc(double startAngle) const
 
 bool RCircle::isValid() const
 {
-    return false;
+    return m_center.isValid();
 }
 
 RVector RCircle::getCenter() const
@@ -318,10 +319,10 @@ std::vector<RLine> RCircle::getTangents(const RVector &point) const
 }
 
 std::vector<std::shared_ptr<RShape>>
-RCircle::getOffsetShapes(double distance, int number, RS::Side side,
+RCircle::getOffsetShapes(double distance, int number, RS::Side side, RS::JoinType join,
                          const RVector &position)
 {
-    return std::vector<std::shared_ptr<RShape>>();
+    return RShapePrivate::getOffsetArcs(*this, distance, number, side, position);
 }
 
 std::vector<std::shared_ptr<RShape>>

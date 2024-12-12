@@ -107,7 +107,7 @@ public:
     bool stretch(const RPolyline &area, const RVector &offset) override;
 
     std::vector<std::shared_ptr<RShape>>
-    getOffsetShapes(double distance, int number, RS::Side side,
+    getOffsetShapes(double distance, int number, RS::Side side, RS::JoinType join,
                     const RVector &position = RVector::invalid) override;
 
     std::vector<std::shared_ptr<RShape>>

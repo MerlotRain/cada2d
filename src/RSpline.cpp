@@ -55,7 +55,7 @@ void RSpline::copySpline(const RSpline &other)
 
 RS::ShapeType RSpline::getShapeType() const
 {
-    return RS::ShapeType();
+    return RS::Spline;
 }
 
 bool RSpline::isDirected() const
@@ -108,9 +108,9 @@ std::vector<RSpline> RSpline::createSplinesFromArc(const RArc &arc)
     double sgn = (startAngle < endAngle) ? +1 : -1;
 
     double a1 = startAngle;
-    for (double totalAngle = std::min(twoPI, std::fabs(endAngle - startAngle));
+    for (double totalAngle = qMin(twoPI, std::fabs(endAngle - startAngle));
          totalAngle > EPSILON;) {
-        double a2 = a1 + sgn * std::min(totalAngle, segmentationAngle);
+        double a2 = a1 + sgn * qMin(totalAngle, segmentationAngle);
         RSpline sp = RSpline::createBezierFromSmallArc(radius, a1, a2);
         sp.move(a.getCenter());
         if (reversed) {
@@ -592,7 +592,7 @@ std::vector<std::shared_ptr<RShape>> RSpline::getExploded(int segments) const
     RVector p1;
     RVector prev = RVector::invalid;
     for (double t = tMin; t < tMax + (step / 2.0); t += step) {
-        double tc = std::min(t, tMax);
+        double tc = qMin(t, tMax);
         p1 = getPointAt(tc);
 
         if (RMath::isNaN(p1.x) || RMath::isNaN(p1.y)) {

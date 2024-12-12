@@ -76,12 +76,24 @@ RBox &RBox::grow(double offset)
 
 RBox &RBox::growXY(double offset)
 {
-    // TODO: insert return statement here
+    RVector min = getMinimum();
+    RVector max = getMaximum();
+    min -= RVector(offset, offset);
+    max += RVector(offset, offset);
+    c1 = min;
+    c2 = max;
+    return *this;
 }
 
 RBox &RBox::growXY(double offsetX, double offsetY)
 {
-    // TODO: insert return statement here
+    RVector min = getMinimum();
+    RVector max = getMaximum();
+    min -= RVector(offsetX, offsetY);
+    max += RVector(offsetX, offsetY);
+    c1 = min;
+    c2 = max;
+    return *this;
 }
 
 void RBox::move(const RVector &offset)

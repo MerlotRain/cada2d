@@ -94,7 +94,7 @@ public:
     std::vector<RLine> getTangents(const RVector &point) const;
 
     std::vector<std::shared_ptr<RShape>>
-    getOffsetShapes(double distance, int number, RS::Side side,
+    getOffsetShapes(double distance, int number, RS::Side side, RS::JoinType join,
                     const RVector &position = RVector::invalid) override;
 
     std::vector<std::shared_ptr<RShape>>

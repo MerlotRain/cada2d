@@ -36,7 +36,8 @@ public:
     REllipse(const RVector &center, const RVector &majorPoint, double ratio,
              double startParam, double endParam, bool reversed);
     ~REllipse();
-
+    
+    static REllipse createFromQuadratic(double a, double b, double c);
     static REllipse
     createInscribed(const RVector &p1, const RVector &p2, const RVector &p3,
                     const RVector &p4,
@@ -159,7 +160,7 @@ public:
     RPolyline approximateWithArcs(int segments) const;
 
     std::vector<std::shared_ptr<RShape>>
-    getOffsetShapes(double distance, int number, RS::Side side,
+    getOffsetShapes(double distance, int number, RS::Side side, RS::JoinType join,
                     const RVector &position = RVector::invalid) override;
     std::vector<std::shared_ptr<RShape>>
     splitAt(const std::vector<RVector> &points) const override;

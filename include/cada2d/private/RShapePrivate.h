@@ -42,6 +42,14 @@ public:
                                                       bool limited = true,
                                                       bool same = false,
                                                       bool force = false);
+
+    static std::vector<std::shared_ptr<RShape>>
+    getOffsetArcs(const RShape &shape, double distance, int number,
+                  RS::Side side, const RVector &position = RVector::invalid);
+
+    static std::vector<std::shared_ptr<RShape>> 
+    getOffsetLines(const RShape& shape, double distance, int number, 
+                   RS::Side side, const RVector& position = RVector::invalid);
 };
 
 #endif // CAD2D_PRIVATE_RSHAPEPRIVATE_H

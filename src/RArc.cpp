@@ -52,17 +52,17 @@ RArc::RArc(const RVector &center, double radius, double startAngle,
 
 RS::ShapeType RArc::getShapeType() const
 {
-    return RS::ShapeType();
+    return RS::Arc;
 }
 
 bool RArc::isDirected() const
 {
-    return false;
+    return true;
 }
 
 RArc *RArc::clone() const
 {
-    return nullptr;
+    return new RArc(*this);
 }
 
 bool RArc::isValid() const
@@ -115,7 +115,6 @@ RArc RArc::createFrom3Points(const RVector &startPoint, const RVector &point,
 RArc RArc::createFrom2PBulge(const RVector &startPoint, const RVector &endPoint,
                              double bulge)
 {
-
     RArc arc;
 
     arc.m_reversed = (bulge < 0.0);
@@ -190,7 +189,6 @@ std::vector<RArc> RArc::createBiarc(const RVector &startPoint,
                                     const RVector &endPoint,
                                     double endDirection, bool secondTry)
 {
-
     double length = startPoint.getDistanceTo(endPoint);
     double angle = startPoint.getAngleTo(endPoint);
 
@@ -451,7 +449,7 @@ double RArc::getAngleLength(bool allowForZeroLength) const
 
 bool RArc::isAngleWithinArc(double a) const
 {
-    return false;
+    return RMath::isAngleBetween(a, m_startAngle, m_endAngle, m_reversed);
 }
 
 double RArc::getSweep() const
@@ -474,12 +472,7 @@ double RArc::getSweep() const
             ret = m_endAngle - m_startAngle;
         }
     }
-
-    // full circle:
-    //  if (!allowForZeroLength && fabs(ret) < 1.0e-6) {
-    //      ret = 2 * M_PI;
-    //  }
-
+    
     return ret;
 }
 
@@ -864,12 +857,14 @@ bool RArc::trimStartPoint(const RVector &trimPoint, const RVector &clickPoint,
 
 bool RArc::trimStartPoint(double trimDist)
 {
-    return false;
+    RVector p = getPointWithDistanceToStart(trimDist);
+    return trimStartPoint(p);
 }
 
 bool RArc::trimEndPoint(double trimDist)
 {
-    return false;
+    RVector p = getPointWithDistanceToStart(trimDist);
+    return trimEndPoint(p);
 }
 
 bool RArc::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
@@ -1029,10 +1024,10 @@ std::vector<RLine> RArc::getTangents(const RVector &point) const
 }
 
 std::vector<std::shared_ptr<RShape>>
-RArc::getOffsetShapes(double distance, int number, RS::Side side,
+RArc::getOffsetShapes(double distance, int number, RS::Side side, RS::JoinType join,
                       const RVector &position)
 {
-    return std::vector<std::shared_ptr<RShape>>();
+    return RShapePrivate::getOffsetArcs(*this, distance, number, side, position);
 }
 
 std::vector<std::shared_ptr<RShape>>

@@ -249,6 +249,11 @@ public:
     RPolyline getPolygonHull(double angle, double tolerance,
                              bool inner = false) const;
 
+    std::vector<std::shared_ptr<RShape>>
+    getOffsetShapes(double distance, int number, RS::Side side,
+                    RS::JoinType join,
+                    const RVector &position = RVector::invalid) override;
+
 protected:
     bool isLineSegment(int i) const;
 
@@ -257,6 +262,7 @@ protected:
     std::vector<double> m_bulges;
     std::vector<double> m_endWidths;
     std::vector<double> m_startWidths;
+    
     bool m_closed;
 };
 

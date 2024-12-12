@@ -48,13 +48,14 @@ RRay::~RRay()
 
 RS::ShapeType RRay::getShapeType() const
 {
-    return RS::ShapeType();
+    return RS::Ray;
 }
 
 RRay *RRay::clone() const
 {
-    return nullptr;
+    return new RRay(*this);
 }
+
 RVector RRay::getVectorTo(const RVector &point, bool limited,
                           double strictRange) const
 {

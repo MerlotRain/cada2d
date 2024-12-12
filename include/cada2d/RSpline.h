@@ -32,7 +32,7 @@
 class RLine;
 
 #ifndef R_NO_OPENNURBS
-#include "opennurbs/opennurbs.h"
+#include <opennurbs.h>
 #endif
 
 #ifndef RDEFAULT_MIN1

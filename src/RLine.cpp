@@ -22,6 +22,8 @@
 
 #include <cada2d/RLine.h>
 #include <cada2d/RMath.h>
+#include <cada2d/RPolyline.h>
+#include <cada2d/private/RShapePrivate.h>
 #include <sstream>
 #include <iomanip>
 
@@ -48,7 +50,7 @@ RLine::RLine(const RVector &m_startPoint, double angle, double distance)
 
 bool RLine::isDirected() const
 {
-    return false;
+    return true;
 }
 
 bool RLine::isValid() const
@@ -58,7 +60,8 @@ bool RLine::isValid() const
 
 RBox RLine::getBoundingBox() const
 {
-    return RBox();
+    return RBox(RVector::getMinimum(m_startPoint, m_endPoint),
+                RVector::getMaximum(m_startPoint, m_endPoint));
 }
 
 void RLine::setLength(double l, bool fromStart)
@@ -73,7 +76,7 @@ void RLine::setLength(double l, bool fromStart)
 
 double RLine::getLength() const
 {
-    return 0.0;
+    return m_startPoint.getDistanceTo(m_endPoint);
 }
 
 double RLine::getAngle() const
@@ -97,68 +100,200 @@ bool RLine::isParallel(const RLine &line) const
 
 bool RLine::isCollinear(const RLine &line) const
 {
-    return false;
+    auto checkProc = [](const RVector &v1, const RVector &v2,
+                        const RVector &v3) -> double {
+        double a = v1.getDistanceTo(v2);
+        double b = v2.getDistanceTo(v3);
+        double c = v3.getDistanceTo(v1);
+        if (RMath::fuzzyCompare(a, 0.0) || RMath::fuzzyCompare(b, 0.0) ||
+            RMath::fuzzyCompare(c, 0.0)) {
+            return 0.0;
+        }
+        double s = (a + b + c) / 2;
+        double rootTerm = fabs(s * (s - a) * (s - b) * (s - c));
+        return sqrt(rootTerm);
+    };
+
+    // two points are collinear with a third point if the area of the triangle
+    // formed by these three points is zero:
+    if (checkProc(m_startPoint, m_endPoint, line.getStartPoint()) >
+        RS::PointTolerance) {
+        return false;
+    }
+
+    if (checkProc(m_startPoint, m_endPoint, line.getEndPoint()) >
+        RS::PointTolerance) {
+        return false;
+    }
+
+    return true;
 }
 
 double RLine::getDirection1() const
 {
-    return 0.0;
+    return m_startPoint.getAngleTo(m_endPoint);
 }
 
 double RLine::getDirection2() const
 {
-    return 0.0;
+    return m_endPoint.getAngleTo(m_startPoint);
 }
 
 RS::Side RLine::getSideOfPoint(const RVector &point) const
 {
-    return RS::Side();
+    double entityAngle = getAngle();
+    double angleToCoord = m_startPoint.getAngleTo(point);
+    double angleDiff = RMath::getAngleDifference(entityAngle, angleToCoord);
+
+    if (angleDiff < M_PI) {
+        return RS::LeftHand;
+    }
+    else {
+        return RS::RightHand;
+    }
 }
 
 void RLine::clipToXY(const RBox &box)
 {
+    double x1 = m_startPoint.x;
+    double y1 = m_startPoint.y;
+    double x2 = m_endPoint.x;
+    double y2 = m_endPoint.y;
+    double xmin = box.getMinimum().x;
+    double ymin = box.getMinimum().y;
+    double xmax = box.getMaximum().x;
+    double ymax = box.getMaximum().y;
+
+    double deltaX, deltaY, p, q;
+    double u1 = 0.0, u2 = 1.0;
+    double r;
+
+    deltaX = (x2 - x1);
+    deltaY = (y2 - y1);
+
+    // left edge, right edge, bottom edge and top edge checking
+    double pPart[] = {-1 * deltaX, deltaX, -1 * deltaY, deltaY};
+    double qPart[] = {x1 - xmin, xmax - x1, y1 - ymin, ymax - y1};
+
+    bool accept = true;
+
+    for (int i = 0; i < 4; i++) {
+        p = pPart[i];
+        q = qPart[i];
+
+        if (p == 0 && q < 0) {
+            accept = false;
+            break;
+        }
+
+        r = q / p;
+
+        if (p < 0) {
+            u1 = qMax(u1, r);
+        }
+
+        if (p > 0) {
+            u2 = qMin(u2, r);
+        }
+
+        if (u1 > u2) {
+            accept = false;
+            break;
+        }
+    }
+
+    if (accept) {
+        if (u2 < 1) {
+            x2 = x1 + u2 * deltaX;
+            y2 = y1 + u2 * deltaY;
+        }
+        if (u1 > 0) {
+            x1 = x1 + u1 * deltaX;
+            y1 = y1 + u1 * deltaY;
+        }
+
+        m_startPoint = RVector(x1, y1);
+        m_endPoint = RVector(x2, y2);
+    }
+    else {
+        m_startPoint = RVector::invalid;
+        m_endPoint = RVector::invalid;
+    }
 }
 
 bool RLine::move(const RVector &offset)
 {
-    return false;
+    if (!offset.isValid() || offset.getMagnitude() < RS::PointTolerance) {
+        return false;
+    }
+    m_startPoint += offset;
+    m_endPoint += offset;
+    return true;
 }
 
 bool RLine::scale(const RVector &scaleFactors, const RVector &center)
 {
-    return false;
+    m_startPoint.scale(scaleFactors, center);
+    m_endPoint.scale(scaleFactors, center);
+    return true;
 }
 
 bool RLine::flipHorizontal()
 {
-    return false;
+    m_startPoint.flipHorizontal();
+    m_endPoint.flipHorizontal();
+    return true;
 }
 
 bool RLine::flipVertical()
 {
-    return false;
+    m_startPoint.flipVertical();
+    m_endPoint.flipVertical();
+    return true;
 }
 
 bool RLine::stretch(const RPolyline &area, const RVector &offset)
 {
-    return false;
+    bool ret = false;
+
+    if (area.contains(m_startPoint, true)) {
+        m_startPoint += offset;
+        ret = true;
+    }
+    if (area.contains(m_endPoint, true)) {
+        m_endPoint += offset;
+        ret = true;
+    }
+
+    return ret;
 }
 
 bool RLine::moveTo(const RVector &dest)
 {
-    return false;
+    RVector offset = dest - m_startPoint;
+    return move(offset);
 }
 
 bool RLine::trimStartPoint(const RVector &trimPoint, const RVector &clickPoint,
                            bool extend)
 {
-    return false;
+    RVector tp = getClosestPointOnShape(trimPoint, false);
+    if (!tp.isValid()) {
+        return false;
+    }
+    setStartPoint(tp);
+    return true;
 }
 
 bool RLine::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
                          bool extend)
 {
-    return false;
+    RVector tp = getClosestPointOnShape(trimPoint, false);
+    if (!tp.isValid()) {
+        return false;
+    }
+    setEndPoint(tp);
+    return true;
 }
 
 bool RLine::trimStartPoint(double trimDist)
@@ -168,20 +303,55 @@ bool RLine::trimStartPoint(double trimDist)
 
 double RLine::getDistanceFromStart(const RVector &p) const
 {
-    return 0.0;
+    double ret = m_startPoint.getDistanceTo(p);
+
+    RVector p2 = getClosestPointOnShape(p, false);
+    double angle = m_startPoint.getAngleTo(p2);
+    if (RMath::isSameDirection(getAngle(), angle, M_PI / 2)) {
+        return ret;
+    }
+    else {
+        return -ret;
+    }
 }
 
 std::vector<std::shared_ptr<RShape>>
 RLine::splitAt(const std::vector<RVector> &points) const
 {
-    return std::vector<std::shared_ptr<RShape>>();
+    if (points.size() == 0) {
+        return RShape::splitAt(points);
+    }
+
+    std::vector<std::shared_ptr<RShape>> ret;
+
+    std::vector<RVector> sortedPoints =
+        RVector::getSortedByDistance(points, m_startPoint);
+
+    if (!m_startPoint.equalsFuzzy(sortedPoints[0])) {
+        sortedPoints.insert(sortedPoints.begin(), m_startPoint);
+    }
+    if (!m_endPoint.equalsFuzzy(sortedPoints[sortedPoints.size() - 1])) {
+        sortedPoints.push_back(m_endPoint);
+    }
+
+    for (int i = 0; i < sortedPoints.size() - 1; i++) {
+        if (sortedPoints[i].equalsFuzzy(sortedPoints[i + 1])) {
+            continue;
+        }
+
+        ret.push_back(std::shared_ptr<RShape>(
+            new RLine(sortedPoints[i], sortedPoints[i + 1])));
+    }
+
+    return ret;
 }
 
 std::vector<std::shared_ptr<RShape>>
 RLine::getOffsetShapes(double distance, int number, RS::Side side,
-                       const RVector &position)
+                       RS::JoinType join, const RVector &position)
 {
-    return std::vector<std::shared_ptr<RShape>>();
+    return RShapePrivate::getOffsetLines(*this, distance, number, side,
+                                         position);
 }
 
 bool RLine::trimEndPoint(double trimDist)
@@ -192,7 +362,23 @@ bool RLine::trimEndPoint(double trimDist)
 RS::Ending RLine::getTrimEnd(const RVector &trimPoint,
                              const RVector &clickPoint)
 {
-    return RS::Ending();
+    double lineAngle = getAngle();
+    double angleToClickPoint = trimPoint.getAngleTo(clickPoint);
+    double angleDifference = lineAngle - angleToClickPoint;
+
+    if (angleDifference < 0.0) {
+        angleDifference *= -1.0;
+    }
+    if (angleDifference > M_PI) {
+        angleDifference = 2 * M_PI - angleDifference;
+    }
+
+    if (angleDifference < M_PI / 2.0) {
+        return RS::EndingStart;
+    }
+    else {
+        return RS::EndingEnd;
+    }
 }
 
 bool RLine::reverse()
@@ -202,12 +388,19 @@ bool RLine::reverse()
 
 bool RLine::mirror(const RLine &axis)
 {
-    return false;
+    m_startPoint.mirror(axis.getStartPoint(), axis.getEndPoint());
+    m_endPoint.mirror(axis.getStartPoint(), axis.getEndPoint());
+    return true;
 }
 
 bool RLine::rotate(double rotation, const RVector &center)
 {
-    return false;
+    if (fabs(rotation) < RS::AngleTolerance) {
+        return false;
+    }
+    m_startPoint.rotate(rotation, center);
+    m_endPoint.rotate(rotation, center);
+    return true;
 }
 
 bool RLine::isVertical(double tolerance) const
@@ -222,13 +415,41 @@ bool RLine::isHorizontal(double tolerance) const
 
 double RLine::getAngleAt(double distance, RS::From from) const
 {
-    return 0.0;
+    return getAngle();
 }
 
 RVector RLine::getVectorTo(const RVector &point, bool limited,
                            double strictRange) const
 {
-    return RVector();
+    RVector ae = m_endPoint - m_startPoint;
+    RVector ap = point - m_startPoint;
+
+    if (ae.getMagnitude() < 1.0e-6) {
+        return RVector::invalid;
+    }
+
+    if (ap.getMagnitude() < 1.0e-6) {
+        // distance to start point is very small:
+        return RVector(0, 0);
+    }
+
+    double b = RVector::getDotProduct(ap, ae) / RVector::getDotProduct(ae, ae);
+
+    if (limited && (b < 0 || b > 1.0)) {
+        // orthogonal to line does not cross line, use distance to end point:
+        RVector ret = getVectorFromEndpointTo(point);
+        if (ret.getMagnitude() < strictRange) {
+            return ret;
+        }
+        else {
+            // not within given range:
+            return RVector::invalid;
+        }
+    }
+
+    RVector closestPoint = m_startPoint + ae * b;
+
+    return point - closestPoint;
 }
 
 RVector RLine::getStartPoint() const
@@ -258,8 +479,9 @@ RS::ShapeType RLine::getShapeType() const
 
 RLine *RLine::clone() const
 {
-    return nullptr;
+    return new RLine(*this);
 }
+
 RVector RLine::getMiddlePoint() const
 {
     return (m_startPoint + m_endPoint) / 2.0;
@@ -293,5 +515,16 @@ std::vector<RVector> RLine::getCenterPoints() const
 std::vector<RVector> RLine::getPointsWithDistanceToEnd(double distance,
                                                        int from) const
 {
-    return std::vector<RVector>();
+    std::vector<RVector> ret;
+
+    if (from & RS::FromStart) {
+        RVector normalStart = (m_endPoint - m_startPoint).getNormalized();
+        ret.push_back(m_startPoint + normalStart * distance);
+    }
+    if (from & RS::FromEnd) {
+        RVector normalEnd = (m_startPoint - m_endPoint).getNormalized();
+        ret.push_back(m_endPoint + normalEnd * distance);
+    }
+
+    return ret;
 }
