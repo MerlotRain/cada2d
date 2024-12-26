@@ -35,6 +35,23 @@ public:
     static std::shared_ptr<RShape>
     scaleArc(const RShape &shape, const RVector &scaleFactors,
              const RVector &center = RDEFAULT_RVECTOR);
+
+    static std::vector<RVector> getIntersectionPoints(const RShape &shape1,
+                                                      const RShape &shape2,
+                                                      bool limited = true,
+                                                      bool same = = false,
+                                                      bool force = false);
+
+    static std::vector<std::shared_ptr<RShape>>
+    getOffsetArcs(const RShape &shape, double distance, int number,
+                  RS::Side side, const RVector &position = RVector::invalid);
+
+    static ON_NurbsCurve convertShapeToNURBS(const RShape &shape);
+
+private:
+    static ON_NurbsCurve convertLineToNURBS(const RLine &line);
+    static ON_NurbsCurve convertArcToNURBS(const RArc &arc);
+    static ON_NurbsCurve convertEllipseToNURBS(const REllipse &ellipse);
 };
 
 #endif // CAD2D_PRIVATE_RSHAPEPRIVATE_H

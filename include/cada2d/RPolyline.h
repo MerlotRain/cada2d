@@ -33,10 +33,41 @@ class RLine;
 #define RDEFAULT_MIN1 -1
 #endif
 
+class CADA_API PolylineVertex {
+public:
+    PolylineVertex() = default;
+    PolylineVertex(double x, double y, double bulge, double startWidth = 0.0,
+                   double endWidth = 0.0);
+    PolylineVertex(const RVector &position, double bulge,
+                   double startWidth = 0.0, double endWidth = 0.0);
+    double x() const;
+    double &x();
+    double y() const;
+    double &y();
+    double bulge() const;
+    double &bulge();
+    double startWidth() const;
+    double &startWidth();
+    double endWidth() const;
+    double &endWidth();
+
+    bool bulgeIsZero(double epsilon = RS::PointTolerance) const;
+    bool bulgeIsNeg() const;
+    bool bulgeIsPos() const;
+    RVector const &pos() const;
+    RVector &pos();
+
+private:
+    RVector m_position;
+    double m_bulge;
+    double m_startWidth;
+    double m_endWidth;
+};
+
 class CADA_API RPolyline : public RShape {
 public:
     RPolyline();
-    RPolyline(const std::vector<RVector> &vertices, bool closed);
+    RPolyline(const std::vector<PolylineVertex> &vertices, bool closed);
     RPolyline(const std::vector<std::shared_ptr<RShape>> &segments);
     ~RPolyline();
 
@@ -98,10 +129,6 @@ public:
     void setEndWidthAt(int i, double w);
     double getEndWidthAt(int i) const;
     bool hasWidths() const;
-    void setStartWidths(const std::vector<double> &sw);
-    std::vector<double> getStartWidths() const;
-    void setEndWidths(const std::vector<double> &ew);
-    std::vector<double> getEndWidths() const;
 
     void setClosed(bool on);
     bool isClosed() const;
@@ -253,10 +280,11 @@ protected:
     bool isLineSegment(int i) const;
 
 protected:
-    std::vector<RVector> m_vertices;
-    std::vector<double> m_bulges;
-    std::vector<double> m_endWidths;
-    std::vector<double> m_startWidths;
+    // std::vector<RVector> m_vertices;
+    // std::vector<double> m_bulges;
+    // std::vector<double> m_endWidths;
+    // std::vector<double> m_startWidths;
+    std::vector<PolylineVertex> m_vertices;
     bool m_closed;
 };
 

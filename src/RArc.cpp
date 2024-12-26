@@ -50,6 +50,21 @@ RArc::RArc(const RVector &center, double radius, double startAngle,
 {
 }
 
+RS::ShapeType RArc::getShapeType() const
+{
+    return RS::Arc;
+}
+
+bool RArc::isDirected() const
+{
+    return true;
+}
+
+RArc *RArc::clone() const
+{
+    return new RArc(*this);
+}
+
 bool RArc::isValid() const
 {
     return m_center.isValid() && m_radius > 0.0;
@@ -434,6 +449,11 @@ double RArc::getAngleLength(bool allowForZeroLength) const
     return ret;
 }
 
+bool RArc::isAngleWithinArc(double a) const
+{
+    return RMath::isAngleBetween(a, m_startAngle, m_endAngle, m_reversed);
+}
+
 double RArc::getSweep() const
 {
     double ret = 0.0;
@@ -454,11 +474,6 @@ double RArc::getSweep() const
             ret = m_endAngle - m_startAngle;
         }
     }
-
-    // full circle:
-    //  if (!allowForZeroLength && fabs(ret) < 1.0e-6) {
-    //      ret = 2 * M_PI;
-    //  }
 
     return ret;
 }
@@ -561,10 +576,10 @@ RBox RArc::getBoundingBox() const
 
     RVector minV;
     RVector maxV;
-    double minX = std::min(getStartPoint().x, getEndPoint().x);
-    double minY = std::min(getStartPoint().y, getEndPoint().y);
-    double maxX = std::max(getStartPoint().x, getEndPoint().x);
-    double maxY = std::max(getStartPoint().y, getEndPoint().y);
+    double minX = qMin(getStartPoint().x, getEndPoint().x);
+    double minY = qMin(getStartPoint().y, getEndPoint().y);
+    double maxX = qMax(getStartPoint().x, getEndPoint().x);
+    double maxY = qMax(getStartPoint().y, getEndPoint().y);
 
     if (getStartPoint().getDistanceTo(getEndPoint()) < 1.0e-6 &&
         getRadius() > 1.0e5) {
@@ -582,12 +597,12 @@ RBox RArc::getBoundingBox() const
     if ((a1 < M_PI && a2 > M_PI) || (a1 > a2 - 1.0e-12 && a2 > M_PI) ||
         (a1 > a2 - 1.0e-12 && a1 < M_PI)) {
 
-        minX = std::min(m_center.x - m_radius, minX);
+        minX = qMin(m_center.x - m_radius, minX);
     }
 
     // check for right limit:
     if (a1 > a2 - 1.0e-12) {
-        maxX = std::max(m_center.x + m_radius, maxX);
+        maxX = qMax(m_center.x + m_radius, maxX);
     }
 
     // check for bottom limit:
@@ -595,14 +610,14 @@ RBox RArc::getBoundingBox() const
         (a1 > a2 - 1.0e-12 && a2 > (M_PI_2 * 3)) ||
         (a1 > a2 - 1.0e-12 && a1 < (M_PI_2 * 3))) {
 
-        minY = std::min(m_center.y - m_radius, minY);
+        minY = qMin(m_center.y - m_radius, minY);
     }
 
     // check for top limit:
     if ((a1 < M_PI_2 && a2 > M_PI_2) || (a1 > a2 - 1.0e-12 && a2 > M_PI_2) ||
         (a1 > a2 - 1.0e-12 && a1 < M_PI_2)) {
 
-        maxY = std::max(m_center.y + m_radius, maxY);
+        maxY = qMax(m_center.y + m_radius, maxY);
     }
 
     minV = RVector(minX, minY);

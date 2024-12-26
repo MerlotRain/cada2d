@@ -33,3 +33,11 @@ std::shared_ptr<RShape> RShapePrivate::scaleArc(const RShape &shape,
 {
     return std::shared_ptr<RShape>();
 }
+
+std::vector<RVector> RShapePrivate::getIntersectionPoints(const RShape &shape1,
+                                                          const RShape &shape2,
+                                                          bool limited,
+                                                          bool same, bool force)
+{
+    return std::vector<RVector>();
+}

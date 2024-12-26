@@ -52,6 +52,26 @@ RXLine::~RXLine()
 {
 }
 
+RS::ShapeType RXLine::getShapeType() const
+{
+    return RS::XLine;
+}
+
+RLine RXLine::getLineShape() const
+{
+    return RLine(m_basePoint, m_basePoint + m_directionVector);
+}
+
+RXLine *RXLine::clone() const
+{
+    return new RXLine(*this);
+}
+
+bool RXLine::isDirected() const
+{
+    return false;
+}
+
 RBox RXLine::getBoundingBox() const
 {
     return RBox(RVector::getMinimum(m_basePoint, getSecondPoint()),
@@ -124,6 +144,16 @@ bool RXLine::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
     m_basePoint = tp;
     m_directionVector = -m_directionVector;
     return true;
+}
+
+bool RXLine::trimStartPoint(double trimDist)
+{
+    return false;
+}
+
+bool RXLine::trimEndPoint(double trimDist)
+{
+    return false;
 }
 
 RS::Ending RXLine::getTrimEnd(const RVector &trimPoint,
@@ -281,6 +311,15 @@ bool RXLine::mirror(const RLine &axis)
     sp.mirror(axis.getStartPoint(), axis.getEndPoint());
     setSecondPoint(sp);
     return true;
+}
+
+
+std::vector<std::shared_ptr<RShape>>
+RXLine::getOffsetShapes(double distance, int number, RS::Side side,
+                        RS::JoinType join,
+                        const RVector &position)
+{
+    return std::vector<std::shared_ptr<RShape>>();
 }
 
 bool RXLine::reverse()
