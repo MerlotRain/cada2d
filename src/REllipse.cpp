@@ -85,7 +85,7 @@ REllipse REllipse::createInscribed(const RVector &p1, const RVector &p2,
         auto &&deigonal1 =
             RLine(quad[0].getStartPoint(), quad[1].getEndPoint());
         auto &&deigonal2 =
-            RLine(quad[1].getStartPoint(), quad[2].getEndPoint();
+            RLine(quad[1].getStartPoint(), quad[2].getEndPoint());
         auto sol = deigonal1.getIntersectionPoints(deigonal2);
         if (sol.size() == 0) // this should not happen
             return REllipse();
@@ -159,7 +159,7 @@ REllipse REllipse::createInscribed(const RVector &p1, const RVector &p2,
         // major axis
         double a = d / (k * tan(theta));
         auto tmpRet = REllipse(RVector(0.0, 0.0), RVector(a, 0.0), d / a, 0,
-                                    2 * M_PI, false);
+                               2 * M_PI, false);
         tmpRet.rotate(l0.getAngle());
         tmpRet.setCenter(centerPoint);
         return tmpRet;

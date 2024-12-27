@@ -36,7 +36,7 @@ public:
     REllipse(const RVector &center, const RVector &majorPoint, double ratio,
              double startParam, double endParam, bool reversed);
     ~REllipse();
-
+    static REllipse REllipse::createFromQuadratic(double a, double b, double c);
     static REllipse
     createInscribed(const RVector &p1, const RVector &p2, const RVector &p3,
                     const RVector &p4,
