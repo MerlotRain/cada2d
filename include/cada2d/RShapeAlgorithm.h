@@ -25,6 +25,7 @@
 
 #include <vector>
 #include <cada2d/RShape.h>
+#include <cada2d/RLine.h>
 #include <cada2d/exports.h>
 
 class CADA_API RShapeAlgorithm {
@@ -40,8 +41,8 @@ public:
      * points
      */
     static std::vector<RVector>
-    calculate_equidistant_points_on_line(const RVector &v1, const RVector &v2,
-                                         size_t n);
+    calculateEquidistantPointsOnLine(const RVector &v1, const RVector &v2,
+                                     size_t n);
 
     /**
      * @brief Calculate equidistant distribution points on a surface
@@ -55,8 +56,7 @@ public:
      * @return std::vector<RVector> The set of calculated equidistant
      * distribution points
      */
-    static std::vector<RVector>
-    calculate_equidistant_distribution_points_on_surface(
+    static std::vector<RVector> calculateEquidistantDistributionPointsOnSurface(
         const RVector &v1, const RVector &v2, const RVector &v3,
         const RVector &v4, size_t col, size_t row);
 
@@ -73,8 +73,7 @@ public:
      * @return std::vector<RVector> The set of calculated angle bisector
      * points
      */
-    static std::vector<std::shared_ptr<RLine>>
-    calculate_angle_bisector_of_two_line_segments(
+    static std::vector<RLine> calculateAngleBisectorOfTwoLineSegments(
         const RLine &l1, const RLine &l2, const RVector &pos1,
         const RVector &pos2, double line_length, int line_number);
 
@@ -83,24 +82,24 @@ public:
      *
      * @param c1 The first circle, of type Circle
      * @param c2 The second circle, of type Circle
-     * @return std::vector<std::shared_ptr<RLine>> The set of calculated
+     * @return std::vector<RLine> The set of calculated
      * common tangent lines
      */
-    static std::vector<std::shared_ptr<RLine>>
-    calculate_common_tangent_between_two_circles(const RCircle &c1,
-                                                 const RCircle &c2);
+    static std::vector<RLine>
+    calculateCommonTangentBetweenTwoCircles(const RCircle &c1,
+                                            const RCircle &c2);
 
     /**
      * @brief Calculate the orthogonal tangent between a shape and a line
      *
      * @param line The line, of type Line
      * @param shape The shape, of type Shape
-     * @return std::vector<std::shared_ptr<RLine>> The set of calculated
+     * @return std::vector<RLine> The set of calculated
      * orthogonal tangent lines
      */
-    static std::vector<std::shared_ptr<RLine>>
-    calculate_orthogonal_tangent_between_shape_and_line(const RLine &line,
-                                                        const RShape &shape);
+    static std::vector<RLine>
+    calculateOrthogonalTangentBetweenShapeAndLine(const RLine &line,
+                                                  const RShape &shape);
 
     /**
      * @brief Automatically split a shape at a given position
@@ -115,9 +114,9 @@ public:
      * shapes
      */
     static std::vector<std::shared_ptr<RShape>>
-    auto_split(const RVector &pos, const RShape &shape,
-               const std::vector<std::shared_ptr<RShape>> &intersecting_shapes,
-               bool extend);
+    autoSplit(const RVector &pos, const RShape &shape,
+              const std::vector<std::shared_ptr<RShape>> &intersecting_shapes,
+              bool extend);
 
     /**
      * @brief Automatically split a shape at a given position manually
@@ -136,9 +135,9 @@ public:
      * shapes
      */
     static std::vector<std::shared_ptr<RShape>>
-    auto_split_manual(const RShape &shp, double cutDist1, double cutDist2,
-                      RVector cutPos1, RVector cutPos2, const RVector &position,
-                      bool extend);
+    autoSplitManual(const RShape &shp, double cutDist1, double cutDist2,
+                    RVector cutPos1, RVector cutPos2, const RVector &position,
+                    bool extend);
 
     /**
      * @brief Break out a gap at a given position
@@ -150,8 +149,8 @@ public:
      * @return bool A boolean flag indicating whether the breaking out process
      * was successful
      */
-    static bool break_out_gap(const RVector &pos, const RShape &shape,
-                              std::vector<std::shared_ptr<RShape>> &additional);
+    static bool breakOutGap(const RVector &pos, const RShape &shape,
+                            std::vector<std::shared_ptr<RShape>> &additional);
 
     /**
      * @brief Calculate the bevel shapes of two shapes.
@@ -176,9 +175,9 @@ public:
      * shapes.
      */
     static std::vector<std::shared_ptr<RShape>>
-    bevel_shapes(const RShape &shp1, const RVector &clickPos1,
-                 const RShape &shp2, const RVector &clickPos2, bool trim,
-                 bool samePolyline, double distance1, double distance2);
+    bevelShapes(const RShape &shp1, const RVector &clickPos1,
+                const RShape &shp2, const RVector &clickPos2, bool trim,
+                bool samePolyline, double distance1, double distance2);
 
     /**
      * @brief Round the corners of two shapes at a given position
@@ -197,9 +196,9 @@ public:
      * shapes
      */
     static std::vector<std::shared_ptr<RShape>>
-    round_shapes(const RShape &shp1, const RVector &pos1, const RShape &shp2,
-                 const RVector &pos2, bool trim, bool samepolyline,
-                 double radius, const RVector &solutionPos);
+    roundRhapes(const RShape &shp1, const RVector &pos1, const RShape &shp2,
+                const RVector &pos2, bool trim, bool samepolyline,
+                double radius, const RVector &solutionPos);
 
     /**
      * @brief Lengthen a shape at a given position
@@ -224,9 +223,9 @@ public:
      * @return std::vector<std::unique_ptr<shape::Circle>> The set of calculated
      * Apollonius solutions
      */
-    static std::vector<RCircle> apollonius_solutions(const RShape &shape1,
-                                                     const RShape &shape2,
-                                                     const RShape &shape3);
+    static std::vector<RCircle> apolloniusSolutions(const RShape &shape1,
+                                                    const RShape &shape2,
+                                                    const RShape &shape3);
 };
 
 #endif /* CADA2D_RSHAPEALGORITHM_H */

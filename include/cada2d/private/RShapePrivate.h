@@ -26,6 +26,7 @@
 #include <cada2d/RShape.h>
 #include <vector>
 #include <memory>
+#include <opennurbs.h>
 
 class RShapePrivate {
 public:
@@ -39,7 +40,7 @@ public:
     static std::vector<RVector> getIntersectionPoints(const RShape &shape1,
                                                       const RShape &shape2,
                                                       bool limited = true,
-                                                      bool same = = false,
+                                                      bool same = false,
                                                       bool force = false);
 
     static std::vector<std::shared_ptr<RShape>>
@@ -52,6 +53,92 @@ private:
     static ON_NurbsCurve convertLineToNURBS(const RLine &line);
     static ON_NurbsCurve convertArcToNURBS(const RArc &arc);
     static ON_NurbsCurve convertEllipseToNURBS(const REllipse &ellipse);
+
+    static std::vector<RVector> getIntersectionPointsLL(const RLine &line1,
+                                                        const RLine &line2,
+                                                        bool limited = true);
+    static std::vector<RVector> getIntersectionPointsLL(const RLine &line1,
+                                                        const RLine &line2,
+                                                        bool limited1,
+                                                        bool limited2);
+    static std::vector<RVector> getIntersectionPointsLA(const RLine &line1,
+                                                        const RArc &arc2,
+                                                        bool limited = true);
+    static std::vector<RVector> getIntersectionPointsLA(const RLine &line1,
+                                                        const RArc &arc2,
+                                                        bool limited1,
+                                                        bool limited2);
+    static std::vector<RVector> getIntersectionPointsLC(const RLine &line1,
+                                                        const RCircle &circle2,
+                                                        bool limited = true);
+    static std::vector<RVector>
+    getIntersectionPointsLE(const RLine &line1, const REllipse &ellipse2,
+                            bool limited = true);
+    static std::vector<RVector>
+    getIntersectionPointsLE(const RLine &line1, const REllipse &ellipse2,
+                            bool limited1, bool limited2);
+
+    static std::vector<RVector> getIntersectionPointsLS(const RLine &line1,
+                                                        const RSpline &spline2,
+                                                        bool limited = true);
+    static std::vector<RVector>
+    getIntersectionPointsLX(const RLine &line1, const RExplodable &explodable2,
+                            bool limited = true);
+
+    static std::vector<RVector> getIntersectionPointsAA(const RArc &arc1,
+                                                        const RArc &arc2,
+                                                        bool limited = true);
+    static std::vector<RVector> getIntersectionPointsAC(const RArc &arc1,
+                                                        const RCircle &circle2,
+                                                        bool limited = true);
+    static std::vector<RVector>
+    getIntersectionPointsAE(const RArc &arc1, const REllipse &ellipse2,
+                            bool limited = true);
+    static std::vector<RVector> getIntersectionPointsAS(const RArc &arc1,
+                                                        const RSpline &spline2,
+                                                        bool limited = true);
+    static std::vector<RVector>
+    getIntersectionPointsAX(const RArc &arc1, const RExplodable &explodable2,
+                            bool limited = true);
+
+    static std::vector<RVector> getIntersectionPointsCC(const RCircle &circle1,
+                                                        const RCircle &circle2);
+    static std::vector<RVector>
+    getIntersectionPointsCE(const RCircle &circle1, const REllipse &ellipse2);
+    static std::vector<RVector> getIntersectionPointsCS(const RCircle &circle1,
+                                                        const RSpline &spline2,
+                                                        bool limited = true);
+    static std::vector<RVector>
+    getIntersectionPointsCX(const RCircle &circle1,
+                            const RExplodable &explodable2,
+                            bool limited = true);
+
+    static std::vector<RVector>
+    getIntersectionPointsEE(const REllipse &ellipse1, const REllipse &ellipse2);
+    static std::vector<RVector>
+    getIntersectionPointsEE(const REllipse &ellipse1, const REllipse &ellipse2,
+                            bool limited);
+    static std::vector<RVector>
+    getIntersectionPointsES(const REllipse &ellipse1, const RSpline &spline2,
+                            bool limited = true);
+    static std::vector<RVector>
+    getIntersectionPointsEX(const REllipse &ellipse1,
+                            const RExplodable &explodable2,
+                            bool limited = true);
+
+    static std::vector<RVector>
+    getIntersectionPointsSX(const RSpline &spline1,
+                            const RExplodable &explodable2, bool limited);
+
+    static std::vector<RVector>
+    getIntersectionPointsSS(const RSpline &spline1, const RSpline &spline2,
+                            bool limited = true, bool same = false,
+                            double tolerance = RS::PointTolerance);
+
+    static std::vector<RVector>
+    getIntersectionPointsXX(const RExplodable &explodable1,
+                            const RExplodable &explodable2, bool limited = true,
+                            bool same = false);
 };
 
 #endif // CAD2D_PRIVATE_RSHAPEPRIVATE_H
