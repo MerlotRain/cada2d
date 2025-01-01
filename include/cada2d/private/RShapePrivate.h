@@ -24,11 +24,34 @@
 #define CAD2D_PRIVATE_RSHAPEPRIVATE_H
 
 #include <cada2d/RShape.h>
-#include <vector>
+#include <cada2d/exports.h>
 #include <memory>
 #include <opennurbs.h>
+#include <vector>
 
-class RShapePrivate {
+class RArc;
+class RBox;
+class RCircle;
+class REllipse;
+class RExplodable;
+class RLine;
+class RPolyline;
+class RSpline;
+
+class CADA_API RShapePrivate
+{
+public:
+    static bool isPointShape(const RShape &s);
+    static bool isLineShape(const RShape &s);
+    static bool isArcShape(const RShape &s);
+    static bool isCircleShape(const RShape &s);
+    static bool isEllipseShape(const RShape &s);
+    static bool isFullEllipseShape(const RShape &s);
+    static bool isPolylineShape(const RShape &s);
+    static bool isSplineShape(const RShape &s);
+    static bool isXLineShape(const RShape &s);
+    static bool isRayShape(const RShape &s);
+
 public:
     static std::vector<std::shared_ptr<RShape>>
     getReversedShapeList(const std::vector<std::shared_ptr<RShape>> &shapes);
@@ -139,6 +162,8 @@ private:
     getIntersectionPointsXX(const RExplodable &explodable1,
                             const RExplodable &explodable2, bool limited = true,
                             bool same = false);
+
+    static const RExplodable *castToExplodable(const RShape *shape);
 };
 
-#endif // CAD2D_PRIVATE_RSHAPEPRIVATE_H
+#endif// CAD2D_PRIVATE_RSHAPEPRIVATE_H

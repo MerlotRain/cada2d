@@ -30,7 +30,8 @@
 class RBox;
 class RLine;
 
-class CADA_API RCircle : public RShape {
+class CADA_API RCircle : public RShape
+{
 public:
     RCircle();
     RCircle(double cx, double cy, const double radius);
@@ -38,7 +39,7 @@ public:
     ~RCircle();
 
     RS::ShapeType getShapeType() const override;
-    RCircle *clone() const override;
+    std::shared_ptr<RShape> clone() const override;
 
     static RCircle createFrom2Points(const RVector &p1, const RVector &p2);
     static RCircle createFrom3Points(const RVector &p1, const RVector &p2,
@@ -95,6 +96,7 @@ public:
 
     std::vector<std::shared_ptr<RShape>>
     getOffsetShapes(double distance, int number, RS::Side side,
+                    RS::JoinType join,
                     const RVector &position = RVector::invalid) override;
 
     std::vector<std::shared_ptr<RShape>>

@@ -24,13 +24,9 @@
 #include <cada2d/RPolyline.h>
 #include <cada2d/RRay.h>
 
-RRay::RRay() : RXLine()
-{
-}
+RRay::RRay() : RXLine() {}
 
-RRay::RRay(const RLine &line) : RXLine(line)
-{
-}
+RRay::RRay(const RLine &line) : RXLine(line) {}
 
 RRay::RRay(const RVector &basePoint, const RVector &directionVector)
     : RXLine(basePoint, directionVector)
@@ -42,52 +38,43 @@ RRay::RRay(const RVector &basePoint, double angle, double distance)
 {
 }
 
-RRay::~RRay()
-{
-}
+RRay::~RRay() {}
 
-RS::ShapeType RRay::getShapeType() const
-{
-    return RS::Ray;
-}
+RS::ShapeType RRay::getShapeType() const { return RS::Ray; }
 
-RRay *RRay::clone() const
+std::shared_ptr<RShape> RRay::clone() const
 {
-    return new RRay(*this);
+    return std::shared_ptr<RShape>(new RRay(*this));
 }
 
 RVector RRay::getVectorTo(const RVector &point, bool limited,
                           double strictRange) const
 {
-    if (!limited) {
-        return RXLine::getVectorTo(point, false, strictRange);
-    }
-    else {
+    if (!limited) { return RXLine::getVectorTo(point, false, strictRange); }
+    else
+    {
         RVector p = RXLine::getClosestPointOnShape(point, false);
         if (fabs(RMath::getAngleDifference180(
-                getDirection1(), getStartPoint().getAngleTo(p))) < 0.1) {
+                    getDirection1(), getStartPoint().getAngleTo(p))) < 0.1)
+        {
             return point - p;
         }
         return RVector::invalid;
     }
 }
 
-bool RRay::reverse()
-{
-    return false;
-}
+bool RRay::reverse() { return false; }
 
 RLine RRay::getClippedLine(const RBox &box) const
 {
     RLine ret = RXLine::getClippedLine(box);
 
-    if (box.contains(getBasePoint())) {
-        ret.setStartPoint(getBasePoint());
-    }
+    if (box.contains(getBasePoint())) { ret.setStartPoint(getBasePoint()); }
 
     if (!RMath::isSameDirection(getDirection1(),
                                 getBasePoint().getAngleTo(ret.getEndPoint()),
-                                0.1)) {
+                                0.1))
+    {
         ret = getLineShape();
     }
 
@@ -98,9 +85,7 @@ bool RRay::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
                         bool extend)
 {
     RVector tp = getClosestPointOnShape(trimPoint, false);
-    if (!tp.isValid()) {
-        return false;
-    }
+    if (!tp.isValid()) { return false; }
     m_directionVector = tp - m_basePoint;
     return true;
 }
@@ -114,9 +99,7 @@ std::vector<RVector> RRay::getPointsWithDistanceToEnd(double distance,
     RVector dv;
     dv.setPolar(distance, a1);
 
-    if (from & RS::FromStart) {
-        ret.push_back(m_basePoint + dv);
-    }
+    if (from & RS::FromStart) { ret.push_back(m_basePoint + dv); }
 
     return ret;
 }
@@ -125,7 +108,8 @@ bool RRay::stretch(const RPolyline &area, const RVector &offset)
 {
     bool ret = false;
 
-    if (area.contains(m_basePoint, true)) {
+    if (area.contains(m_basePoint, true))
+    {
         m_basePoint += offset;
         ret = true;
     }
@@ -136,30 +120,28 @@ bool RRay::stretch(const RPolyline &area, const RVector &offset)
 std::vector<std::shared_ptr<RShape>>
 RRay::splitAt(const std::vector<RVector> &points) const
 {
-    if (points.size() == 0) {
-        return RShape::splitAt(points);
-    }
+    if (points.size() == 0) { return RShape::splitAt(points); }
 
     std::vector<std::shared_ptr<RShape>> ret;
 
     std::vector<RVector> sortedPoints =
-        RVector::getSortedByDistance(points, m_basePoint);
+            RVector::getSortedByDistance(points, m_basePoint);
 
-    if (!m_basePoint.equalsFuzzy(sortedPoints[0])) {
+    if (!m_basePoint.equalsFuzzy(sortedPoints[0]))
+    {
         sortedPoints.insert(sortedPoints.begin(), m_basePoint);
     }
 
-    for (int i = 0; i < sortedPoints.size() - 1; i++) {
-        if (sortedPoints[i].equalsFuzzy(sortedPoints[i + 1])) {
-            continue;
-        }
+    for (int i = 0; i < sortedPoints.size() - 1; i++)
+    {
+        if (sortedPoints[i].equalsFuzzy(sortedPoints[i + 1])) { continue; }
 
         ret.push_back(std::shared_ptr<RShape>(
-            new RLine(sortedPoints[i], sortedPoints[i + 1])));
+                new RLine(sortedPoints[i], sortedPoints[i + 1])));
     }
 
-    ret.push_back(std::shared_ptr<RShape>(
-        new RRay(sortedPoints[sortedPoints.size() - 1], m_directionVector)));
+    ret.push_back(std::shared_ptr<RShape>(new RRay(
+            sortedPoints[sortedPoints.size() - 1], m_directionVector)));
 
     return ret;
 }

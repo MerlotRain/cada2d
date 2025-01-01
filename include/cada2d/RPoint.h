@@ -23,13 +23,14 @@
 #ifndef RPOINT_H
 #define RPOINT_H
 
+#include <cada2d/RBox.h>
 #include <cada2d/RShape.h>
 #include <cada2d/RVector.h>
-#include <cada2d/RBox.h>
 
 class RLine;
 
-class CADA_API RPoint : public RShape {
+class CADA_API RPoint : public RShape
+{
 public:
     RPoint();
     RPoint(double x, double y);
@@ -37,11 +38,9 @@ public:
     ~RPoint();
 
     RS::ShapeType getShapeType() const override;
-
-    RPoint *clone() const override;
+    std::shared_ptr<RShape> clone() const override;
 
     RVector getPosition() const;
-
     void setPosition(const RVector &p);
 
     RBox getBoundingBox() const override;

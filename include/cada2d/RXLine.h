@@ -31,7 +31,8 @@
 class RBox;
 class RPolyline;
 
-class CADA_API RXLine : public RShape {
+class CADA_API RXLine : public RShape
+{
 public:
     RXLine();
     RXLine(const RLine &line);
@@ -42,7 +43,7 @@ public:
     RS::ShapeType getShapeType() const override;
 
     RLine getLineShape() const;
-    RXLine *clone() const override;
+    std::shared_ptr<RShape> clone() const override;
 
     bool isDirected() const override;
 
@@ -108,6 +109,7 @@ public:
 
     std::vector<std::shared_ptr<RShape>>
     getOffsetShapes(double distance, int number, RS::Side side,
+                    RS::JoinType join,
                     const RVector &position = RVector::invalid) override;
 
     std::vector<std::shared_ptr<RShape>>

@@ -30,7 +30,8 @@ class RBox;
 class RLine;
 class RPolyline;
 
-class CADA_API RArc : public RShape {
+class CADA_API RArc : public RShape
+{
 public:
     RArc();
     RArc(double cx, double cy, double radius, double startAngle,
@@ -39,7 +40,7 @@ public:
          double endAngle, bool reversed = false);
 
     RS::ShapeType getShapeType() const override;
-    RArc *clone() const override;
+    std::shared_ptr<RShape> clone() const override;
     bool isDirected() const override;
     bool isValid() const override;
     bool isFullCircle(double tolerance = RS::AngleTolerance) const;
@@ -141,6 +142,7 @@ public:
 
     std::vector<std::shared_ptr<RShape>>
     getOffsetShapes(double distance, int number, RS::Side side,
+                    RS::JoinType join,
                     const RVector &position = RVector::invalid) override;
 
     std::vector<std::shared_ptr<RShape>>

@@ -20,8 +20,20 @@
  * IN THE SOFTWARE.
  */
 
-namespace cada {
-namespace algorithm {
+#ifndef REXPLODABLE_H
+#define REXPLODABLE_H
 
-} // namespace algorithm
-} // namespace cada
+#include <cada2d/RShape.h>
+#include <memory>
+
+class CADA_API RExplodable
+{
+public:
+    static constexpr auto RDEFAULT_MIN1 = -1;
+
+    virtual ~RExplodable() {}
+    virtual std::vector<std::shared_ptr<RShape>>
+    getExploded(int segments = RDEFAULT_MIN1) const = 0;
+};
+
+#endif

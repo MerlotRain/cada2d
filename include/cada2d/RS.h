@@ -25,39 +25,45 @@
 
 #include <cada2d/exports.h>
 
-class CADA_API RS {
+class CADA_API RS
+{
 public:
     static constexpr auto AngleTolerance = 1.0e-9;
     static constexpr auto PointTolerance = 1.0e-9;
 
-    enum Side {
+    enum Side
+    {
         NoSide,
         LeftHand,
         RightHand,
         BothSides,
     };
 
-    enum Ending {
+    enum Ending
+    {
         EndingStart,
         EndingEnd,
         EndingNone,
     };
 
-    enum From {
+    enum From
+    {
         FromStart = 0x01,
         FromEnd = 0x02,
         FromAny = FromStart | FromEnd,
         AlongPolyline = 0x04,
     };
 
-    enum Orientation {
+    enum Orientation
+    {
         UnknownOrientation = -1,
         Any = 0,
         CW,
         CCW,
     };
 
-    enum ShapeType {
+    enum ShapeType
+    {
         Unkonwn,
         Point,
         Line,
@@ -70,12 +76,20 @@ public:
         Spline
     };
 
-    enum PolygonOption {
+    enum PolygonOption
+    {
         WithCenterCorner,
         With2PointsOfSide,
         WithCenterSide,
         WithSideSide,
     };
+
+    enum JoinType
+    {
+        Round,
+        Bevel,
+        Miter
+    };
 };
 
-#endif //CADA_RS_H
+#endif// CADA_RS_H

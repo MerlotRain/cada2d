@@ -23,11 +23,11 @@
 #ifndef RSHAPE_H
 #define RSHAPE_H
 
-#include <cada2d/exports.h>
-#include <cada2d/RS.h>
-#include <cada2d/RMath.h>
-#include <cada2d/RVector.h>
 #include <cada2d/RBox.h>
+#include <cada2d/RMath.h>
+#include <cada2d/RS.h>
+#include <cada2d/RVector.h>
+#include <cada2d/exports.h>
 
 #include <memory>
 
@@ -44,19 +44,15 @@ class RSpline;
 #define RDEFAULT_TOLERANCE_1E_MIN4 1.0e-4
 #endif
 
-class CADA_API RShape {
+class CADA_API RShape
+{
 public:
     RShape();
     virtual ~RShape();
     virtual bool isValid() const;
 
     virtual RS::ShapeType getShapeType() const;
-    virtual RShape *clone() const = 0;
-    virtual std::shared_ptr<RShape> cloneToSharedPointer() const
-    {
-        return std::shared_ptr<RShape>(clone());
-    }
-
+    virtual std::shared_ptr<RShape> clone() const = 0;
     virtual bool isInterpolated() const;
 
     virtual RVector
@@ -156,6 +152,7 @@ public:
 
     virtual std::vector<std::shared_ptr<RShape>>
     getOffsetShapes(double distance, int number, RS::Side side,
+                    RS::JoinType join,
                     const RVector &position = RVector::invalid);
 
     virtual std::vector<std::shared_ptr<RShape>>

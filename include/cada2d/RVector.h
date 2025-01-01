@@ -23,9 +23,9 @@
 #ifndef RVECTOR_H
 #define RVECTOR_H
 
-#include <vector>
-#include <cada2d/exports.h>
 #include <cada2d/RS.h>
+#include <cada2d/exports.h>
+#include <vector>
 
 class RBox;
 class RLine;
@@ -33,7 +33,8 @@ class RPolyline;
 
 #define RDEFAULT_RVECTOR RVector()
 
-class CADA_API RVector {
+class CADA_API RVector
+{
 
 public:
     double x;
@@ -70,9 +71,9 @@ public:
     RVector getLerp(const RVector &v, double t) const;
     RVector getUnitVector() const;
     void setX(double x);
-    double getX();
+    double getX() const;
     void setY(double y);
-    double getY();
+    double getY() const;
 
     RVector move(const RVector &offset);
     static void moveList(std::vector<RVector> &list, const RVector &offset);

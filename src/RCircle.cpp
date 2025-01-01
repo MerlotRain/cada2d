@@ -29,9 +29,7 @@
 #include <cada2d/RPolyline.h>
 #include <cada2d/private/RShapePrivate.h>
 
-RCircle::RCircle() : m_center(RVector::invalid), m_radius(0.0)
-{
-}
+RCircle::RCircle() : m_center(RVector::invalid), m_radius(0.0) {}
 
 RCircle::RCircle(double cx, double cy, const double radius)
     : m_center(cx, cy), m_radius(radius)
@@ -43,18 +41,13 @@ RCircle::RCircle(const RVector &center, const double radius)
 {
 }
 
-RCircle::~RCircle()
-{
-}
+RCircle::~RCircle() {}
 
-RS::ShapeType RCircle::getShapeType() const
-{
-    return RS::Circle;
-}
+RS::ShapeType RCircle::getShapeType() const { return RS::Circle; }
 
-RCircle *RCircle::clone() const
+std::shared_ptr<RShape> RCircle::clone() const
 {
-    return new RCircle(*this);
+    return std::shared_ptr<RShape>(new RCircle(*this));
 }
 
 RCircle RCircle::createFrom2Points(const RVector &p1, const RVector &p2)
@@ -85,9 +78,7 @@ RCircle RCircle::createFrom3Points(const RVector &p1, const RVector &p2,
     RLine midLine2(mp2, mp2 + dir2);
 
     std::vector<RVector> ips = midLine1.getIntersectionPoints(midLine2, false);
-    if (ips.size() != 1) {
-        return RCircle();
-    }
+    if (ips.size() != 1) { return RCircle(); }
 
     RVector center = ips[0];
     double radius = center.getDistanceTo(p3);
@@ -101,30 +92,15 @@ RArc RCircle::toArc(double startAngle) const
                 false);
 }
 
-bool RCircle::isValid() const
-{
-    return m_center.isValid();
-}
+bool RCircle::isValid() const { return m_center.isValid(); }
 
-RVector RCircle::getCenter() const
-{
-    return m_center;
-}
+RVector RCircle::getCenter() const { return m_center; }
 
-void RCircle::setCenter(const RVector &vector)
-{
-    m_center = vector;
-}
+void RCircle::setCenter(const RVector &vector) { m_center = vector; }
 
-double RCircle::getRadius() const
-{
-    return m_radius;
-}
+double RCircle::getRadius() const { return m_radius; }
 
-void RCircle::setRadius(double r)
-{
-    m_radius = r;
-}
+void RCircle::setRadius(double r) { m_radius = r; }
 
 RBox RCircle::getBoundingBox() const
 {
@@ -132,40 +108,19 @@ RBox RCircle::getBoundingBox() const
                 m_center + RVector(m_radius, m_radius));
 }
 
-double RCircle::getLength() const
-{
-    return 2 * m_radius * M_PI;
-}
+double RCircle::getLength() const { return 2 * m_radius * M_PI; }
 
-double RCircle::getDiameter() const
-{
-    return 2 * m_radius;
-}
+double RCircle::getDiameter() const { return 2 * m_radius; }
 
-void RCircle::setDiameter(double d)
-{
-    m_radius = d / 2.0;
-}
+void RCircle::setDiameter(double d) { m_radius = d / 2.0; }
 
-double RCircle::getCircumference() const
-{
-    return m_radius * 2 * M_PI;
-}
+double RCircle::getCircumference() const { return m_radius * 2 * M_PI; }
 
-void RCircle::setCircumference(double c)
-{
-    m_radius = c / M_PI / 2.0;
-}
+void RCircle::setCircumference(double c) { m_radius = c / M_PI / 2.0; }
 
-double RCircle::getArea() const
-{
-    return m_radius * m_radius * M_PI;
-}
+double RCircle::getArea() const { return m_radius * m_radius * M_PI; }
 
-void RCircle::setArea(double a)
-{
-    m_radius = sqrt(fabs(a) / M_PI);
-}
+void RCircle::setArea(double a) { m_radius = sqrt(fabs(a) / M_PI); }
 
 bool RCircle::contains(const RVector &p) const
 {
@@ -233,9 +188,7 @@ RVector RCircle::getVectorTo(const RVector &point, bool limited,
     RVector v = point - m_center;
 
     // point is at the center of the circle, infinite solutions:
-    if (v.getMagnitude() < RS::PointTolerance) {
-        return RVector::invalid;
-    }
+    if (v.getMagnitude() < RS::PointTolerance) { return RVector::invalid; }
 
     return RVector::createPolar(v.getMagnitude() - m_radius, v.getAngle());
 }
@@ -247,7 +200,8 @@ RVector RCircle::getPointOnShape() const
 
 bool RCircle::move(const RVector &offset)
 {
-    if (!offset.isValid() || offset.getMagnitude() < RS::PointTolerance) {
+    if (!offset.isValid() || offset.getMagnitude() < RS::PointTolerance)
+    {
         return false;
     }
     m_center += offset;
@@ -256,9 +210,7 @@ bool RCircle::move(const RVector &offset)
 
 bool RCircle::rotate(double rotation, const RVector &c)
 {
-    if (fabs(rotation) < RS::AngleTolerance) {
-        return false;
-    }
+    if (fabs(rotation) < RS::AngleTolerance) { return false; }
     m_center.rotate(rotation, c);
     return true;
 }
@@ -267,9 +219,7 @@ bool RCircle::scale(const RVector &scaleFactors, const RVector &c)
 {
     m_center.scale(scaleFactors, c);
     m_radius *= scaleFactors.x;
-    if (m_radius < 0.0) {
-        m_radius *= -1.0;
-    }
+    if (m_radius < 0.0) { m_radius *= -1.0; }
     return true;
 }
 
@@ -299,20 +249,17 @@ std::vector<RLine> RCircle::getTangents(const RVector &point) const
     RVector thalesCenter = (point + getCenter()) / 2;
     double thalesRadius = point.getDistanceTo(thalesCenter);
 
-    if (thalesRadius < getRadius() / 2.0) {
-        return ret;
-    }
+    if (thalesRadius < getRadius() / 2.0) { return ret; }
 
     RCircle thalesCircle(thalesCenter, thalesRadius);
 
     // get the two intersection points which are the tangent points:
     std::vector<RVector> ips = thalesCircle.getIntersectionPoints(*this, false);
 
-    if (ips.size() > 0) {
+    if (ips.size() > 0)
+    {
         ret.push_back(RLine(point, ips[0]));
-        if (ips.size() > 1) {
-            ret.push_back(RLine(point, ips[1]));
-        }
+        if (ips.size() > 1) { ret.push_back(RLine(point, ips[1])); }
     }
 
     return ret;
@@ -329,9 +276,7 @@ RCircle::getOffsetShapes(double distance, int number, RS::Side side,
 std::vector<std::shared_ptr<RShape>>
 RCircle::splitAt(const std::vector<RVector> &points) const
 {
-    if (points.size() == 0) {
-        return RShape::splitAt(points);
-    }
+    if (points.size() == 0) { return RShape::splitAt(points); }
 
     std::vector<std::shared_ptr<RShape>> ret;
 
@@ -342,22 +287,23 @@ RCircle::splitAt(const std::vector<RVector> &points) const
     startPoint = endPoint = m_center + RVector::createPolar(m_radius, refAngle);
 
     std::vector<RVector> sortedPoints =
-        RVector::getSortedByAngle(points, m_center, refAngle);
+            RVector::getSortedByAngle(points, m_center, refAngle);
 
-    if (!startPoint.equalsFuzzy(sortedPoints[0])) {
+    if (!startPoint.equalsFuzzy(sortedPoints[0]))
+    {
         sortedPoints.insert(sortedPoints.begin(), startPoint);
     }
-    if (!endPoint.equalsFuzzy(sortedPoints[sortedPoints.size() - 1])) {
+    if (!endPoint.equalsFuzzy(sortedPoints[sortedPoints.size() - 1]))
+    {
         sortedPoints.push_back(endPoint);
     }
-    for (int i = 0; i < sortedPoints.size() - 1; i++) {
-        if (sortedPoints[i].equalsFuzzy(sortedPoints[i + 1])) {
-            continue;
-        }
+    for (int i = 0; i < sortedPoints.size() - 1; i++)
+    {
+        if (sortedPoints[i].equalsFuzzy(sortedPoints[i + 1])) { continue; }
 
-        ret.push_back(std::shared_ptr<RShape>(
-            new RArc(m_center, m_radius, m_center.getAngleTo(sortedPoints[i]),
-                     m_center.getAngleTo(sortedPoints[i + 1]), false)));
+        ret.push_back(std::shared_ptr<RShape>(new RArc(
+                m_center, m_radius, m_center.getAngleTo(sortedPoints[i]),
+                m_center.getAngleTo(sortedPoints[i + 1]), false)));
     }
 
     return ret;

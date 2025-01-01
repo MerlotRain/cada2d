@@ -16,6 +16,10 @@ add_library(cada2d SHARED)
 add_subdirectory(include)
 add_subdirectory(src) 
 
+if(WIN32)
+	target_compile_definitions(cada2d PRIVATE CADA_EXPORTS)
+endif()
+
 target_link_libraries(cada2d Eigen3::Eigen apollonius OpenNURBS)
 
 # add_subdirectory(capi)

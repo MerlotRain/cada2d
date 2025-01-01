@@ -23,56 +23,24 @@
 #ifndef RPOLYLINE_H
 #define RPOLYLINE_H
 
+#include <cada2d/RExplodable.h>
 #include <cada2d/RShape.h>
 #include <cada2d/RVector.h>
 
 class RBox;
 class RLine;
 
-#ifndef RDEFAULT_MIN1
-#define RDEFAULT_MIN1 -1
-#endif
-
-class CADA_API PolylineVertex {
+class CADA_API RPolyline : public RShape, public RExplodable
+{
 public:
-    PolylineVertex() = default;
-    PolylineVertex(double x, double y, double bulge, double startWidth = 0.0,
-                   double endWidth = 0.0);
-    PolylineVertex(const RVector &position, double bulge,
-                   double startWidth = 0.0, double endWidth = 0.0);
-    double x() const;
-    double &x();
-    double y() const;
-    double &y();
-    double bulge() const;
-    double &bulge();
-    double startWidth() const;
-    double &startWidth();
-    double endWidth() const;
-    double &endWidth();
-
-    bool bulgeIsZero(double epsilon = RS::PointTolerance) const;
-    bool bulgeIsNeg() const;
-    bool bulgeIsPos() const;
-    RVector const &pos() const;
-    RVector &pos();
-
-private:
-    RVector m_position;
-    double m_bulge;
-    double m_startWidth;
-    double m_endWidth;
-};
-
-class CADA_API RPolyline : public RShape {
 public:
     RPolyline();
-    RPolyline(const std::vector<PolylineVertex> &vertices, bool closed);
+    RPolyline(const std::vector<RVector> &vertices, bool closed);
     RPolyline(const std::vector<std::shared_ptr<RShape>> &segments);
     ~RPolyline();
 
     RS::ShapeType getShapeType() const override;
-    RPolyline *clone() const override;
+    std::shared_ptr<RShape> clone() const override;
     bool isDirected() const override;
 
     void clear();
@@ -129,6 +97,10 @@ public:
     void setEndWidthAt(int i, double w);
     double getEndWidthAt(int i) const;
     bool hasWidths() const;
+    void setStartWidths(const std::vector<double> &sw);
+    std::vector<double> getStartWidths() const;
+    void setEndWidths(const std::vector<double> &ew);
+    std::vector<double> getEndWidths() const;
 
     void setClosed(bool on);
     bool isClosed() const;
@@ -222,7 +194,7 @@ public:
     bool trimEndPoint(double trimDist) override;
 
     std::vector<std::shared_ptr<RShape>>
-    getExploded(int segments = RDEFAULT_MIN1) const;
+    getExploded(int segments = RDEFAULT_MIN1) const override;
     std::vector<RPolyline> getOutline() const;
     std::vector<std::pair<RPolyline, RPolyline>> getLeftRightOutline() const;
     std::vector<RPolyline> getLeftOutline() const;
@@ -280,11 +252,10 @@ protected:
     bool isLineSegment(int i) const;
 
 protected:
-    // std::vector<RVector> m_vertices;
-    // std::vector<double> m_bulges;
-    // std::vector<double> m_endWidths;
-    // std::vector<double> m_startWidths;
-    std::vector<PolylineVertex> m_vertices;
+    std::vector<RVector> m_vertices;
+    std::vector<double> m_bulges;
+    std::vector<double> m_startWidths;
+    std::vector<double> m_endWidths;
     bool m_closed;
 };
 

@@ -34,31 +34,19 @@
 #include <cada2d/RSpline.h>
 #include <cada2d/RXLine.h>
 
-RShape::RShape()
-{
-}
+RShape::RShape() {}
 
-RShape::~RShape()
-{
-}
+RShape::~RShape() {}
 
-bool RShape::isValid() const
-{
-    return true;
-}
+bool RShape::isValid() const { return true; }
 
-RS::ShapeType RShape::getShapeType() const
-{
-    return RS::Unkonwn;
-}
+RS::ShapeType RShape::getShapeType() const { return RS::Unkonwn; }
 
 double RShape::getDistanceTo(const RVector &point, bool limited,
                              double strictRange) const
 {
     RVector v = getVectorTo(point, limited, strictRange);
-    if (v.isValid()) {
-        return v.getMagnitude();
-    }
+    if (v.isValid()) { return v.getMagnitude(); }
     return RNANDOUBLE;
 }
 
@@ -66,9 +54,10 @@ double RShape::getMaxDistanceTo(const std::vector<RVector> &points,
                                 bool limited, double strictRange) const
 {
     double ret = 0.0;
-    for (int i = 0; i < points.size(); i++) {
+    for (int i = 0; i < points.size(); i++)
+    {
         double d = getDistanceTo(points[i], limited, strictRange);
-        ret = std::max(ret, d);
+        ret = qMax(ret, d);
     }
     return ret;
 }
@@ -77,9 +66,7 @@ bool RShape::isOnShape(const RVector &point, bool limited,
                        double tolerance) const
 {
     double d = getDistanceTo(point, limited);
-    if (RMath::isNaN(d)) {
-        return false;
-    }
+    if (RMath::isNaN(d)) { return false; }
     // much more tolerance here (e.g. for ellipses):
     return d < tolerance;
 }
@@ -89,8 +76,10 @@ RShape::filterOnShape(const std::vector<RVector> &pointList, bool limited,
                       double tolerance) const
 {
     std::vector<RVector> ret;
-    for (int i = 0; i < pointList.size(); i++) {
-        if (isOnShape(pointList[i], limited, tolerance)) {
+    for (int i = 0; i < pointList.size(); i++)
+    {
+        if (isOnShape(pointList[i], limited, tolerance))
+        {
             ret.push_back(pointList[i]);
         }
     }
@@ -104,26 +93,19 @@ RVector RShape::getVectorFromEndpointTo(const RVector &point) const
     return point - closest;
 }
 
-bool RShape::isInterpolated() const
-{
-    return false;
-}
+bool RShape::isInterpolated() const { return false; }
 
 RVector RShape::getClosestPointOnShape(const RVector &p, bool limited,
                                        double strictRange) const
 {
     RVector dv = getVectorTo(p, limited, strictRange);
-    if (!dv.isValid()) {
-        return RVector::invalid;
-    }
+    if (!dv.isValid()) { return RVector::invalid; }
     return p - dv;
 }
 
 bool RShape::equals(const RShape &other, double tolerance) const
 {
-    if (getShapeType() != other.getShapeType()) {
-        return false;
-    }
+    if (getShapeType() != other.getShapeType()) { return false; }
 
     return true;
 }
@@ -131,14 +113,10 @@ bool RShape::equals(const RShape &other, double tolerance) const
 RVector RShape::getPointOnShape() const
 {
     std::vector<RVector> midPoints = getMiddlePoints();
-    if (midPoints.size() > 0) {
-        return midPoints[0];
-    }
+    if (midPoints.size() > 0) { return midPoints[0]; }
 
     std::vector<RVector> endPoints = getEndPoints();
-    if (endPoints.size() > 0) {
-        return endPoints[0];
-    }
+    if (endPoints.size() > 0) { return endPoints[0]; }
 
     return getClosestPointOnShape(RVector(0.0, 0.0));
 }
@@ -153,25 +131,17 @@ RVector RShape::getPointWithDistanceToEnd(double distance) const
     return RVector();
 }
 
-double RShape::getAngleAt(double distance, RS::From from) const
-{
-    return 0.0;
-}
+double RShape::getAngleAt(double distance, RS::From from) const { return 0.0; }
 
-double RShape::getAngleAtPoint(const RVector &pos) const
-{
-    return 0.0;
-}
+double RShape::getAngleAtPoint(const RVector &pos) const { return 0.0; }
 
 RVector RShape::getPointAtPercent(double p) const
 {
     double length = getLength();
     double distance = p * length;
     std::vector<RVector> candidates =
-        getPointsWithDistanceToEnd(distance, RS::FromStart);
-    if (candidates.size() != 1) {
-        return RVector::invalid;
-    }
+            getPointsWithDistanceToEnd(distance, RS::FromStart);
+    if (candidates.size() != 1) { return RVector::invalid; }
     return candidates.at(0);
 }
 
@@ -199,45 +169,24 @@ std::vector<RVector> RShape::getSelfIntersectionPoints(double tolerance) const
     return std::vector<RVector>();
 }
 
-bool RShape::isDirected() const
-{
-    return false;
-}
+bool RShape::isDirected() const { return false; }
 
-double RShape::getDirection1() const
-{
-    return 0.0;
-}
+double RShape::getDirection1() const { return 0.0; }
 
-double RShape::getDirection2() const
-{
-    return 0.0;
-}
+double RShape::getDirection2() const { return 0.0; }
 
 RS::Side RShape::getSideOfPoint(const RVector &point) const
 {
     return RS::Side();
 }
 
-RVector RShape::getStartPoint() const
-{
-    return RVector();
-}
+RVector RShape::getStartPoint() const { return RVector(); }
 
-RVector RShape::getEndPoint() const
-{
-    return RVector();
-}
+RVector RShape::getEndPoint() const { return RVector(); }
 
-RVector RShape::getMiddlePoint() const
-{
-    return RVector();
-}
+RVector RShape::getMiddlePoint() const { return RVector(); }
 
-bool RShape::reverse()
-{
-    return false;
-}
+bool RShape::reverse() { return false; }
 
 bool RShape::trimStartPoint(const RVector &trimPoint, const RVector &clickPoint,
                             bool extend)
@@ -245,10 +194,7 @@ bool RShape::trimStartPoint(const RVector &trimPoint, const RVector &clickPoint,
     return false;
 }
 
-bool RShape::trimStartPoint(double trimDist)
-{
-    return false;
-}
+bool RShape::trimStartPoint(double trimDist) { return false; }
 
 bool RShape::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
                           bool extend)
@@ -256,10 +202,7 @@ bool RShape::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
     return false;
 }
 
-bool RShape::trimEndPoint(double trimDist)
-{
-    return false;
-}
+bool RShape::trimEndPoint(double trimDist) { return false; }
 
 RS::Ending RShape::getTrimEnd(const RVector &trimPoint,
                               const RVector &clickPoint)
@@ -267,10 +210,7 @@ RS::Ending RShape::getTrimEnd(const RVector &trimPoint,
     return RS::Ending();
 }
 
-double RShape::getDistanceFromStart(const RVector &p) const
-{
-    return 0.0;
-}
+double RShape::getDistanceFromStart(const RVector &p) const { return 0.0; }
 
 std::vector<double> RShape::getDistancesFromStart(const RVector &p) const
 {
@@ -304,7 +244,8 @@ bool RShape::stretch(const RPolyline &area, const RVector &offset)
 {
     bool ret = false;
 
-    if (area.containsShape(*this)) {
+    if (area.containsShape(*this))
+    {
         // whole shape inside stretch area:
         return move(offset);
     }
@@ -319,7 +260,7 @@ bool RShape::scale(double scaleFactor, const RVector &center)
 
 std::vector<std::shared_ptr<RShape>>
 RShape::getOffsetShapes(double distance, int number, RS::Side side,
-                        const RVector &position)
+                        RS::JoinType join, const RVector &position)
 {
     return std::vector<std::shared_ptr<RShape>>();
 }

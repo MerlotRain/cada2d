@@ -23,12 +23,13 @@
 #ifndef CADA2D_RSHAPEALGORITHM_H
 #define CADA2D_RSHAPEALGORITHM_H
 
-#include <vector>
-#include <cada2d/RShape.h>
 #include <cada2d/RLine.h>
+#include <cada2d/RShape.h>
 #include <cada2d/exports.h>
+#include <vector>
 
-class CADA_API RShapeAlgorithm {
+class CADA_API RShapeAlgorithm
+{
 
 public:
     /**
@@ -57,8 +58,8 @@ public:
      * distribution points
      */
     static std::vector<RVector> calculateEquidistantDistributionPointsOnSurface(
-        const RVector &v1, const RVector &v2, const RVector &v3,
-        const RVector &v4, size_t col, size_t row);
+            const RVector &v1, const RVector &v2, const RVector &v3,
+            const RVector &v4, size_t col, size_t row);
 
     /**
      * @brief Calculate the angle bisector of two line segments
@@ -74,8 +75,8 @@ public:
      * points
      */
     static std::vector<RLine> calculateAngleBisectorOfTwoLineSegments(
-        const RLine &l1, const RLine &l2, const RVector &pos1,
-        const RVector &pos2, double line_length, int line_number);
+            const RLine &l1, const RLine &l2, const RVector &pos1,
+            const RVector &pos2, double line_length, int line_number);
 
     /**
      * @brief Calculate the common tangent between two circles
@@ -226,6 +227,11 @@ public:
     static std::vector<RCircle> apolloniusSolutions(const RShape &shape1,
                                                     const RShape &shape2,
                                                     const RShape &shape3);
+
+    static std::vector<std::shared_ptr<RShape>>
+    trim(const RShape &trimShape, const RVector &trimClickPos,
+         const RShape &limitingShape, const RVector &limitingClickPos,
+         bool trimBoth, bool samePolyline);
 };
 
 #endif /* CADA2D_RSHAPEALGORITHM_H */

@@ -25,21 +25,16 @@
 
 #include <cada2d/RArc.h>
 #include <cada2d/RBox.h>
+#include <cada2d/RExplodable.h>
+#include <cada2d/RPolyline.h>
 #include <cada2d/RShape.h>
 #include <cada2d/RVector.h>
-#include <cada2d/RPolyline.h>
+#include <opennurbs.h>
 
 class RLine;
 
-#ifndef R_NO_OPENNURBS
-#include "opennurbs/opennurbs.h"
-#endif
-
-#ifndef RDEFAULT_MIN1
-#define RDEFAULT_MIN1 -1
-#endif
-
-class CADA_API RSpline : public RShape {
+class CADA_API RSpline : public RShape, public RExplodable
+{
 public:
     RSpline();
     RSpline(const RSpline &other);
@@ -49,7 +44,7 @@ public:
     void copySpline(const RSpline &other);
 
     RS::ShapeType getShapeType() const override;
-    RSpline *clone() const override;
+    std::shared_ptr<RShape> clone() const override;
     bool isDirected() const override;
 
     static std::vector<RSpline> createSplinesFromArc(const RArc &arc);
@@ -174,7 +169,7 @@ public:
                                   double radiusLimit = RDEFAULT_MIN1) const;
 
     std::vector<std::shared_ptr<RShape>>
-    getExploded(int segments = RDEFAULT_MIN1) const;
+    getExploded(int segments = RDEFAULT_MIN1) const override;
     std::vector<std::shared_ptr<RShape>> getExplodedBezier(int segments) const;
     std::vector<std::shared_ptr<RShape>>
     getExplodedWithSegmentLength(double segmentLength) const;
@@ -212,63 +207,24 @@ protected:
     void updateInternal() const;
     void updateBoundingBox() const;
 
-public:
-    // members are mutable, so the spline can update itself from fit points
-
-    /**
-     * \getter{getControlPoints}
-     * \setter{setControlPoints}
-     */
+private:
     mutable std::vector<RVector> m_controlPoints;
-
-    /**
-     * \getter{getKnotVector}
-     */
     mutable std::vector<double> m_knotVector;
-
-    /**
-     * \getter{getWeights}
-     * \setter{setWeights}
-     */
     mutable std::vector<double> m_weights;
-
-    /**
-     * \getter{getFitPoints}
-     * \setter{setFitPoints}
-     */
     std::vector<RVector> m_fitPoints;
-
-    /**
-     * \getter{getDegree}
-     * \setter{setDegree}
-     */
     mutable int m_degree;
-
-    /**
-     * Unit vector start tangent.
-     */
     mutable RVector m_tangentStart;
-
-    /**
-     * Unit vector end tangent.
-     */
     mutable RVector m_tangentEnd;
-
-    /**
-     * Closed periodic flag.
-     */
     mutable bool m_periodic;
 
     mutable bool m_dirty;
     mutable bool m_updateInProgress;
 
 private:
-#ifndef R_NO_OPENNURBS
     mutable ON_NurbsCurve m_curve;
-#endif
     mutable RBox m_boundingBox;
     mutable std::vector<std::shared_ptr<RShape>> m_exploded;
-    // cached length:
+
     mutable double m_length;
 };
 

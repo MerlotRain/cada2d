@@ -23,15 +23,16 @@
 #ifndef RBOX_H
 #define RBOX_H
 
-#include <cada2d/RVector.h>
 #include <cada2d/RShape.h>
+#include <cada2d/RVector.h>
 
 class RLine;
 class RPolyline;
 
 #define RDEFAULT_RBOX RBox()
 
-class CADA_API RBox {
+class CADA_API RBox
+{
 
 public:
     RVector c1;

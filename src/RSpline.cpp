@@ -20,15 +20,15 @@
  * IN THE SOFTWARE.
  */
 
-#include <cmath>
-#include <vector>
-#include <map>
 #include <algorithm>
+#include <cmath>
+#include <map>
+#include <vector>
 
 #include <cada2d/RArc.h>
 #include <cada2d/RLine.h>
-#include <cada2d/RSpline.h>
 #include <cada2d/RPolyline.h>
+#include <cada2d/RSpline.h>
 
 RSpline::RSpline()
     : m_degree(3), m_periodic(false), m_dirty(true), m_updateInProgress(false),
@@ -36,10 +36,7 @@ RSpline::RSpline()
 {
 }
 
-RSpline::RSpline(const RSpline &other)
-{
-    *this = other;
-}
+RSpline::RSpline(const RSpline &other) { *this = other; }
 
 RSpline::RSpline(const std::vector<RVector> &controlPoints, int degree)
     : m_controlPoints(controlPoints), m_degree(degree), m_periodic(false),
@@ -53,14 +50,16 @@ std::vector<RSpline> RSpline::createSplinesFromArc(const RArc &arc)
 {
     RArc a = arc;
     bool reversed = false;
-    if (a.isReversed()) {
+    if (a.isReversed())
+    {
         reversed = true;
         a.reverse();
     }
 
     double startAngle = RMath::getNormalizedAngle(a.getStartAngle());
     double endAngle = RMath::getNormalizedAngle(a.getEndAngle());
-    if (a.isFullCircle()) {
+    if (a.isFullCircle())
+    {
         startAngle = 0.0;
         endAngle = 2 * M_PI;
     }
@@ -69,9 +68,7 @@ std::vector<RSpline> RSpline::createSplinesFromArc(const RArc &arc)
     double twoPI = M_PI * 2;
     // double startAngle = RMath::getNormalizedAngle(a.getStartAngle());
     // double endAngle = RMath::getNormalizedAngle(a.getEndAngle());
-    if (startAngle > endAngle) {
-        startAngle -= 2 * M_PI;
-    }
+    if (startAngle > endAngle) { startAngle -= 2 * M_PI; }
     double radius = a.getRadius();
     double EPSILON = 0.00001;
 
@@ -86,18 +83,18 @@ std::vector<RSpline> RSpline::createSplinesFromArc(const RArc &arc)
     double sgn = (startAngle < endAngle) ? +1 : -1;
 
     double a1 = startAngle;
-    for (double totalAngle = std::min(twoPI, std::fabs(endAngle - startAngle));
-         totalAngle > EPSILON;) {
-        double a2 = a1 + sgn * std::min(totalAngle, segmentationAngle);
+    for (double totalAngle = qMin(twoPI, std::fabs(endAngle - startAngle));
+         totalAngle > EPSILON;)
+    {
+        double a2 = a1 + sgn * qMin(totalAngle, segmentationAngle);
         RSpline sp = RSpline::createBezierFromSmallArc(radius, a1, a2);
         sp.move(a.getCenter());
-        if (reversed) {
+        if (reversed)
+        {
             sp.reverse();
             curves.insert(curves.begin(), sp);
         }
-        else {
-            curves.push_back(sp);
-        }
+        else { curves.push_back(sp); }
         totalAngle -= std::fabs(a2 - a1);
         a1 = a2;
     }
@@ -110,7 +107,7 @@ RSpline RSpline::createBezierFromSmallArc(double r, double a1, double a2)
     // Compute all four points for an arc that subtends the same total angle
     // but is centered on the X-axis
 
-    double a = (a2 - a1) / 2.0; //
+    double a = (a2 - a1) / 2.0;//
 
     double x4 = r * cos(a);
     double y4 = r * sin(a);
@@ -139,10 +136,10 @@ RSpline RSpline::createBezierFromSmallArc(double r, double a1, double a2)
     double sin_ar = sin(ar);
 
     std::vector<RVector> ctrlPts = {
-        RVector(r * cos(a1), r * sin(a1)),
-        RVector(x2 * cos_ar - y2 * sin_ar, x2 * sin_ar + y2 * cos_ar),
-        RVector(x3 * cos_ar - y3 * sin_ar, x3 * sin_ar + y3 * cos_ar),
-        RVector(r * cos(a2), r * sin(a2))};
+            RVector(r * cos(a1), r * sin(a1)),
+            RVector(x2 * cos_ar - y2 * sin_ar, x2 * sin_ar + y2 * cos_ar),
+            RVector(x3 * cos_ar - y3 * sin_ar, x3 * sin_ar + y3 * cos_ar),
+            RVector(r * cos(a2), r * sin(a2))};
 
     // this should be cubic but appears to be far off if cubic
     return RSpline(ctrlPts, 2);
@@ -185,7 +182,8 @@ std::vector<RVector> RSpline::getControlPointsWrapped() const
 
 #ifndef R_NO_OPENNURBS
     ON_3dPoint onp;
-    for (int i = 0; i < m_curve.CVCount(); ++i) {
+    for (int i = 0; i < m_curve.CVCount(); ++i)
+    {
         m_curve.GetCV(i, onp);
         ret.push_back(RVector(onp.x, onp.y));
     }
@@ -194,16 +192,11 @@ std::vector<RVector> RSpline::getControlPointsWrapped() const
     return ret;
 }
 
-int RSpline::countControlPoints() const
-{
-    return m_controlPoints.size();
-}
+int RSpline::countControlPoints() const { return m_controlPoints.size(); }
 
 RVector RSpline::getControlPointAt(int i) const
 {
-    if (i >= 0 && i < m_controlPoints.size()) {
-        return m_controlPoints.at(i);
-    }
+    if (i >= 0 && i < m_controlPoints.size()) { return m_controlPoints.at(i); }
     return RVector::invalid;
 }
 
@@ -233,29 +226,24 @@ void RSpline::insertFitPointAt(double t, const RVector &p)
 {
     // find out index of fit point before t:
     int index = -1;
-    for (int i = 0; i < m_fitPoints.size(); i++) {
+    for (int i = 0; i < m_fitPoints.size(); i++)
+    {
         double tc = getTAtPoint(m_fitPoints[i]);
         if (i == 0 &&
-            (isClosed() || getStartPoint().equalsFuzzy(getEndPoint()))) {
+            (isClosed() || getStartPoint().equalsFuzzy(getEndPoint())))
+        {
             // closed spline: two t's for first fit point:
             tc = 0.0;
         }
-        if (tc < t) {
-            index = i + 1;
-        }
-        else {
-            break;
-        }
+        if (tc < t) { index = i + 1; }
+        else { break; }
     }
 
     // point not on spline:
-    if (index < 0 || index >= m_fitPoints.size()) {
-        if (isClosed()) {
-            index = 0;
-        }
-        else {
-            return;
-        }
+    if (index < 0 || index >= m_fitPoints.size())
+    {
+        if (isClosed()) { index = 0; }
+        else { return; }
     }
 
     m_fitPoints.insert(m_fitPoints.begin() + index, p);
@@ -266,17 +254,17 @@ void RSpline::removeFitPointAt(const RVector &point)
 {
     double minDist = RMAXDOUBLE;
     int index = -1;
-    for (int i = 0; i < m_fitPoints.size(); i++) {
+    for (int i = 0; i < m_fitPoints.size(); i++)
+    {
         double dist = point.getDistanceTo(m_fitPoints[i]);
-        if (dist < minDist) {
+        if (dist < minDist)
+        {
             minDist = dist;
             index = i;
         }
     }
 
-    if (index < 0 || index >= m_fitPoints.size()) {
-        return;
-    }
+    if (index < 0 || index >= m_fitPoints.size()) { return; }
 
     m_fitPoints.erase(m_fitPoints.begin() + index);
     update();
@@ -300,39 +288,26 @@ void RSpline::setFitPoints(const std::vector<RVector> &fitPoints)
     update();
 }
 
-std::vector<RVector> RSpline::getFitPoints() const
-{
-    return m_fitPoints;
-}
+std::vector<RVector> RSpline::getFitPoints() const { return m_fitPoints; }
 
-int RSpline::countFitPoints() const
-{
-    return m_fitPoints.size();
-}
+int RSpline::countFitPoints() const { return m_fitPoints.size(); }
 
-bool RSpline::hasFitPoints() const
-{
-    return !m_fitPoints.empty();
-}
+bool RSpline::hasFitPoints() const { return !m_fitPoints.empty(); }
 
 RVector RSpline::getFitPointAt(int i) const
 {
-    if (i >= 0 && i < m_fitPoints.size()) {
-        return m_fitPoints.at(i);
-    }
+    if (i >= 0 && i < m_fitPoints.size()) { return m_fitPoints.at(i); }
     return RVector::invalid;
 }
 
-std::vector<double> RSpline::getKnotVector() const
-{
-    return m_knotVector;
-}
+std::vector<double> RSpline::getKnotVector() const { return m_knotVector; }
 
 std::vector<double> RSpline::getActualKnotVector() const
 {
     updateInternal();
     std::vector<double> ret;
-    for (int i = 0; i < m_curve.KnotCount(); ++i) {
+    for (int i = 0; i < m_curve.KnotCount(); ++i)
+    {
         ret.push_back(m_curve.Knot(i));
     }
     return ret;
@@ -350,15 +325,9 @@ void RSpline::appendKnot(double k)
     update();
 }
 
-std::vector<double> RSpline::getWeights() const
-{
-    return m_weights;
-}
+std::vector<double> RSpline::getWeights() const { return m_weights; }
 
-void RSpline::setWeights(std::vector<double> &w)
-{
-    m_weights = w;
-}
+void RSpline::setWeights(std::vector<double> &w) { m_weights = w; }
 
 void RSpline::setDegree(int d)
 {
@@ -366,15 +335,9 @@ void RSpline::setDegree(int d)
     update();
 }
 
-int RSpline::getDegree() const
-{
-    return m_degree;
-}
+int RSpline::getDegree() const { return m_degree; }
 
-int RSpline::getOrder() const
-{
-    return m_degree + 1;
-}
+int RSpline::getOrder() const { return m_degree + 1; }
 
 void RSpline::setPeriodic(bool on)
 {
@@ -382,10 +345,7 @@ void RSpline::setPeriodic(bool on)
     update();
 }
 
-bool RSpline::isClosed() const
-{
-    return m_periodic;
-}
+bool RSpline::isClosed() const { return m_periodic; }
 
 bool RSpline::isGeometricallyClosed(double tolerance) const
 {
@@ -393,16 +353,11 @@ bool RSpline::isGeometricallyClosed(double tolerance) const
            getStartPoint().getDistanceTo(getEndPoint()) < tolerance;
 }
 
-bool RSpline::isPeriodic() const
-{
-    return m_periodic;
-}
+bool RSpline::isPeriodic() const { return m_periodic; }
 
 double RSpline::getDirection1() const
 {
-    if (!isValid()) {
-        return 0.0;
-    }
+    if (!isValid()) { return 0.0; }
     updateInternal();
 
     ON_3dVector ontan = m_curve.TangentAt(getTMin());
@@ -412,9 +367,7 @@ double RSpline::getDirection1() const
 
 double RSpline::getDirection2() const
 {
-    if (!isValid()) {
-        return 0.0;
-    }
+    if (!isValid()) { return 0.0; }
     updateInternal();
 
     ON_3dVector ontan = m_curve.TangentAt(getTMax());
@@ -428,10 +381,7 @@ RS::Side RSpline::getSideOfPoint(const RVector &point) const
     return pl.getSideOfPoint(point);
 }
 
-RVector RSpline::getStartPoint() const
-{
-    return getPointAt(getTMin());
-}
+RVector RSpline::getStartPoint() const { return getPointAt(getTMin()); }
 
 void RSpline::setStartPoint(const RVector &v)
 {
@@ -439,10 +389,7 @@ void RSpline::setStartPoint(const RVector &v)
     update();
 }
 
-RVector RSpline::getEndPoint() const
-{
-    return getPointAt(getTMax());
-}
+RVector RSpline::getEndPoint() const { return getPointAt(getTMax()); }
 
 void RSpline::setEndPoint(const RVector &v)
 {
@@ -464,10 +411,7 @@ void RSpline::setTangentAtStart(const RVector &t)
     update();
 }
 
-RVector RSpline::getTangentAtStart() const
-{
-    return m_tangentStart;
-}
+RVector RSpline::getTangentAtStart() const { return m_tangentStart; }
 
 void RSpline::setTangentAtEnd(const RVector &t)
 {
@@ -475,20 +419,11 @@ void RSpline::setTangentAtEnd(const RVector &t)
     update();
 }
 
-RVector RSpline::getTangentAtEnd() const
-{
-    return m_tangentEnd;
-}
+RVector RSpline::getTangentAtEnd() const { return m_tangentEnd; }
 
-void RSpline::unsetTangentAtStart()
-{
-    setTangentAtStart(RVector::invalid);
-}
+void RSpline::unsetTangentAtStart() { setTangentAtStart(RVector::invalid); }
 
-void RSpline::unsetTangentAtEnd()
-{
-    setTangentAtEnd(RVector::invalid);
-}
+void RSpline::unsetTangentAtEnd() { setTangentAtEnd(RVector::invalid); }
 
 void RSpline::unsetTangents()
 {
@@ -519,29 +454,22 @@ RPolyline RSpline::toPolyline(int segments) const
     RPolyline ret;
 
     std::vector<std::shared_ptr<RShape>> lineSegments =
-        getExplodedBezier(segments);
-    for (int k = 0; k < lineSegments.size(); k++) {
+            getExplodedBezier(segments);
+    for (int k = 0; k < lineSegments.size(); k++)
+    {
         std::shared_ptr<RShape> shape = lineSegments[k];
-        if (!shape || !shape->isDirected()) {
-            continue;
-        }
-        if (k == 0) {
-            ret.appendVertex(shape->getStartPoint());
-        }
+        if (!shape || !shape->isDirected()) { continue; }
+        if (k == 0) { ret.appendVertex(shape->getStartPoint()); }
         ret.appendVertex(shape->getEndPoint());
     }
-    if (isClosed()) {
-        ret.setClosed(true);
-    }
+    if (isClosed()) { ret.setClosed(true); }
 
     return ret;
 }
 
 std::vector<std::shared_ptr<RShape>> RSpline::getExploded(int segments) const
 {
-    if (!m_exploded.empty() && segments == -1) {
-        return m_exploded;
-    }
+    if (!m_exploded.empty() && segments == -1) { return m_exploded; }
 
     // ##boundingBox = RBox();
 
@@ -549,13 +477,9 @@ std::vector<std::shared_ptr<RShape>> RSpline::getExploded(int segments) const
 
     m_exploded.clear();
 
-    if (!isValid()) {
-        return m_exploded;
-    }
+    if (!isValid()) { return m_exploded; }
 
-    if (segments == -1) {
-        segments = 8;
-    }
+    if (segments == -1) { segments = 8; }
 
     double tMin = getTMin();
     double tMax = getTMax();
@@ -564,27 +488,23 @@ std::vector<std::shared_ptr<RShape>> RSpline::getExploded(int segments) const
 
     RVector p1;
     RVector prev = RVector::invalid;
-    for (double t = tMin; t < tMax + (step / 2.0); t += step) {
-        double tc = std::min(t, tMax);
+    for (double t = tMin; t < tMax + (step / 2.0); t += step)
+    {
+        double tc = qMin(t, tMax);
         p1 = getPointAt(tc);
 
-        if (RMath::isNaN(p1.x) || RMath::isNaN(p1.y)) {
-            continue;
-        }
+        if (RMath::isNaN(p1.x) || RMath::isNaN(p1.y)) { continue; }
 
-        if (prev.isValid()) {
-            appendToExploded(RLine(prev, p1));
-        }
+        if (prev.isValid()) { appendToExploded(RLine(prev, p1)); }
         prev = p1;
 
         // ##boundingBox.growToInclude(p1);
     }
 
     p1 = getEndPoint();
-    if (!RMath::isNaN(p1.x) && !RMath::isNaN(p1.y)) {
-        if (prev.isValid()) {
-            appendToExploded(RLine(prev, p1));
-        }
+    if (!RMath::isNaN(p1.x) && !RMath::isNaN(p1.y))
+    {
+        if (prev.isValid()) { appendToExploded(RLine(prev, p1)); }
     }
 
     return m_exploded;
@@ -595,7 +515,8 @@ RSpline::getExplodedBezier(int segments) const
 {
     std::vector<std::shared_ptr<RShape>> ret;
     std::vector<RSpline> bezierSegments = getBezierSegments();
-    for (int i = 0; i < bezierSegments.size(); i++) {
+    for (int i = 0; i < bezierSegments.size(); i++)
+    {
         auto tls = bezierSegments[i].getExploded(segments);
         ret.insert(ret.end(), tls.begin(), tls.end());
     }
@@ -604,19 +525,20 @@ RSpline::getExplodedBezier(int segments) const
 
 void RSpline::appendToExploded(const RLine &line) const
 {
-    if (line.getLength() < 1.0e-6) {
-        return;
-    }
+    if (line.getLength() < 1.0e-6) { return; }
 
-    if (!m_exploded.empty()) {
+    if (!m_exploded.empty())
+    {
         // compare angle of this sement with last segment and
         // modify last segment if angle is the same (straight line):
         std::shared_ptr<RLine> prev =
-            std::dynamic_pointer_cast<RLine>(m_exploded.back());
-        if (prev) {
+                std::dynamic_pointer_cast<RLine>(m_exploded.back());
+        if (prev)
+        {
             if (RMath::fuzzyCompare(
-                    prev->getAngle(),
-                    prev->getStartPoint().getAngleTo(line.getEndPoint()))) {
+                        prev->getAngle(),
+                        prev->getStartPoint().getAngleTo(line.getEndPoint())))
+            {
                 prev->setEndPoint(line.getEndPoint());
                 return;
             }
@@ -631,7 +553,8 @@ RSpline::getExplodedWithSegmentLength(double segmentLength) const
 {
     std::vector<std::shared_ptr<RShape>> ret;
     std::vector<RSpline> bezierSegments = getBezierSegments();
-    for (int i = 0; i < bezierSegments.size(); i++) {
+    for (int i = 0; i < bezierSegments.size(); i++)
+    {
         double len = bezierSegments[i].getLength();
         int seg = static_cast<int>(ceil(len / segmentLength));
         auto tls = bezierSegments[i].getExploded(seg);
@@ -642,29 +565,22 @@ RSpline::getExplodedWithSegmentLength(double segmentLength) const
 
 RBox RSpline::getBoundingBox() const
 {
-    if (!isValid()) {
-        return RBox();
-    }
+    if (!isValid()) { return RBox(); }
 
-    if (!m_boundingBox.isValid()) {
-        updateBoundingBox();
-    }
+    if (!m_boundingBox.isValid()) { updateBoundingBox(); }
 
     return m_boundingBox;
 }
 
 double RSpline::getLength() const
 {
-    if (!isValid()) {
-        return 0.0;
-    }
-    if (!m_dirty && !RMath::isNaN(m_length)) {
-        return m_length;
-    }
+    if (!isValid()) { return 0.0; }
+    if (!m_dirty && !RMath::isNaN(m_length)) { return m_length; }
 
     m_length = 0.0;
     std::vector<std::shared_ptr<RShape>> shapes = getExploded();
-    for (int i = 0; i < shapes.size(); i++) {
+    for (int i = 0; i < shapes.size(); i++)
+    {
         std::shared_ptr<RShape> shape = shapes[i];
         m_length += shape->getLength();
     }
@@ -683,9 +599,7 @@ RVector RSpline::getPointAt(double t) const
     updateInternal();
 #ifndef R_NO_OPENNURBS
     ON_3dPoint p = m_curve.PointAt(t);
-    if (p.IsUnset()) {
-        return RVector::invalid;
-    }
+    if (p.IsUnset()) { return RVector::invalid; }
     return RVector(p.x, p.y);
 #else
     return RVector::invalid;
@@ -701,9 +615,7 @@ RVector RSpline::getPointAtDistance(double distance) const
 double RSpline::getAngleAt(double distance, RS::From from) const
 {
     std::vector<RVector> points = getPointsWithDistanceToEnd(distance, from);
-    if (points.size() != 1) {
-        return RNANDOUBLE;
-    }
+    if (points.size() != 1) { return RNANDOUBLE; }
     double t = getTAtPoint(points[0]);
     ON_3dVector v = m_curve.DerivativeAt(t);
     return RVector(v.x, v.y).getAngle();
@@ -745,16 +657,16 @@ std::vector<RVector> RSpline::getPointsWithDistanceToEnd(double distance,
 
     // no spline proxy (not precise, but better than nothing in some cases):
     double length = getLength();
-    if (length <= RS::PointTolerance) {
-        return ret;
-    }
+    if (length <= RS::PointTolerance) { return ret; }
 
-    if (from & RS::FromStart) {
+    if (from & RS::FromStart)
+    {
         RVector p = getPointAt(getTMin() + (distance / length * getTDelta()));
         ret.push_back(p);
     }
 
-    if (from & RS::FromEnd) {
+    if (from & RS::FromEnd)
+    {
         RVector p = getPointAt(getTMin() +
                                ((length - distance) / length * getTDelta()));
         ret.push_back(p);
@@ -776,10 +688,12 @@ RVector RSpline::getVectorTo(const RVector &point, bool limited,
 
     std::vector<std::shared_ptr<RShape>> sub = getExploded();
     std::vector<std::shared_ptr<RShape>>::iterator it;
-    for (it = sub.begin(); it != sub.end(); ++it) {
+    for (it = sub.begin(); it != sub.end(); ++it)
+    {
         RVector v = (*it)->getVectorTo(point, limited, strictRange);
         if (v.isValid() &&
-            (!ret.isValid() || v.getMagnitude() < ret.getMagnitude())) {
+            (!ret.isValid() || v.getMagnitude() < ret.getMagnitude()))
+        {
             ret = v;
         }
     }
@@ -797,10 +711,12 @@ bool RSpline::isOnShape(const RVector &point, bool limited,
 
 bool RSpline::move(const RVector &offset)
 {
-    for (int i = 0; i < m_controlPoints.size(); i++) {
+    for (int i = 0; i < m_controlPoints.size(); i++)
+    {
         m_controlPoints[i].move(offset);
     }
-    for (int i = 0; i < m_fitPoints.size(); i++) {
+    for (int i = 0; i < m_fitPoints.size(); i++)
+    {
         m_fitPoints[i].move(offset);
     }
     update();
@@ -809,13 +725,13 @@ bool RSpline::move(const RVector &offset)
 
 bool RSpline::rotate(double rotation, const RVector &center)
 {
-    if (fabs(rotation) < RS::AngleTolerance) {
-        return false;
-    }
-    for (int i = 0; i < m_controlPoints.size(); i++) {
+    if (fabs(rotation) < RS::AngleTolerance) { return false; }
+    for (int i = 0; i < m_controlPoints.size(); i++)
+    {
         m_controlPoints[i].rotate(rotation, center);
     }
-    for (int i = 0; i < m_fitPoints.size(); i++) {
+    for (int i = 0; i < m_fitPoints.size(); i++)
+    {
         m_fitPoints[i].rotate(rotation, center);
     }
     m_tangentStart.rotate(rotation);
@@ -826,10 +742,12 @@ bool RSpline::rotate(double rotation, const RVector &center)
 
 bool RSpline::scale(const RVector &scaleFactors, const RVector &center)
 {
-    for (int i = 0; i < m_controlPoints.size(); i++) {
+    for (int i = 0; i < m_controlPoints.size(); i++)
+    {
         m_controlPoints[i].scale(scaleFactors, center);
     }
-    for (int i = 0; i < m_fitPoints.size(); i++) {
+    for (int i = 0; i < m_fitPoints.size(); i++)
+    {
         m_fitPoints[i].scale(scaleFactors, center);
     }
     update();
@@ -841,10 +759,12 @@ bool RSpline::mirror(const RLine &axis)
     RVector sp = getStartPoint();
     RVector ep = getEndPoint();
 
-    for (int i = 0; i < m_controlPoints.size(); i++) {
+    for (int i = 0; i < m_controlPoints.size(); i++)
+    {
         m_controlPoints[i].mirror(axis.getStartPoint(), axis.getEndPoint());
     }
-    for (int i = 0; i < m_fitPoints.size(); i++) {
+    for (int i = 0; i < m_fitPoints.size(); i++)
+    {
         m_fitPoints[i].mirror(axis.getStartPoint(), axis.getEndPoint());
     }
 
@@ -865,10 +785,12 @@ bool RSpline::mirror(const RLine &axis)
 
 bool RSpline::flipHorizontal()
 {
-    for (int i = 0; i < m_controlPoints.size(); i++) {
+    for (int i = 0; i < m_controlPoints.size(); i++)
+    {
         m_controlPoints[i].flipHorizontal();
     }
-    for (int i = 0; i < m_fitPoints.size(); i++) {
+    for (int i = 0; i < m_fitPoints.size(); i++)
+    {
         m_fitPoints[i].flipHorizontal();
     }
     m_tangentStart.flipHorizontal();
@@ -879,10 +801,12 @@ bool RSpline::flipHorizontal()
 
 bool RSpline::flipVertical()
 {
-    for (int i = 0; i < m_controlPoints.size(); i++) {
+    for (int i = 0; i < m_controlPoints.size(); i++)
+    {
         m_controlPoints[i].flipVertical();
     }
-    for (int i = 0; i < m_fitPoints.size(); i++) {
+    for (int i = 0; i < m_fitPoints.size(); i++)
+    {
         m_fitPoints[i].flipVertical();
     }
     m_tangentStart.flipVertical();
@@ -894,18 +818,22 @@ bool RSpline::flipVertical()
 bool RSpline::reverse()
 {
     int k;
-    if (!isClosed()) {
-        for (k = 0; k < m_controlPoints.size() / 2; k++) {
+    if (!isClosed())
+    {
+        for (k = 0; k < m_controlPoints.size() / 2; k++)
+        {
             std::swap(m_controlPoints[k],
                       m_controlPoints[m_controlPoints.size() - (1 + k)]);
         }
-        for (k = 0; k < m_fitPoints.size() / 2; k++) {
+        for (k = 0; k < m_fitPoints.size() / 2; k++)
+        {
             std::swap(m_fitPoints[k],
                       m_fitPoints[m_fitPoints.size() - (1 + k)]);
         }
         double t;
         int i, j;
-        for (i = 0, j = m_knotVector.size() - 1; i <= j; i++, j--) {
+        for (i = 0, j = m_knotVector.size() - 1; i <= j; i++, j--)
+        {
             t = m_knotVector[i];
             m_knotVector[i] = -m_knotVector[j];
             m_knotVector[j] = -t;
@@ -914,9 +842,12 @@ bool RSpline::reverse()
         m_tangentStart = m_tangentEnd.getNegated();
         m_tangentEnd = ts.getNegated();
     }
-    else {
-        if (hasFitPoints()) {
-            for (k = 0; k < (int)floor(m_fitPoints.size() / 2.0); k++) {
+    else
+    {
+        if (hasFitPoints())
+        {
+            for (k = 0; k < (int) floor(m_fitPoints.size() / 2.0); k++)
+            {
                 std::swap(m_fitPoints[k],
                           m_fitPoints[m_fitPoints.size() - (1 + k)]);
             }
@@ -925,8 +856,10 @@ bool RSpline::reverse()
             m_fitPoints.pop_back();
             m_fitPoints.insert(m_fitPoints.begin(), e);
         }
-        else {
-            for (k = 0; k < m_controlPoints.size() / 2; k++) {
+        else
+        {
+            for (k = 0; k < m_controlPoints.size() / 2; k++)
+            {
                 std::swap(m_controlPoints[k],
                           m_controlPoints[m_controlPoints.size() - (1 + k)]);
             }
@@ -939,8 +872,10 @@ bool RSpline::reverse()
 
 bool RSpline::stretch(const RPolyline &area, const RVector &offset)
 {
-    if (!m_fitPoints.empty()) {
-        for (int i = 0; i < m_fitPoints.size(); i++) {
+    if (!m_fitPoints.empty())
+    {
+        for (int i = 0; i < m_fitPoints.size(); i++)
+        {
             m_fitPoints[i].stretch(area, offset);
         }
         update();
@@ -951,40 +886,29 @@ bool RSpline::stretch(const RPolyline &area, const RVector &offset)
 
 bool RSpline::isValid() const
 {
-    if (!m_dirty) {
-        return m_curve.IsValid();
-    }
+    if (!m_dirty) { return m_curve.IsValid(); }
 
-    if (m_degree < 1) {
-        return false;
-    }
-    if (hasFitPoints()) {
+    if (m_degree < 1) { return false; }
+    if (hasFitPoints())
+    {
         // spline with two fit points is line:
-        if (m_fitPoints.size() < 2) {
-            return false;
-        }
+        if (m_fitPoints.size() < 2) { return false; }
         return true;
     }
-    else {
-        if (m_controlPoints.size() < m_degree + 1) {
-            return false;
-        }
+    else
+    {
+        if (m_controlPoints.size() < m_degree + 1) { return false; }
         return true;
     }
 }
 
-double RSpline::getTDelta() const
-{
-    return getTMax() - getTMin();
-}
+double RSpline::getTDelta() const { return getTMax() - getTMin(); }
 
 double RSpline::getTMin() const
 {
     updateInternal();
 
-    if (isValid()) {
-        return m_curve.Domain().Min();
-    }
+    if (isValid()) { return m_curve.Domain().Min(); }
 
     return 0.0;
 }
@@ -993,30 +917,16 @@ double RSpline::getTMax() const
 {
     updateInternal();
 
-    if (isValid()) {
-        return m_curve.Domain().Max();
-    }
+    if (isValid()) { return m_curve.Domain().Max(); }
 
     return 0.0;
 }
 
-double RSpline::getTAtPoint(const RVector &point) const
-{
+double RSpline::getTAtPoint(const RVector &point) const { return 0.0; }
 
-    return 0.0;
-}
+double RSpline::getTAtDistance(double distance) const { return 0.0; }
 
-double RSpline::getTAtDistance(double distance) const
-{
-
-    return 0.0;
-}
-
-double RSpline::getDistanceAtT(double t) const
-{
-
-    return 0.0;
-}
+double RSpline::getDistanceAtT(double t) const { return 0.0; }
 
 std::vector<RSpline>
 RSpline::getSegments(const std::vector<RVector> &points) const
@@ -1030,16 +940,19 @@ std::vector<RVector> RSpline::getDiscontinuities() const
 
     std::vector<RVector> ret;
 
-    if (isValid()) {
-        for (int c = 0; c <= 11; c++) {
+    if (isValid())
+    {
+        for (int c = 0; c <= 11; c++)
+        {
             double t0 = getTMin();
             double t1 = getTMax();
             bool found;
             do {
                 double t;
-                found =
-                    m_curve.GetNextDiscontinuity((ON::continuity)c, t0, t1, &t);
-                if (found) {
+                found = m_curve.GetNextDiscontinuity((ON::continuity) c, t0, t1,
+                                                     &t);
+                if (found)
+                {
                     ret.push_back(getPointAt(t));
                     t0 = t;
                 }
@@ -1050,10 +963,7 @@ std::vector<RVector> RSpline::getDiscontinuities() const
     return ret;
 }
 
-RSpline RSpline::simplify(double tolerance)
-{
-    return *this;
-}
+RSpline RSpline::simplify(double tolerance) { return *this; }
 
 void RSpline::invalidate() const
 {
@@ -1065,14 +975,13 @@ void RSpline::invalidate() const
 
 void RSpline::updateInternal() const
 {
-    if (!m_dirty || m_updateInProgress) {
-        return;
-    }
+    if (!m_dirty || m_updateInProgress) { return; }
 
     m_dirty = false;
     m_updateInProgress = true;
 
-    if (m_degree < 1) {
+    if (m_degree < 1)
+    {
         invalidate();
         m_updateInProgress = false;
         return;
@@ -1085,12 +994,8 @@ void RSpline::updateInternal() const
     // control points:
     // TODO: use fitpoints from DXF/DWG file if possible (fit points might not
     // correspond to control points):
-    if (m_fitPoints.size() == 0) {
-        updateFromControlPoints();
-    }
-    else {
-        updateFromFitPoints();
-    }
+    if (m_fitPoints.size() == 0) { updateFromControlPoints(); }
+    else { updateFromFitPoints(); }
 
     // updateBoundingBox();
     m_boundingBox = RBox();
@@ -1101,15 +1006,18 @@ void RSpline::updateInternal() const
 
 void RSpline::updateFromControlPoints() const
 {
-    if (m_controlPoints.size() < m_degree + 1) {
+    if (m_controlPoints.size() < m_degree + 1)
+    {
         invalidate();
         return;
     }
 
     // periodic:
-    if (m_periodic && !hasFitPoints()) {
+    if (m_periodic && !hasFitPoints())
+    {
         ON_3dPoint *points = new ON_3dPoint[m_controlPoints.size()];
-        for (int i = 0; i < m_controlPoints.size(); ++i) {
+        for (int i = 0; i < m_controlPoints.size(); ++i)
+        {
             RVector cp = m_controlPoints.at(i);
             points[i] = ON_3dPoint(cp.x, cp.y, 0);
         }
@@ -1119,12 +1027,14 @@ void RSpline::updateFromControlPoints() const
     }
 
     // open or from fit points:
-    else {
+    else
+    {
         m_curve.Create(3, false, getOrder(), m_controlPoints.size());
         // curve.Create(3, true, getOrder(), controlPoints.size());
 
         // setting control points:
-        for (int i = 0; i < m_controlPoints.size(); ++i) {
+        for (int i = 0; i < m_controlPoints.size(); ++i)
+        {
             RVector cp = m_controlPoints.at(i);
             ON_3dPoint onp(cp.x, cp.y, 0);
             // ON_4dPoint onp(cp.x, cp.y, cp.z, weights.length()>i ?
@@ -1132,26 +1042,27 @@ void RSpline::updateFromControlPoints() const
             m_curve.SetCV(i, onp);
         }
 
-        bool knotCondition =
-            (m_knotVector.size() == getOrder() + m_controlPoints.size() - 2);
+        bool knotCondition = (m_knotVector.size() ==
+                              getOrder() + m_controlPoints.size() - 2);
         // knotCondition = true;
 
         // genetate knot vector automatically:
-        if (m_knotVector.empty() || !knotCondition) {
+        if (m_knotVector.empty() || !knotCondition)
+        {
             int si = ON_KnotCount(getOrder(), m_controlPoints.size());
             double *knot = new double[si];
             // ON_MakePeriodicUniformKnotVector(getOrder(),
             // controlPoints.size(), knot);
             ON_MakeClampedUniformKnotVector(getOrder(), m_controlPoints.size(),
                                             knot);
-            for (int i = 0; i < si; ++i) {
-                m_curve.SetKnot(i, knot[i]);
-            }
+            for (int i = 0; i < si; ++i) { m_curve.SetKnot(i, knot[i]); }
             delete[] knot;
         }
-        else {
+        else
+        {
             int k = 0;
-            for (int i = 0; i < m_knotVector.size(); ++i) {
+            for (int i = 0; i < m_knotVector.size(); ++i)
+            {
                 bool ok = m_curve.SetKnot(k++, m_knotVector.at(i));
             }
         }
@@ -1161,7 +1072,8 @@ void RSpline::updateFromControlPoints() const
 void RSpline::updateFromFitPoints() const
 {
     // spline with two fit points is line:
-    if (m_fitPoints.size() < 2) {
+    if (m_fitPoints.size() < 2)
+    {
         invalidate();
         return;
     }
@@ -1179,29 +1091,26 @@ std::vector<RSpline> RSpline::getBezierSegments(const RBox &queryBox) const
     int ctrlCount = countControlPoints();
 
     // spline is a single bezier segment:
-    if (ctrlCount == getDegree() + 1) {
-        return {*this};
-    }
+    if (ctrlCount == getDegree() + 1) { return {*this}; }
 
     updateInternal();
 
     std::vector<RSpline> ret;
-    if (ctrlCount > 0) {
+    if (ctrlCount > 0)
+    {
         ON_NurbsCurve *dup =
-            dynamic_cast<ON_NurbsCurve *>(m_curve.DuplicateCurve());
-        if (dup == NULL) {
-            return ret;
-        }
+                dynamic_cast<ON_NurbsCurve *>(m_curve.DuplicateCurve());
+        if (dup == NULL) { return ret; }
 
         dup->MakePiecewiseBezier();
-        for (int i = 0; i <= dup->CVCount() - dup->Order(); ++i) {
+        for (int i = 0; i <= dup->CVCount() - dup->Order(); ++i)
+        {
             ON_BezierCurve bc;
-            if (!dup->ConvertSpanToBezier(i, bc)) {
-                continue;
-            }
+            if (!dup->ConvertSpanToBezier(i, bc)) { continue; }
 
             std::vector<RVector> ctrlPts;
-            for (int cpi = 0; cpi < bc.CVCount(); cpi++) {
+            for (int cpi = 0; cpi < bc.CVCount(); cpi++)
+            {
                 ON_3dPoint onp;
                 bc.GetCV(cpi, onp);
                 ctrlPts.push_back(RVector(onp.x, onp.y, 0));
@@ -1209,7 +1118,8 @@ std::vector<RSpline> RSpline::getBezierSegments(const RBox &queryBox) const
             RSpline bezierSegment(ctrlPts, m_degree);
 
             if (!queryBox.isValid() ||
-                queryBox.intersects(bezierSegment.getBoundingBox())) {
+                queryBox.intersects(bezierSegment.getBoundingBox()))
+            {
                 ret.push_back(bezierSegment);
             }
         }
@@ -1225,32 +1135,23 @@ RS::Ending RSpline::getTrimEnd(const RVector &trimPoint,
     double tAtClickPoint = getTAtPoint(clickPoint);
     double tAtTrimPoint = getTAtPoint(trimPoint);
 
-    if (tAtTrimPoint < tAtClickPoint) {
-        return RS::EndingStart;
-    }
-    else {
-        return RS::EndingEnd;
-    }
+    if (tAtTrimPoint < tAtClickPoint) { return RS::EndingStart; }
+    else { return RS::EndingEnd; }
 }
 
 bool RSpline::trimStartPoint(const RVector &trimPoint,
                              const RVector &clickPoint, bool extend)
 {
-    if (!isValid()) {
-        return false;
-    }
-    if (trimPoint.equalsFuzzy(getStartPoint())) {
-        return true;
-    }
-    if (trimPoint.equalsFuzzy(getEndPoint())) {
+    if (!isValid()) { return false; }
+    if (trimPoint.equalsFuzzy(getStartPoint())) { return true; }
+    if (trimPoint.equalsFuzzy(getEndPoint()))
+    {
         this->invalidate();
         return true;
     }
 
     std::vector<RSpline> splines = splitAtPoints({trimPoint});
-    if (splines.size() > 1) {
-        copySpline(splines[1]);
-    }
+    if (splines.size() > 1) { copySpline(splines[1]); }
     update();
     return true;
 }
@@ -1258,21 +1159,16 @@ bool RSpline::trimStartPoint(const RVector &trimPoint,
 bool RSpline::trimEndPoint(const RVector &trimPoint, const RVector &clickPoint,
                            bool extend)
 {
-    if (!isValid()) {
-        return false;
-    }
-    if (trimPoint.equalsFuzzy(getStartPoint())) {
+    if (!isValid()) { return false; }
+    if (trimPoint.equalsFuzzy(getStartPoint()))
+    {
         this->invalidate();
         return true;
     }
-    if (trimPoint.equalsFuzzy(getEndPoint())) {
-        return true;
-    }
+    if (trimPoint.equalsFuzzy(getEndPoint())) { return true; }
 
     std::vector<RSpline> splines = splitAtPoints({trimPoint});
-    if (splines.size() > 0) {
-        copySpline(splines[0]);
-    }
+    if (splines.size() > 0) { copySpline(splines[0]); }
     update();
     return true;
 }
@@ -1287,7 +1183,8 @@ std::vector<RSpline>
 RSpline::splitAtPoints(const std::vector<RVector> &points) const
 {
     std::vector<double> params;
-    for (int i = 0; i < points.size(); i++) {
+    for (int i = 0; i < points.size(); i++)
+    {
         params.push_back(getTAtPoint(points[i]));
     }
     return splitAtParams(params);
@@ -1309,37 +1206,40 @@ void RSpline::update() const
 std::vector<std::shared_ptr<RShape>>
 RSpline::splitAt(const std::vector<RVector> &points) const
 {
-    if (points.size() == 0) {
-        return RShape::splitAt(points);
-    }
+    if (points.size() == 0) { return RShape::splitAt(points); }
 
     std::vector<std::shared_ptr<RShape>> ret;
 
     std::multimap<double, RVector> sortable;
-    for (int i = 0; i < points.size(); i++) {
+    for (int i = 0; i < points.size(); i++)
+    {
         double t = getTAtPoint(points[i]);
         sortable.insert({t, points[i]});
     }
 
     std::vector<double> keys(sortable.size());
     std::transform(
-        sortable.begin(), sortable.end(), keys.begin(),
-        [](const std::pair<double, RVector> &pair) { return pair.first; });
+            sortable.begin(), sortable.end(), keys.begin(),
+            [](const std::pair<double, RVector> &pair) { return pair.first; });
     std::sort(keys.begin(), keys.end());
 
     std::vector<RVector> sortedPoints;
-    for (int i = 0; i < keys.size(); i++) {
+    for (int i = 0; i < keys.size(); i++)
+    {
         std::vector<RVector> values(sortable.size());
-        std::transform(
-            sortable.begin(), sortable.end(), values.begin(),
-            [](const std::pair<double, RVector> &pair) { return pair.second; });
-        for (int k = 0; k < values.size(); k++) {
+        std::transform(sortable.begin(), sortable.end(), values.begin(),
+                       [](const std::pair<double, RVector> &pair) {
+                           return pair.second;
+                       });
+        for (int k = 0; k < values.size(); k++)
+        {
             sortedPoints.push_back(values[k]);
         }
     }
 
     std::vector<RSpline> subSplines = splitAtPoints(sortedPoints);
-    for (int i = 0; i < subSplines.size(); i++) {
+    for (int i = 0; i < subSplines.size(); i++)
+    {
         ret.push_back(std::shared_ptr<RShape>(subSplines[i].clone()));
     }
     return ret;

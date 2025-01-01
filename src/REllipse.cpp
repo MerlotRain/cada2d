@@ -22,10 +22,10 @@
 
 #include <cmath>
 
-#include <cada2d/REllipse.h>
 #include <cada2d/RBox.h>
-#include <cada2d/RMath.h>
+#include <cada2d/REllipse.h>
 #include <cada2d/RLine.h>
+#include <cada2d/RMath.h>
 #include <cada2d/private/RShapePrivate.h>
 
 REllipse::REllipse()
@@ -44,24 +44,23 @@ REllipse::REllipse(const RVector &center, const RVector &majorPoint,
     correctMajorMinor();
 }
 
-REllipse::~REllipse()
-{
-}
+REllipse::~REllipse() {}
 
 REllipse REllipse::createFromQuadratic(double a, double b, double c)
 {
     const double d = a - b;
     const double s = hypot(d, c);
 
-    if (s > a + b)
-        return REllipse();
+    if (s > a + b) return REllipse();
 
     REllipse ellipse;
-    if (a >= b) {
+    if (a >= b)
+    {
         ellipse.setMajorPoint(RVector::createPolar(1.0, atan2(d + s, -c)) /
                               sqrt(0.5 * (a + b - s)));
     }
-    else {
+    else
+    {
         ellipse.setMajorPoint(RVector::createPolar(1.0, atan2(-c, s - d)) /
                               sqrt(0.5 * (a + b - s)));
     }
@@ -83,11 +82,11 @@ REllipse REllipse::createInscribed(const RVector &p1, const RVector &p2,
     RVector centerProjection;
     {
         auto &&deigonal1 =
-            RLine(quad[0].getStartPoint(), quad[1].getEndPoint());
+                RLine(quad[0].getStartPoint(), quad[1].getEndPoint());
         auto &&deigonal2 =
-            RLine(quad[1].getStartPoint(), quad[2].getEndPoint());
+                RLine(quad[1].getStartPoint(), quad[2].getEndPoint());
         auto sol = deigonal1.getIntersectionPoints(deigonal2);
-        if (sol.size() == 0) // this should not happen
+        if (sol.size() == 0)// this should not happen
             return REllipse();
 
         centerProjection = sol.at(0);
@@ -97,44 +96,42 @@ REllipse REllipse::createInscribed(const RVector &p1, const RVector &p2,
     std::vector<RVector> tangent;
     int parallel = 0;
     int parallel_index = 0;
-    for (int i = 0; i <= 1; ++i) {
+    for (int i = 0; i <= 1; ++i)
+    {
         auto sol1 = quad[i].getIntersectionPoints(quad[(i + 1) % 4]);
         RVector direction;
-        if (sol1.size() == 0) {
+        if (sol1.size() == 0)
+        {
             direction = quad[i].getEndPoint() - quad[i].getStartPoint();
             ++parallel;
             parallel_index = i;
         }
-        else {
-            direction = sol1.at(0) - centerProjection;
-        }
+        else { direction = sol1.at(0) - centerProjection; }
 
         auto l = RLine(centerProjection, centerProjection + direction);
-        for (int k = 1; k <= 3; k += 2) {
+        for (int k = 1; k <= 3; k += 2)
+        {
             auto sol2 = l.getIntersectionPoints(quad[(i + k) % 4]);
-            if (sol2.size() > 0)
-                tangent.push_back(sol2.at(0));
+            if (sol2.size() > 0) tangent.push_back(sol2.at(0));
         }
     }
 
-    if (tangent.size() < 3)
-        return REllipse();
+    if (tangent.size() < 3) return REllipse();
 
     // find ellipse center by projection
     RVector ellipseCenter;
     {
         auto cl0 =
-            RLine(quad[1].getEndPoint(), (tangent[0] + tangent[2]) * 0.5);
+                RLine(quad[1].getEndPoint(), (tangent[0] + tangent[2]) * 0.5);
         auto cl1 =
-            RLine(quad[2].getEndPoint(), (tangent[1] + tangent[2]) * 0.5);
+                RLine(quad[2].getEndPoint(), (tangent[1] + tangent[2]) * 0.5);
         auto sol = cl0.getIntersectionPoints(cl1, false);
-        if (sol.size() == 0) {
-            return REllipse();
-        }
+        if (sol.size() == 0) { return REllipse(); }
         ellipseCenter = sol.at(0);
     }
 
-    if (parallel == 1) {
+    if (parallel == 1)
+    {
         // trapezoid
         auto &&l0 = quad[parallel_index];
         auto &&l1 = quad[(parallel_index + 2) % 4];
@@ -150,10 +147,7 @@ REllipse REllipse::createInscribed(const RVector &p1, const RVector &p2,
         double l = ((l0.getLength() + l1.getLength())) * 0.25;
         double k = 4. * d / fabs(l0.getLength() - l1.getLength());
         double theta = d / (l * k);
-        if (theta >= 1. || d < RS::PointTolerance) {
-
-            return REllipse();
-        }
+        if (theta >= 1. || d < RS::PointTolerance) { return REllipse(); }
         theta = asin(theta);
 
         // major axis
@@ -168,14 +162,16 @@ REllipse REllipse::createInscribed(const RVector &p1, const RVector &p2,
     std::vector<double> dn(3);
     RVector angleVector;
 
-    for (size_t i = 0; i < tangent.size(); i++) {
+    for (size_t i = 0; i < tangent.size(); i++)
+    {
         // relative to ellipse center
         tangent[i] -= ellipseCenter;
     }
     std::vector<std::vector<double>> mt;
     mt.clear();
     const double symTolerance = 20. * RS::PointTolerance;
-    for (const RVector &vp : tangent) {
+    for (const RVector &vp: tangent)
+    {
         // form the linear equation need to remove duplicated {x^2, xy, y^2}
         // terms due to symmetry (x => -x, y=> -y) i.e. rotation of 180 degrees
         // around ellipse center
@@ -185,63 +181,68 @@ REllipse REllipse::createInscribed(const RVector &p1, const RVector &p2,
         mtRow.push_back(vp.y * vp.y);
         const double l = hypot(hypot(mtRow[0], mtRow[1]), mtRow[2]);
         bool addRow(true);
-        for (const auto &v : mt) {
+        for (const auto &v: mt)
+        {
             const RVector dv(v[0] - mtRow[0], v[1] - mtRow[1]);
-            if (dv.getMagnitude() < symTolerance * l) {
+            if (dv.getMagnitude() < symTolerance * l)
+            {
                 // symmetric
                 addRow = false;
                 break;
             }
         }
-        if (addRow) {
+        if (addRow)
+        {
             mtRow.push_back(1.);
             mt.push_back(mtRow);
         }
     }
-    switch (mt.size()) {
-    case 2: {
-        // the quadrilateral is a parallelogram fixme, need to handle degenerate
-        // case better double angle(center.angleTo(tangent[0]));
-        RVector majorP(tangent[0]);
-        double dx(majorP.getMagnitude());
-        if (dx < RS::PointTolerance)
-            return REllipse();
-        // refuse to return zero size ellipse
-        angleVector.set(majorP.x / dx, -majorP.y / dx);
-        for (size_t i = 0; i < tangent.size(); i++)
-            tangent[i].rotate(angleVector);
+    switch (mt.size())
+    {
+        case 2:
+            {
+                // the quadrilateral is a parallelogram fixme, need to handle degenerate
+                // case better double angle(center.angleTo(tangent[0]));
+                RVector majorP(tangent[0]);
+                double dx(majorP.getMagnitude());
+                if (dx < RS::PointTolerance) return REllipse();
+                // refuse to return zero size ellipse
+                angleVector.set(majorP.x / dx, -majorP.y / dx);
+                for (size_t i = 0; i < tangent.size(); i++)
+                    tangent[i].rotate(angleVector);
 
-        RVector minorP(tangent[2]);
-        double dy2(minorP.getSquaredMagnitude());
-        // refuse to return zero size ellipse
-        if (fabs(minorP.y) < RS::PointTolerance || dy2 < RS::PointTolerance)
-            return REllipse();
-        double ia2 = 1. / (dx * dx);
-        double ib2 = 1. / (minorP.y * minorP.y);
-        dn[0] = ia2;
-        dn[1] = -2. * ia2 * minorP.x / minorP.y;
-        dn[2] = ib2 * ia2 * minorP.x * minorP.x + ib2;
-    } break;
-    case 4:
-        mt.pop_back();
-        // only 3 points needed to form the qudratic form
-        if (!RMath::linearSolver(mt, dn))
-            return REllipse();
-        break;
-    default:
-        return REllipse(); // invalid quadrilateral
+                RVector minorP(tangent[2]);
+                double dy2(minorP.getSquaredMagnitude());
+                // refuse to return zero size ellipse
+                if (fabs(minorP.y) < RS::PointTolerance ||
+                    dy2 < RS::PointTolerance)
+                    return REllipse();
+                double ia2 = 1. / (dx * dx);
+                double ib2 = 1. / (minorP.y * minorP.y);
+                dn[0] = ia2;
+                dn[1] = -2. * ia2 * minorP.x / minorP.y;
+                dn[2] = ib2 * ia2 * minorP.x * minorP.x + ib2;
+            }
+            break;
+        case 4:
+            mt.pop_back();
+            // only 3 points needed to form the qudratic form
+            if (!RMath::linearSolver(mt, dn)) return REllipse();
+            break;
+        default:
+            return REllipse();// invalid quadrilateral
     }
 
     auto ellipseRet = createFromQuadratic(dn[0], dn[1], dn[2]);
-    if (!ellipseRet.isValid())
-        return REllipse();
+    if (!ellipseRet.isValid()) return REllipse();
     ellipseRet.setCenter(ellipseCenter);
 
     // need to rotate back, for the parallelogram case
-    if (angleVector.valid) {
+    if (angleVector.valid)
+    {
         angleVector.y *= -1.;
         ellipseRet.setCenter(
-            ellipseRet.getCenter().rotate(ellipseCenter, angleVector));
+                ellipseRet.getCenter().rotate(ellipseCenter, angleVector));
         ellipseRet.setMajorPoint(ellipseRet.getCenter().rotate(angleVector));
     }
     return ellipseRet;
@@ -255,8 +256,8 @@ REllipse REllipse::createFrom4Points(const RVector &p1, const RVector &p2,
     std::vector<double> dn;
     int mSize(4);
     mt.resize(mSize);
-    for (int i = 0; i < mSize;
-         i++) { // form the linear equation, c0 x^2 + c1 x + c2 y^2 + c3 y = 1
+    for (int i = 0; i < mSize; i++)
+    {// form the linear equation, c0 x^2 + c1 x + c2 y^2 + c3 y = 1
         mt[i].resize(mSize + 1);
         mt[i][0] = sol[i].x * sol[i].x;
         mt[i][1] = sol[i].x;
@@ -264,37 +265,31 @@ REllipse REllipse::createFrom4Points(const RVector &p1, const RVector &p2,
         mt[i][3] = sol[i].y;
         mt[i][4] = 1.;
     }
-    if (!RMath::linearSolver(mt, dn))
-        return REllipse();
+    if (!RMath::linearSolver(mt, dn)) return REllipse();
     double d(1. + 0.25 * (dn[1] * dn[1] / dn[0] + dn[3] * dn[3] / dn[2]));
     if (fabs(dn[0]) < RS::PointTolerance || fabs(dn[2]) < RS::PointTolerance ||
-        d / dn[0] < RS::PointTolerance || d / dn[2] < RS::PointTolerance) {
+        d / dn[0] < RS::PointTolerance || d / dn[2] < RS::PointTolerance)
+    {
         // ellipse not defined
         return REllipse();
     }
 
-    RVector center(-0.5 * dn[1] / dn[0], -0.5 * dn[3] / dn[2]); // center
+    RVector center(-0.5 * dn[1] / dn[0], -0.5 * dn[3] / dn[2]);// center
     d = sqrt(d / dn[0]);
-    RVector majorP(d, 0.); // major point
+    RVector majorP(d, 0.);// major point
     double ratio = sqrt(dn[0] / dn[2]);
 
     return REllipse(center, majorP, ratio, 0, 2 * M_PI, false);
 }
 
-RS::ShapeType REllipse::getShapeType() const
+RS::ShapeType REllipse::getShapeType() const { return RS::Ellipse; }
+
+std::shared_ptr<RShape> REllipse::clone() const
 {
-    return RS::Ellipse;
+    return std::shared_ptr<RShape>(new REllipse(*this));
 }
 
-REllipse *REllipse::clone() const
-{
-    return new REllipse(*this);
-}
-
-bool REllipse::isDirected() const
-{
-    return true;
-}
+bool REllipse::isDirected() const { return true; }
 
 bool REllipse::isValid() const
 {
@@ -311,23 +306,18 @@ std::vector<RVector> REllipse::getFoci() const
 
 void REllipse::moveStartPoint(const RVector &pos, bool changeAngleOnly)
 {
-    if (changeAngleOnly) {
-        m_startParam = getParamTo(pos);
-    }
-    else {
+    if (changeAngleOnly) { m_startParam = getParamTo(pos); }
+    else
+    {
         RVector ep = getEndPoint();
         double distOri = ep.getDistanceTo(getStartPoint());
         double angleOri = ep.getAngleTo(getStartPoint());
-        if (distOri < RS::PointTolerance) {
-            return;
-        }
+        if (distOri < RS::PointTolerance) { return; }
 
         double distNew = ep.getDistanceTo(pos);
         double angleNew = ep.getAngleTo(pos);
         double factor = distNew / distOri;
-        if (factor < RS::PointTolerance) {
-            return;
-        }
+        if (factor < RS::PointTolerance) { return; }
         double angleDelta = angleNew - angleOri;
 
         m_center.scale(factor, ep);
@@ -339,23 +329,18 @@ void REllipse::moveStartPoint(const RVector &pos, bool changeAngleOnly)
 
 void REllipse::moveEndPoint(const RVector &pos, bool changeAngleOnly)
 {
-    if (changeAngleOnly) {
-        m_endParam = getParamTo(pos);
-    }
-    else {
+    if (changeAngleOnly) { m_endParam = getParamTo(pos); }
+    else
+    {
         RVector sp = getStartPoint();
         double distOri = sp.getDistanceTo(getEndPoint());
         double angleOri = sp.getAngleTo(getEndPoint());
-        if (distOri < RS::PointTolerance) {
-            return;
-        }
+        if (distOri < RS::PointTolerance) { return; }
 
         double distNew = sp.getDistanceTo(pos);
         double angleNew = sp.getAngleTo(pos);
         double factor = distNew / distOri;
-        if (factor < RS::PointTolerance) {
-            return;
-        }
+        if (factor < RS::PointTolerance) { return; }
         double angleDelta = angleNew - angleOri;
 
         m_center.scale(factor, sp);
@@ -377,27 +362,21 @@ double REllipse::getAngleAtPoint(const RVector &pos) const
     posNormalized.rotate(-getAngle());
 
     double angle;
-    if (RMath::fuzzyCompare(posNormalized.y, 0.0)) {
-        if (posNormalized.x > 0) {
-            angle = M_PI / 2;
-        }
-        else {
-            angle = M_PI / 2 * 3;
-        }
+    if (RMath::fuzzyCompare(posNormalized.y, 0.0))
+    {
+        if (posNormalized.x > 0) { angle = M_PI / 2; }
+        else { angle = M_PI / 2 * 3; }
     }
-    else {
+    else
+    {
         double slope = -(pow(getMinorRadius() * 2, 2) * posNormalized.x) /
                        (pow(getMajorRadius() * 2, 2) * posNormalized.y);
         angle = atan(slope) + M_PI;
     }
 
-    if (m_reversed) {
-        angle += M_PI;
-    }
+    if (m_reversed) { angle += M_PI; }
 
-    if (posNormalized.y < 0) {
-        angle += M_PI;
-    }
+    if (posNormalized.y < 0) { angle += M_PI; }
 
     angle += getAngle();
 
@@ -438,34 +417,23 @@ RVector REllipse::getPointOnShape() const
 {
     double sp = m_startParam;
     double ep = m_endParam;
-    if (isReversed()) {
-        if (sp < ep) {
-            sp += M_PI * 2;
-        }
+    if (isReversed())
+    {
+        if (sp < ep) { sp += M_PI * 2; }
     }
-    else {
-        if (ep < sp) {
-            ep += M_PI * 2;
-        }
+    else
+    {
+        if (ep < sp) { ep += M_PI * 2; }
     }
     double mp = (sp + ep) / 2.0;
     return getPointAt(mp);
 }
 
-RVector REllipse::getCenter() const
-{
-    return m_center;
-}
+RVector REllipse::getCenter() const { return m_center; }
 
-void REllipse::setCenter(const RVector &vector)
-{
-    m_center = vector;
-}
+void REllipse::setCenter(const RVector &vector) { m_center = vector; }
 
-RVector REllipse::getMajorPoint() const
-{
-    return m_majorPoint;
-}
+RVector REllipse::getMajorPoint() const { return m_majorPoint; }
 
 void REllipse::setMajorPoint(const RVector &p)
 {
@@ -490,9 +458,7 @@ void REllipse::setMinorPoint(const RVector &p)
 
 bool REllipse::switchMajorMinor()
 {
-    if (fabs(m_ratio) < RS::PointTolerance) {
-        return false;
-    }
+    if (fabs(m_ratio) < RS::PointTolerance) { return false; }
     RVector vp_start = getStartPoint();
     RVector vp_end = getStartPoint();
     RVector vp = getMajorPoint();
@@ -503,10 +469,7 @@ bool REllipse::switchMajorMinor()
     return true;
 }
 
-double REllipse::getRatio() const
-{
-    return m_ratio;
-}
+double REllipse::getRatio() const { return m_ratio; }
 
 void REllipse::setRatio(double r)
 {
@@ -514,25 +477,13 @@ void REllipse::setRatio(double r)
     correctMajorMinor();
 }
 
-double REllipse::getStartParam() const
-{
-    return m_startParam;
-}
+double REllipse::getStartParam() const { return m_startParam; }
 
-void REllipse::setStartParam(double a)
-{
-    m_startParam = a;
-}
+void REllipse::setStartParam(double a) { m_startParam = a; }
 
-double REllipse::getEndParam() const
-{
-    return m_endParam;
-}
+double REllipse::getEndParam() const { return m_endParam; }
 
-void REllipse::setEndParam(double a)
-{
-    m_endParam = a;
-}
+void REllipse::setEndParam(double a) { m_endParam = a; }
 
 double REllipse::getStartAngle() const
 {
@@ -543,9 +494,7 @@ double REllipse::getStartAngle() const
 void REllipse::setStartAngle(double a)
 {
     double p = angleToParam(a);
-    if (RMath::isNaN(p)) {
-        return;
-    }
+    if (RMath::isNaN(p)) { return; }
     m_startParam = p;
 }
 
@@ -558,22 +507,17 @@ double REllipse::getEndAngle() const
 void REllipse::setEndAngle(double a)
 {
     double p = angleToParam(a);
-    if (RMath::isNaN(p)) {
-        return;
-    }
+    if (RMath::isNaN(p)) { return; }
     m_endParam = p;
 }
 
 double REllipse::angleToParam(double a) const
 {
     double p;
-    if (fabs(a - 2 * M_PI) < RS::AngleTolerance) {
-        p = 2 * M_PI;
-    }
-    else if (fabs(a) < RS::AngleTolerance) {
-        p = 0.0;
-    }
-    else {
+    if (fabs(a - 2 * M_PI) < RS::AngleTolerance) { p = 2 * M_PI; }
+    else if (fabs(a) < RS::AngleTolerance) { p = 0.0; }
+    else
+    {
         REllipse normEllipse = *this;
         normEllipse.move(-m_center);
         normEllipse.rotate(-getAngle());
@@ -583,17 +527,13 @@ double REllipse::angleToParam(double a) const
         RLine line(RVector(0, 0),
                    RVector::createPolar(getMajorRadius() * 2, a));
         std::vector<RVector> r =
-            RShape::getIntersectionPoints(line, normEllipse, true);
-        if (r.size() != 1) {
-            return RNANDOUBLE;
-        }
+                RShape::getIntersectionPoints(line, normEllipse, true);
+        if (r.size() != 1) { return RNANDOUBLE; }
 
         p = acos(r[0].x / getMajorRadius());
     }
 
-    if (RMath::getNormalizedAngle(a) > M_PI) {
-        p = 2 * M_PI - p;
-    }
+    if (RMath::getNormalizedAngle(a) > M_PI) { p = 2 * M_PI - p; }
 
     return p;
 }
@@ -602,33 +542,31 @@ double REllipse::getAngleLength(bool allowForZeroLength) const
 {
     double ret = 0.0;
 
-    if (isReversed()) {
-        if (m_startParam < m_endParam) {
+    if (isReversed())
+    {
+        if (m_startParam < m_endParam)
+        {
             ret = m_startParam + 2 * M_PI - m_endParam;
         }
-        else {
-            ret = m_startParam - m_endParam;
-        }
+        else { ret = m_startParam - m_endParam; }
     }
-    else {
-        if (m_endParam < m_startParam) {
+    else
+    {
+        if (m_endParam < m_startParam)
+        {
             ret = m_endParam + 2 * M_PI - m_startParam;
         }
-        else {
-            ret = m_endParam - m_startParam;
-        }
+        else { ret = m_endParam - m_startParam; }
     }
 
     // full ellipse or zero length ellipse arc:
-    if (!allowForZeroLength) {
-        if (fabs(ret) < RS::AngleTolerance) {
-            ret = 2 * M_PI;
-        }
+    if (!allowForZeroLength)
+    {
+        if (fabs(ret) < RS::AngleTolerance) { ret = 2 * M_PI; }
     }
-    else {
-        if (ret > 2 * M_PI - RS::AngleTolerance) {
-            ret = 0.0;
-        }
+    else
+    {
+        if (ret > 2 * M_PI - RS::AngleTolerance) { ret = 0.0; }
     }
 
     return ret;
@@ -636,17 +574,13 @@ double REllipse::getAngleLength(bool allowForZeroLength) const
 
 bool REllipse::isAngleWithinArc(double a) const
 {
-    if (isFullEllipse()) {
-        return true;
-    }
+    if (isFullEllipse()) { return true; }
     return RMath::isAngleBetween(a, getStartAngle(), getEndAngle(), m_reversed);
 }
 
 bool REllipse::isParamWithinArc(double a) const
 {
-    if (isFullEllipse()) {
-        return true;
-    }
+    if (isFullEllipse()) { return true; }
     return RMath::isAngleBetween(a, getStartParam(), getEndParam(), m_reversed);
 }
 
@@ -666,20 +600,14 @@ RVector REllipse::getEndPoint() const
     return p;
 }
 
-double REllipse::getMajorRadius() const
-{
-    return m_majorPoint.getMagnitude();
-}
+double REllipse::getMajorRadius() const { return m_majorPoint.getMagnitude(); }
 
 double REllipse::getMinorRadius() const
 {
     return m_majorPoint.getMagnitude() * m_ratio;
 }
 
-double REllipse::getAngle() const
-{
-    return m_majorPoint.getAngle();
-}
+double REllipse::getAngle() const { return m_majorPoint.getAngle(); }
 
 void REllipse::setAngle(double a)
 {
@@ -694,69 +622,65 @@ bool REllipse::isFullEllipse() const
            (fabs(a1 - a2) < RS::AngleTolerance);
 }
 
-bool REllipse::isCircular() const
-{
-    return getRatio() > (1.0 - 0.001);
-}
+bool REllipse::isCircular() const { return getRatio() > (1.0 - 0.001); }
 
 double REllipse::getLength() const
 {
     double a1, a2;
 
-    if (isFullEllipse()) {
+    if (isFullEllipse())
+    {
         a1 = 0.0;
         a2 = 2 * M_PI;
 
         double a = getMajorRadius();
         double b = getMinorRadius();
-        if (RMath::fuzzyCompare((a + b), 0.0)) {
-            return 0.0;
-        }
+        if (RMath::fuzzyCompare((a + b), 0.0)) { return 0.0; }
         double h = pow((a - b) / (a + b), 2);
 
         return M_PI * (a + b) *
                ((135168 - 85760 * h - 5568 * h * h + 3867 * h * h * h) /
                 (135168 - 119552 * h + 22208 * h * h - 345 * h * h * h));
     }
-    else {
+    else
+    {
         a1 = RMath::getNormalizedAngle(m_startParam);
         a2 = RMath::getNormalizedAngle(m_endParam);
     }
 
-    if (m_reversed) {
+    if (m_reversed)
+    {
         double t = a1;
         a1 = a2;
         a2 = t;
     }
 
-    if (RMath::fuzzyCompare(a2, 0.0)) {
-        a2 = 2 * M_PI;
-    }
+    if (RMath::fuzzyCompare(a2, 0.0)) { a2 = 2 * M_PI; }
 
-    if (fabs(a1 - a2) < RS::AngleTolerance) {
-        return 0.0;
-    }
+    if (fabs(a1 - a2) < RS::AngleTolerance) { return 0.0; }
 
-    if (a1 < a2) {
-        if (a1 < M_PI && a2 <= M_PI) {
-            return getSimpsonLength(a1, a2);
-        }
-        if (a1 < M_PI && a2 > M_PI) {
+    if (a1 < a2)
+    {
+        if (a1 < M_PI && a2 <= M_PI) { return getSimpsonLength(a1, a2); }
+        if (a1 < M_PI && a2 > M_PI)
+        {
             return getSimpsonLength(a1, M_PI) + getSimpsonLength(M_PI, a2);
         }
-        if (a1 >= M_PI && a2 > M_PI) {
-            return getSimpsonLength(a1, a2);
-        }
+        if (a1 >= M_PI && a2 > M_PI) { return getSimpsonLength(a1, a2); }
     }
-    else {
-        if (a1 > M_PI && a2 < M_PI) {
+    else
+    {
+        if (a1 > M_PI && a2 < M_PI)
+        {
             return getSimpsonLength(a1, 2 * M_PI) + getSimpsonLength(0, a2);
         }
-        if (a1 > M_PI && a2 > M_PI) {
+        if (a1 > M_PI && a2 > M_PI)
+        {
             return getSimpsonLength(a1, 2 * M_PI) + getSimpsonLength(0, M_PI) +
                    getSimpsonLength(M_PI, a2);
         }
-        if (a1 < M_PI && a2 < M_PI) {
+        if (a1 < M_PI && a2 < M_PI)
+        {
             return getSimpsonLength(a1, M_PI) +
                    getSimpsonLength(M_PI, 2 * M_PI) + getSimpsonLength(0, a2);
         }
@@ -775,19 +699,15 @@ double REllipse::getSimpsonLength(double a1, double a2) const
     double sum = 0.0;
     double q = 1.0;
 
-    for (int i = 0; i <= interval; ++i) {
+    for (int i = 0; i <= interval; ++i)
+    {
         double y = sqrt(::pow(majorR * sin(a1 + i * df), 2) +
                         ::pow(minorR * cos(a1 + i * df), 2));
-        if (i == 0 || i == interval) {
-            q = 1.0;
-        }
-        else {
-            if (i % 2 == 0) {
-                q = 2.0;
-            }
-            else {
-                q = 4.0;
-            }
+        if (i == 0 || i == interval) { q = 1.0; }
+        else
+        {
+            if (i % 2 == 0) { q = 2.0; }
+            else { q = 4.0; }
         }
 
         sum += q * y;
@@ -806,15 +726,9 @@ bool REllipse::contains(const RVector &p) const
     return (pt.x * pt.x) / (rx * rx) + (pt.y * pt.y) / (ry * ry) <= 1.0;
 }
 
-bool REllipse::isReversed() const
-{
-    return m_reversed;
-}
+bool REllipse::isReversed() const { return m_reversed; }
 
-void REllipse::setReversed(bool r)
-{
-    m_reversed = r;
-}
+void REllipse::setReversed(bool r) { m_reversed = r; }
 
 double REllipse::getDirection1() const
 {
@@ -828,21 +742,15 @@ double REllipse::getDirection2() const
 
 RS::Side REllipse::getSideOfPoint(const RVector &point) const
 {
-    if (contains(point)) {
-        if (!m_reversed) {
-            return RS::RightHand;
-        }
-        else {
-            return RS::LeftHand;
-        }
+    if (contains(point))
+    {
+        if (!m_reversed) { return RS::RightHand; }
+        else { return RS::LeftHand; }
     }
-    else {
-        if (!m_reversed) {
-            return RS::LeftHand;
-        }
-        else {
-            return RS::RightHand;
-        }
+    else
+    {
+        if (!m_reversed) { return RS::LeftHand; }
+        else { return RS::RightHand; }
     }
 }
 
@@ -856,10 +764,10 @@ RBox REllipse::getBoundingBox() const
     RVector startPoint = getStartPoint();
     RVector endPoint = getEndPoint();
 
-    double minX = std::min(startPoint.x, endPoint.x);
-    double minY = std::min(startPoint.y, endPoint.y);
-    double maxX = std::max(startPoint.x, endPoint.x);
-    double maxY = std::max(startPoint.y, endPoint.y);
+    double minX = qMin(startPoint.x, endPoint.x);
+    double minY = qMin(startPoint.y, endPoint.y);
+    double maxX = qMax(startPoint.x, endPoint.x);
+    double maxY = qMax(startPoint.y, endPoint.y);
 
     // kind of a brute force. TODO: exact calculation
     RVector vp;
@@ -868,10 +776,10 @@ RBox REllipse::getBoundingBox() const
         vp.set(m_center.x + radius1 * cos(a), m_center.y + radius2 * sin(a));
         vp.rotate(angle, m_center);
 
-        minX = std::min(minX, vp.x);
-        minY = std::min(minY, vp.y);
-        maxX = std::max(maxX, vp.x);
-        maxY = std::max(maxY, vp.y);
+        minX = qMin(minX, vp.x);
+        minY = qMin(minY, vp.y);
+        maxX = qMax(maxX, vp.x);
+        maxY = qMax(maxY, vp.y);
 
         a += 0.03;
     } while (RMath::isAngleBetween(a, a1, a2, false) && a < 4 * M_PI);
@@ -927,16 +835,19 @@ RVector REllipse::getVectorTo(const RVector &point, bool limited,
 
     // special case: point in line with major axis:
     if (fabs(normalized.getAngle()) < RS::AngleTolerance ||
-        fabs(normalized.getAngle()) > 2 * M_PI - RS::AngleTolerance) {
+        fabs(normalized.getAngle()) > 2 * M_PI - RS::AngleTolerance)
+    {
         ret = RVector(getMajorRadius(), 0.0);
         // dDistance = ret.distanceTo(normalized);
     }
 
-    else if (fabs(normalized.getAngle() - M_PI) < RS::AngleTolerance) {
+    else if (fabs(normalized.getAngle() - M_PI) < RS::AngleTolerance)
+    {
         ret = RVector(-getMajorRadius(), 0.0);
         // dDistance = ret.distanceTo(normalized);
     }
-    else {
+    else
+    {
         double dU = normalized.x;
         double dV = normalized.y;
         double dA = getMajorRadius();
@@ -947,7 +858,8 @@ RVector REllipse::getVectorTo(const RVector &point, bool limited,
         double rdX = 0.0;
         double rdY = 0.0;
 
-        if (dA < dB) {
+        if (dA < dB)
+        {
             double dum = dA;
             dA = dB;
             dB = dum;
@@ -957,7 +869,8 @@ RVector REllipse::getVectorTo(const RVector &point, bool limited,
             majorSwap = true;
         }
 
-        if (dV < 0.0) {
+        if (dV < 0.0)
+        {
             dV *= -1.0;
             swap = true;
         }
@@ -967,7 +880,8 @@ RVector REllipse::getVectorTo(const RVector &point, bool limited,
 
         // newton's method:
         int i;
-        for (i = 0; i < iMax; i++) {
+        for (i = 0; i < iMax; i++)
+        {
             double dTpASqr = dT + dA * dA;
             double dTpBSqr = dT + dB * dB;
             double dInvTpASqr = 1.0 / dTpASqr;
@@ -977,18 +891,20 @@ RVector REllipse::getVectorTo(const RVector &point, bool limited,
             double dXDivASqr = dXDivA * dXDivA;
             double dYDivBSqr = dYDivB * dYDivB;
             double dF = dXDivASqr + dYDivBSqr - 1.0;
-            if (fabs(dF) < dEpsilon) {
+            if (fabs(dF) < dEpsilon)
+            {
                 // f(t0) is very close to zero:
                 rdX = dXDivA * dA;
                 rdY = dYDivB * dB;
                 break;
             }
             double dFDer =
-                2.0 * (dXDivASqr * dInvTpASqr + dYDivBSqr * dInvTpBSqr);
+                    2.0 * (dXDivASqr * dInvTpASqr + dYDivBSqr * dInvTpBSqr);
 
             double dRatio = dF / dFDer;
 
-            if (fabs(dRatio) < dEpsilon) {
+            if (fabs(dRatio) < dEpsilon)
+            {
                 // t1-t0 is very close to zero:
                 rdX = dXDivA * dA;
                 rdY = dYDivB * dB;
@@ -997,12 +913,14 @@ RVector REllipse::getVectorTo(const RVector &point, bool limited,
             dT += dRatio;
         }
 
-        if (i == iMax) {
+        if (i == iMax)
+        {
             // failed to converge:
             // dDistance = RMAXDOUBLE;
             ret = RVector::invalid;
         }
-        else {
+        else
+        {
             // double dDelta0 = rdX - dU;
             // double dDelta1 = rdY - dV;
             // dDistance = sqrt(dDelta0*dDelta0 + dDelta1*dDelta1);
@@ -1010,22 +928,24 @@ RVector REllipse::getVectorTo(const RVector &point, bool limited,
         }
     }
 
-    if (ret.isValid()) {
-        if (swap) {
-            ret.y *= -1.0;
-        }
-        if (majorSwap) {
+    if (ret.isValid())
+    {
+        if (swap) { ret.y *= -1.0; }
+        if (majorSwap)
+        {
             double dum = ret.x;
             ret.x = ret.y;
             ret.y = dum;
         }
         ret = (ret.rotate(ang) + m_center);
 
-        if (limited) {
+        if (limited)
+        {
             double a1 = m_center.getAngleTo(getStartPoint());
             double a2 = m_center.getAngleTo(getEndPoint());
             double a = m_center.getAngleTo(ret);
-            if (!RMath::isAngleBetween(a, a1, a2, m_reversed)) {
+            if (!RMath::isAngleBetween(a, a1, a2, m_reversed))
+            {
                 ret = RVector::invalid;
             }
         }
@@ -1036,7 +956,8 @@ RVector REllipse::getVectorTo(const RVector &point, bool limited,
 
 bool REllipse::move(const RVector &offset)
 {
-    if (!offset.isValid() || offset.getMagnitude() < RS::PointTolerance) {
+    if (!offset.isValid() || offset.getMagnitude() < RS::PointTolerance)
+    {
         return false;
     }
     m_center += offset;
@@ -1045,9 +966,7 @@ bool REllipse::move(const RVector &offset)
 
 bool REllipse::rotate(double rotation, const RVector &c)
 {
-    if (fabs(rotation) < RS::AngleTolerance) {
-        return false;
-    }
+    if (fabs(rotation) < RS::AngleTolerance) { return false; }
 
     m_center.rotate(rotation, c);
     m_majorPoint.rotate(rotation);
@@ -1070,18 +989,20 @@ std::vector<RVector> REllipse::getBoxCorners()
 
 bool REllipse::scale(const RVector &scaleFactors, const RVector &c)
 {
-    if (fabs(fabs(scaleFactors.x) - fabs(scaleFactors.y)) >
-        RS::PointTolerance) {
+    if (fabs(fabs(scaleFactors.x) - fabs(scaleFactors.y)) > RS::PointTolerance)
+    {
         return false;
     }
 
     // RVector oldMinorPoint = getMinorPoint();
 
     // negative scaling: mirroring and scaling
-    if (scaleFactors.x < 0.0) {
+    if (scaleFactors.x < 0.0)
+    {
         mirror(RLine(m_center, m_center + RVector(0.0, 1.0)));
     }
-    if (scaleFactors.y < 0.0) {
+    if (scaleFactors.y < 0.0)
+    {
         mirror(RLine(m_center, m_center + RVector(1.0, 0.0)));
     }
 
@@ -1104,7 +1025,8 @@ bool REllipse::mirror(const RLine &axis)
 
     m_majorPoint = mp - m_center;
 
-    if (!isFullEllipse()) {
+    if (!isFullEllipse())
+    {
         m_reversed = (!m_reversed);
 
         sp.mirror(axis.getStartPoint(), axis.getEndPoint());
@@ -1130,12 +1052,11 @@ RS::Ending REllipse::getTrimEnd(const RVector &trimPoint,
     double paramToClickPoint = getParamTo(clickPoint);
     double paramToTrimPoint = getParamTo(trimPoint);
 
-    if (RMath::getAngleDifference(paramToTrimPoint, paramToClickPoint) > M_PI) {
+    if (RMath::getAngleDifference(paramToTrimPoint, paramToClickPoint) > M_PI)
+    {
         return RS::EndingStart;
     }
-    else {
-        return RS::EndingEnd;
-    }
+    else { return RS::EndingEnd; }
 }
 
 bool REllipse::trimStartPoint(const RVector &trimPoint,
@@ -1166,7 +1087,8 @@ bool REllipse::trimEndPoint(double trimDist)
 
 void REllipse::correctMajorMinor()
 {
-    if (m_ratio > 1.0) {
+    if (m_ratio > 1.0)
+    {
         RVector mp = getMinorPoint();
         m_ratio = 1.0 / m_ratio;
         setMajorPoint(mp);
@@ -1179,21 +1101,21 @@ double REllipse::getSweep() const
 {
     double ret = 0.0;
 
-    if (m_reversed) {
-        if (m_startParam <= m_endParam) {
+    if (m_reversed)
+    {
+        if (m_startParam <= m_endParam)
+        {
             ret = -(m_startParam + 2 * M_PI - m_endParam);
         }
-        else {
-            ret = -(m_startParam - m_endParam);
-        }
+        else { ret = -(m_startParam - m_endParam); }
     }
-    else {
-        if (m_endParam <= m_startParam) {
+    else
+    {
+        if (m_endParam <= m_startParam)
+        {
             ret = m_endParam + 2 * M_PI - m_startParam;
         }
-        else {
-            ret = m_endParam - m_startParam;
-        }
+        else { ret = m_endParam - m_startParam; }
     }
 
     return ret;
@@ -1203,43 +1125,42 @@ std::vector<RLine> REllipse::getTangents(const RVector &point) const
 {
     std::vector<RLine> ret;
 
-    if (getDistanceTo(point, false) < RS::PointTolerance) {
+    if (getDistanceTo(point, false) < RS::PointTolerance)
+    {
         // point is on ellipse:
         return ret;
     }
 
     // point is at center (prevents recursion when swapping ellipse minor /
     // major):
-    if (point.getDistanceTo(getCenter()) < RS::PointTolerance) {
-        return ret;
-    }
+    if (point.getDistanceTo(getCenter()) < RS::PointTolerance) { return ret; }
 
     // swap ellipse minor / major if point is on minor axis
     // 20120928: and not also on major axis (prevent recursion):
     RLine minorAxis(getCenter(), getCenter() + getMinorPoint());
     RLine majorAxis(getCenter(), getCenter() + getMajorPoint());
-    if (minorAxis.isOnShape(point, false) &&
-        !majorAxis.isOnShape(point, false)) {
+    if (minorAxis.isOnShape(point, false) && !majorAxis.isOnShape(point, false))
+    {
         REllipse e2 = *this;
         e2.m_majorPoint = getMinorPoint();
         e2.m_ratio = 1.0 / m_ratio;
         return e2.getTangents(point);
     }
 
-    double a = getMajorRadius(); // the length of the major axis / 2
-    double b = getMinorRadius(); // the length of the minor axis / 2
+    double a = getMajorRadius();// the length of the major axis / 2
+    double b = getMinorRadius();// the length of the minor axis / 2
 
     // rotate and move point:
     RVector point2 = point;
     point2.move(-getCenter());
     point2.rotate(-getAngle());
 
-    double xp = point2.x; // coordinates of the given point
+    double xp = point2.x;// coordinates of the given point
     double yp = point2.y;
 
-    double xt1; // Tangent point 1
+    double xt1;// Tangent point 1
     double yt1;
-    double xt2; // Tangent point 2
+    double xt2;// Tangent point 2
     double yt2;
 
     double a2 = a * a;
@@ -1250,9 +1171,7 @@ std::vector<RLine> REllipse::getTangents(const RVector &point) const
     double bf = -b2 * d * e * 2.0;
     double cf = b2 * e * e - a2 * b2;
     double t = sqrt(bf * bf - af * cf * 4.0);
-    if (RMath::isNaN(t)) {
-        return ret;
-    }
+    if (RMath::isNaN(t)) { return ret; }
 
     yt1 = (t - bf) / (af * 2.0);
     xt1 = e - d * yt1;
@@ -1267,13 +1186,9 @@ std::vector<RLine> REllipse::getTangents(const RVector &point) const
     s2.rotate(getAngle());
     s2.move(getCenter());
 
-    if (s1.isValid()) {
-        ret.push_back(RLine(point, s1));
-    }
+    if (s1.isValid()) { ret.push_back(RLine(point, s1)); }
 
-    if (s2.isValid()) {
-        ret.push_back(RLine(point, s2));
-    }
+    if (s2.isValid()) { ret.push_back(RLine(point, s2)); }
 
     return ret;
 }
@@ -1290,15 +1205,18 @@ RVector REllipse::getTangentPoint(const RLine &line) const
 
     // calculate slope and y-intercept of the transformed line
     // check for vertical line:
-    if (lineNeutral.isVertical()) {
+    if (lineNeutral.isVertical())
+    {
         // for vertical line, check if it passes through ellipse's major axis
         if (RMath::fuzzyCompare(lineNeutral.getStartPoint().x,
-                                getMajorRadius())) {
+                                getMajorRadius()))
+        {
             return getCenter() + getMajorPoint();
         }
 
         if (RMath::fuzzyCompare(lineNeutral.getStartPoint().x,
-                                -getMajorRadius())) {
+                                -getMajorRadius()))
+        {
             return getCenter() - getMajorPoint();
         }
 
@@ -1312,7 +1230,7 @@ RVector REllipse::getTangentPoint(const RLine &line) const
 
     // y-intersept:
     double c =
-        lineNeutral.getStartPoint().y - m * lineNeutral.getStartPoint().x;
+            lineNeutral.getStartPoint().y - m * lineNeutral.getStartPoint().x;
 
     double a = getMajorRadius();
     double b = getMinorRadius();
@@ -1324,7 +1242,8 @@ RVector REllipse::getTangentPoint(const RLine &line) const
     double discriminant = B * B - 4 * A * C;
 
     // for a tangent line, discriminant should be zero (one real root):
-    if (RMath::fuzzyCompare(discriminant, 0.0, 0.001)) {
+    if (RMath::fuzzyCompare(discriminant, 0.0, 0.001))
+    {
         double x = -B / (2 * A);
         double y = m * x + c;
 
@@ -1349,81 +1268,71 @@ RPolyline REllipse::approximateWithArcs(int segments) const
 
 std::vector<std::shared_ptr<RShape>>
 REllipse::getOffsetShapes(double distance, int number, RS::Side side,
-                          const RVector &position)
+                          RS::JoinType join, const RVector &position)
 {
     std::vector<std::shared_ptr<RShape>> ret;
-    REllipse *ellipse = dynamic_cast<REllipse *>(clone());
-    if (ellipse == NULL) {
-        return ret;
-    }
+    std::shared_ptr<REllipse> ellipse =
+            std::dynamic_pointer_cast<REllipse>(clone());
+    if (ellipse == NULL) { return ret; }
 
     RVector center = ellipse->getCenter();
 
-    if (ellipse->isReversed()) {
-        ellipse->reverse();
-    }
+    if (ellipse->isReversed()) { ellipse->reverse(); }
 
     std::vector<bool> insides;
-    if (position.isValid()) {
+    if (position.isValid())
+    {
         double ang = center.getAngleTo(position) - ellipse->getAngle();
         double t = ellipse->angleToParam(ang);
         RVector p = ellipse->getPointAt(t);
         insides.push_back(center.getDistanceTo(position) <
                           center.getDistanceTo(p));
     }
-    else {
-        if (side == RS::BothSides) {
+    else
+    {
+        if (side == RS::BothSides)
+        {
             insides.push_back(true);
             insides.push_back(false);
         }
-        else {
-            if (side == RS::LeftHand) {
-                insides.push_back(true);
-            }
-            else {
-                insides.push_back(false);
-            }
+        else
+        {
+            if (side == RS::LeftHand) { insides.push_back(true); }
+            else { insides.push_back(false); }
         }
     }
 
     double a = ellipse->getMajorRadius();
     double b = ellipse->getMinorRadius();
 
-    for (int i = 0; i < insides.size(); i++) {
+    for (int i = 0; i < insides.size(); i++)
+    {
         bool inside = insides[i];
         double d = distance;
 
-        if (inside) {
-            d *= -1;
-        }
+        if (inside) { d *= -1; }
 
-        for (int n = 1; n <= number; ++n) {
+        for (int n = 1; n <= number; ++n)
+        {
             RPolyline *pl = NULL;
             pl = new RPolyline();
 
             double endParam = ellipse->getEndParam();
             double startParam = ellipse->getStartParam();
-            if (RMath::fuzzyCompare(endParam, 0.0)) {
-                endParam = 2 * M_PI;
-            }
+            if (RMath::fuzzyCompare(endParam, 0.0)) { endParam = 2 * M_PI; }
 
-            if (endParam < startParam) {
-                endParam += 2 * M_PI;
-            }
+            if (endParam < startParam) { endParam += 2 * M_PI; }
 
             double k = d * n;
             double tMax = endParam + 0.1;
-            if (ellipse->isFullEllipse()) {
-                tMax = endParam;
-            }
+            if (ellipse->isFullEllipse()) { tMax = endParam; }
 
-            for (double t = startParam; t < tMax; t += 0.1) {
-                if (t > endParam) {
-                    t = endParam;
-                }
+            for (double t = startParam; t < tMax; t += 0.1)
+            {
+                if (t > endParam) { t = endParam; }
 
                 double root =
-                    sqrt(a * a * pow(sin(t), 2) + b * b * pow(cos(t), 2));
+                        sqrt(a * a * pow(sin(t), 2) + b * b * pow(cos(t), 2));
                 double x = (a + (b * k) / root) * cos(t);
                 double y = (b + (a * k) / root) * sin(t);
                 RVector v(x, y);
@@ -1433,7 +1342,8 @@ REllipse::getOffsetShapes(double distance, int number, RS::Side side,
                 pl->appendVertex(v);
             }
 
-            if (ellipse->isFullEllipse()) {
+            if (ellipse->isFullEllipse())
+            {
                 // no ellipse proxy: offset curve is polyline:
                 pl->setClosed(true);
             }
@@ -1448,13 +1358,12 @@ REllipse::getOffsetShapes(double distance, int number, RS::Side side,
 std::vector<std::shared_ptr<RShape>>
 REllipse::splitAt(const std::vector<RVector> &points) const
 {
-    if (points.size() == 0) {
-        return RShape::splitAt(points);
-    }
+    if (points.size() == 0) { return RShape::splitAt(points); }
 
     std::vector<std::shared_ptr<RShape>> ret;
 
-    if (m_reversed) {
+    if (m_reversed)
+    {
         REllipse ellipse = *this;
         ellipse.reverse();
         ret = ellipse.splitAt(points);
@@ -1465,20 +1374,22 @@ REllipse::splitAt(const std::vector<RVector> &points) const
     RVector endPoint = getEndPoint();
 
     std::vector<RVector> sortedPoints = RVector::getSortedByAngle(
-        points, m_center, m_center.getAngleTo(startPoint));
+            points, m_center, m_center.getAngleTo(startPoint));
 
-    if (!startPoint.equalsFuzzy(sortedPoints[0])) {
+    if (!startPoint.equalsFuzzy(sortedPoints[0]))
+    {
         sortedPoints.insert(sortedPoints.begin(), startPoint);
     }
-    if (!endPoint.equalsFuzzy(sortedPoints[sortedPoints.size() - 1])) {
+    if (!endPoint.equalsFuzzy(sortedPoints[sortedPoints.size() - 1]))
+    {
         sortedPoints.push_back(endPoint);
     }
-    for (int i = 0; i < sortedPoints.size() - 1; i++) {
-        if (sortedPoints[i].equalsFuzzy(sortedPoints[i + 1])) {
-            continue;
-        }
+    for (int i = 0; i < sortedPoints.size() - 1; i++)
+    {
+        if (sortedPoints[i].equalsFuzzy(sortedPoints[i + 1])) { continue; }
 
-        REllipse *seg = clone();
+        std::shared_ptr<REllipse> seg =
+                std::dynamic_pointer_cast<REllipse>(clone());
         seg->setStartParam(seg->getParamTo(sortedPoints[i]));
         seg->setEndParam(seg->getParamTo(sortedPoints[i + 1]));
         ret.push_back(std::shared_ptr<RShape>(seg));

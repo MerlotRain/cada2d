@@ -23,53 +23,31 @@
 #include <cmath>
 
 #include <cada2d/RBox.h>
-#include <cada2d/RPoint.h>
 #include <cada2d/RLine.h>
+#include <cada2d/RPoint.h>
 
-RPoint::RPoint()
+RPoint::RPoint() {}
+
+RPoint::RPoint(double x, double y) : m_position(x, y) {}
+
+RPoint::RPoint(const RVector &position) : m_position(position) {}
+
+RPoint::~RPoint() {}
+
+RS::ShapeType RPoint::getShapeType() const { return RS::Point; }
+
+RVector RPoint::getPosition() const { return RVector(); }
+
+void RPoint::setPosition(const RVector &p) {}
+
+std::shared_ptr<RShape> RPoint::clone() const
 {
+    return std::shared_ptr<RShape>(new RPoint(*this));
 }
 
-RPoint::RPoint(double x, double y) : m_position(x, y)
-{
-}
+RBox RPoint::getBoundingBox() const { return RBox(m_position, m_position); }
 
-RPoint::RPoint(const RVector &position) : m_position(position)
-{
-}
-
-RPoint::~RPoint()
-{
-}
-
-RS::ShapeType RPoint::getShapeType() const
-{
-    return RS::Point;
-}
-
-RVector RPoint::getPosition() const
-{
-    return RVector();
-}
-
-void RPoint::setPosition(const RVector &p)
-{
-}
-
-RPoint *RPoint::clone() const
-{
-    return nullptr;
-}
-
-RBox RPoint::getBoundingBox() const
-{
-    return RBox(m_position, m_position);
-}
-
-double RPoint::getLength() const
-{
-    return 0.0;
-}
+double RPoint::getLength() const { return 0.0; }
 
 std::vector<RVector> RPoint::getEndPoints() const
 {
@@ -119,7 +97,8 @@ RVector RPoint::getVectorTo(const RVector &point, bool limited,
 
 bool RPoint::move(const RVector &offset)
 {
-    if (!offset.isValid() || offset.getMagnitude() < RS::PointTolerance) {
+    if (!offset.isValid() || offset.getMagnitude() < RS::PointTolerance)
+    {
         return false;
     }
     m_position += offset;
@@ -128,9 +107,7 @@ bool RPoint::move(const RVector &offset)
 
 bool RPoint::rotate(double rotation, const RVector &center)
 {
-    if (fabs(rotation) < RS::AngleTolerance) {
-        return false;
-    }
+    if (fabs(rotation) < RS::AngleTolerance) { return false; }
     m_position.rotate(rotation, center);
     return true;
 }

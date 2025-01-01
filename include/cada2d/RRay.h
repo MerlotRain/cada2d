@@ -23,15 +23,16 @@
 #ifndef RRAY_H
 #define RRAY_H
 
-#include <cada2d/RXLine.h>
 #include <cada2d/RS.h>
 #include <cada2d/RShape.h>
 #include <cada2d/RVector.h>
+#include <cada2d/RXLine.h>
 
 class RBox;
 class RPolyline;
 
-class CADA_API RRay : public RXLine {
+class CADA_API RRay : public RXLine
+{
 public:
     RRay();
     RRay(const RLine &line);
@@ -41,7 +42,7 @@ public:
 
     RS::ShapeType getShapeType() const override;
 
-    RRay *clone() const override;
+    std::shared_ptr<RShape> clone() const override;
 
     bool trimEndPoint(const RVector &trimPoint,
                       const RVector &clickPoint = RVector::invalid,

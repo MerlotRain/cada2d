@@ -23,12 +23,12 @@
 #ifndef CAD2D_RMATH_H
 #define CAD2D_RMATH_H
 
-#include <cstdio>
-#include <cmath>
 #include <cerrno>
+#include <cmath>
+#include <cstdio>
+#include <float.h>
 #include <limits>
 #include <vector>
-#include <float.h>
 
 #include "exports.h"
 
@@ -74,18 +74,19 @@
 #define RINFDOUBLE std::numeric_limits<double>::infinity()
 #endif
 
-template <class T>
+template<class T>
 T qMin(T a, T b)
 {
     return a < b ? a : b;
 }
 
-template <class T>
+template<class T>
 T qMax(T a, T b)
 {
     return a > b ? a : b;
 }
-class CADA_API RMath {
+class CADA_API RMath
+{
 public:
     static bool isNaN(double v);
     static bool isInf(double v);
@@ -126,6 +127,10 @@ public:
      * @return 0: Negative number; 1: Positive numbers; 2: -0; 3: 0; 4: NAN
      */
     static int sign(double x);
+
+    static void getQuadRoots(double p[], double r[][5]);
+    static void getCubicRoots(double p[], double r[][5]);
+    static void getBiQuadRoots(double p[], double r[][5]);
 };
 
 #endif

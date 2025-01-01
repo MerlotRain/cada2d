@@ -20,8 +20,8 @@
  * IN THE SOFTWARE.
  */
 
-#include <cmath>
 #include <assert.h>
+#include <cmath>
 
 #include <cada2d/RArc.h>
 #include <cada2d/RBox.h>
@@ -32,9 +32,7 @@
 #include <cada2d/RSpline.h>
 #include <cada2d/private/RShapePrivate.h>
 
-RPolyline::RPolyline() : m_closed(false)
-{
-}
+RPolyline::RPolyline() : m_closed(false) {}
 
 RPolyline::RPolyline(const std::vector<RVector> &vertices, bool closed)
     : m_closed(closed)
@@ -48,19 +46,24 @@ RPolyline::RPolyline(const std::vector<std::shared_ptr<RShape>> &segments)
 {
 
     std::vector<std::shared_ptr<RShape>>::const_iterator it;
-    for (it = segments.begin(); it != segments.end(); ++it) {
+    for (it = segments.begin(); it != segments.end(); ++it)
+    {
         std::shared_ptr<RShape> segment = *it;
 
-        if (segment->isDirected()) {
-            if (m_vertices.size() == 0) {
+        if (segment->isDirected())
+        {
+            if (m_vertices.size() == 0)
+            {
                 appendVertex(segment->getStartPoint(), 0.0);
             }
             appendVertex(segment->getEndPoint(), 0.0);
         }
 
         std::shared_ptr<RArc> arc = std::dynamic_pointer_cast<RArc>(segment);
-        if (arc) {
-            if (m_bulges.size() > 1) {
+        if (arc)
+        {
+            if (m_bulges.size() > 1)
+            {
                 m_bulges[m_bulges.size() - 2] = arc->getBulge();
             }
         }
@@ -73,9 +76,16 @@ RPolyline::RPolyline(const std::vector<std::shared_ptr<RShape>> &segments)
     autoClose();
 }
 
-RPolyline::~RPolyline()
+RPolyline::~RPolyline() {}
+
+RS::ShapeType RPolyline::getShapeType() const { return RS::Polyline; }
+
+std::shared_ptr<RShape> RPolyline::clone() const
 {
+    return std::shared_ptr<RShape>(new RPolyline(*this));
 }
+
+bool RPolyline::isDirected() const { return true; }
 
 void RPolyline::clear()
 {
@@ -99,13 +109,15 @@ void RPolyline::normalize(double tolerance)
     RVector vPrev;
     int newIndex = 0;
 
-    for (int i = 0; i < m_vertices.size(); i++) {
+    for (int i = 0; i < m_vertices.size(); i++)
+    {
         RVector v = m_vertices[i];
         double b = m_bulges[i];
         double s = m_startWidths[i];
         double e = m_endWidths[i];
 
-        if (i == 0 || !v.equalsFuzzy(vPrev, tolerance)) {
+        if (i == 0 || !v.equalsFuzzy(vPrev, tolerance))
+        {
             newVertices.push_back(v);
             newBulges.push_back(b);
             newStartWidths.push_back(s);
@@ -113,7 +125,8 @@ void RPolyline::normalize(double tolerance)
             newIndex = newIndex + 1;
             vPrev = v;
         }
-        else if (i > 0) {
+        else if (i > 0)
+        {
             newBulges[newIndex - 1] = b;
             newStartWidths[newIndex - 1] = s;
             newEndWidths[newIndex - 1] = e;
@@ -121,8 +134,10 @@ void RPolyline::normalize(double tolerance)
     }
 
     // remove duplicate last vertex of closed polyline:
-    if (m_closed) {
-        if (newVertices.front().equalsFuzzy(newVertices.back(), tolerance)) {
+    if (m_closed)
+    {
+        if (newVertices.front().equalsFuzzy(newVertices.back(), tolerance))
+        {
             newVertices.pop_back();
             newBulges.pop_back();
             newStartWidths.pop_back();
@@ -150,27 +165,33 @@ bool RPolyline::appendShape(const RShape &shape, bool prepend)
     bool ret = true;
 
     // append spline as polyline approximation:
-    if (shape.getShapeType() == RS::Spline) {
+    if (shape.getShapeType() == RS::Spline)
+    {
         const RSpline *spl = dynamic_cast<const RSpline *>(&shape);
-        if (spl != NULL) {
+        if (spl != NULL)
+        {
             RPolyline pl = spl->approximateWithArcs(0.01);
             return appendShape(pl, prepend);
         }
     }
 
     // append ellipse as polyline approximation:
-    else if (shape.getShapeType() == RS::Ellipse) {
+    else if (shape.getShapeType() == RS::Ellipse)
+    {
         const REllipse *elp = dynamic_cast<const REllipse *>(&shape);
-        if (elp != NULL) {
+        if (elp != NULL)
+        {
             RPolyline pl = elp->approximateWithArcs(32);
             return appendShape(pl, prepend);
         }
     }
 
     // append circle as polyline to empty polyline:
-    else if (shape.getShapeType() == RS::Circle && isEmpty()) {
+    else if (shape.getShapeType() == RS::Circle && isEmpty())
+    {
         const RCircle *circle = dynamic_cast<const RCircle *>(&shape);
-        if (circle != NULL) {
+        if (circle != NULL)
+        {
             appendShape(RArc(circle->getCenter(), circle->getRadius(), 0.0,
                              M_PI, false));
             appendShape(RArc(circle->getCenter(), circle->getRadius(), M_PI,
@@ -180,35 +201,39 @@ bool RPolyline::appendShape(const RShape &shape, bool prepend)
     }
 
     // append full circle arc as circle (two arc segments) to empty polyline:
-    else if (shape.getShapeType() == RS::Arc) {
+    else if (shape.getShapeType() == RS::Arc)
+    {
         const RArc *arc = dynamic_cast<const RArc *>(&shape);
-        if (arc != NULL && arc->isFullCircle()) {
+        if (arc != NULL && arc->isFullCircle())
+        {
             appendShape(RCircle(arc->getCenter(), arc->getRadius()));
             return true;
         }
     }
 
     // append polyline:
-    else if (shape.getShapeType() == RS::Polyline) {
+    else if (shape.getShapeType() == RS::Polyline)
+    {
         const RPolyline *pl = dynamic_cast<const RPolyline *>(&shape);
-        if (pl != NULL) {
-            if (prepend) {
-                for (int i = pl->countSegments() - 1; i >= 0; --i) {
+        if (pl != NULL)
+        {
+            if (prepend)
+            {
+                for (int i = pl->countSegments() - 1; i >= 0; --i)
+                {
                     std::shared_ptr<RShape> s = pl->getSegmentAt(i);
-                    if (!s) {
-                        continue;
-                    }
+                    if (!s) { continue; }
                     ret = prependShape(*s) && ret;
                     setStartWidthAt(0, pl->getStartWidthAt(i));
                     setEndWidthAt(0, pl->getEndWidthAt(i));
                 }
             }
-            else {
-                for (int i = 0; i < pl->countSegments(); ++i) {
+            else
+            {
+                for (int i = 0; i < pl->countSegments(); ++i)
+                {
                     std::shared_ptr<RShape> s = pl->getSegmentAt(i);
-                    if (!s) {
-                        continue;
-                    }
+                    if (!s) { continue; }
                     setStartWidthAt(m_vertices.size() - 1,
                                     pl->getStartWidthAt(i));
                     setEndWidthAt(m_vertices.size() - 1, pl->getEndWidthAt(i));
@@ -222,47 +247,47 @@ bool RPolyline::appendShape(const RShape &shape, bool prepend)
     double bulge = 0.0;
 
     const RArc *arc = dynamic_cast<const RArc *>(&shape);
-    if (arc != NULL) {
-        bulge = arc->getBulge();
-    }
+    if (arc != NULL) { bulge = arc->getBulge(); }
 
-    if (!shape.isDirected()) {
-        return false;
-    }
+    if (!shape.isDirected()) { return false; }
 
     RVector connectionPoint;
     RVector nextPoint;
     double gap;
-    if (prepend) {
+    if (prepend)
+    {
         // prepend:
         connectionPoint = shape.getEndPoint();
         nextPoint = shape.getStartPoint();
-        if (m_vertices.size() == 0) {
+        if (m_vertices.size() == 0)
+        {
             // first point:
             appendVertex(connectionPoint);
         }
         gap = m_vertices.front().getDistanceTo(connectionPoint);
     }
-    else {
+    else
+    {
         // append:
         connectionPoint = shape.getStartPoint();
         nextPoint = shape.getEndPoint();
-        if (m_vertices.size() == 0) {
+        if (m_vertices.size() == 0)
+        {
             // first point:
             appendVertex(connectionPoint);
         }
         gap = m_vertices.back().getDistanceTo(connectionPoint);
     }
 
-    if (!RMath::fuzzyCompare(gap, 0.0, 1.0e-3)) {
-        ret = false;
-    }
+    if (!RMath::fuzzyCompare(gap, 0.0, 1.0e-3)) { ret = false; }
 
-    if (prepend) {
+    if (prepend)
+    {
         prependVertex(nextPoint);
         setBulgeAt(0, bulge);
     }
-    else {
+    else
+    {
         appendVertex(nextPoint);
         setBulgeAt(m_bulges.size() - 2, bulge);
     }
@@ -276,11 +301,10 @@ bool RPolyline::appendShape(const RShape &shape, bool prepend)
 
 bool RPolyline::appendShapeAuto(const RShape &shape)
 {
-    if (!shape.isDirected()) {
-        return false;
-    }
+    if (!shape.isDirected()) { return false; }
 
-    if (countVertices() > 0 && getEndPoint().equalsFuzzy(shape.getEndPoint())) {
+    if (countVertices() > 0 && getEndPoint().equalsFuzzy(shape.getEndPoint()))
+    {
         std::shared_ptr<RShape> rev = std::shared_ptr<RShape>(shape.clone());
         rev->reverse();
         return appendShape(*rev);
@@ -291,30 +315,33 @@ bool RPolyline::appendShapeAuto(const RShape &shape)
 
 bool RPolyline::appendShapeTrim(const RShape &shape)
 {
-    if (!shape.isDirected()) {
-        return false;
-    }
+    if (!shape.isDirected()) { return false; }
 
-    if (countVertices() > 0) {
-        if (getEndPoint().equalsFuzzy(shape.getStartPoint())) {
+    if (countVertices() > 0)
+    {
+        if (getEndPoint().equalsFuzzy(shape.getStartPoint()))
+        {
             return appendShape(shape);
         }
-        if (getEndPoint().equalsFuzzy(shape.getEndPoint())) {
+        if (getEndPoint().equalsFuzzy(shape.getEndPoint()))
+        {
             std::shared_ptr<RShape> rev =
-                std::shared_ptr<RShape>(shape.clone());
+                    std::shared_ptr<RShape>(shape.clone());
             rev->reverse();
             return appendShape(*rev);
         }
 
-        if (shape.getShapeType() == RS::Line) {
+        if (shape.getShapeType() == RS::Line)
+        {
             std::shared_ptr<RShape> lastSegment = getLastSegment();
             std::vector<RVector> ips =
-                lastSegment->getIntersectionPoints(shape, false);
-            if (ips.size() == 1) {
+                    lastSegment->getIntersectionPoints(shape, false);
+            if (ips.size() == 1)
+            {
                 RVector ip = ips[0];
                 moveEndPoint(ip);
                 std::shared_ptr<RShape> trimmed =
-                    std::shared_ptr<RShape>(shape.clone());
+                        std::shared_ptr<RShape>(shape.clone());
                 trimmed->trimStartPoint(ip);
                 return appendShape(*trimmed);
             }
@@ -326,23 +353,22 @@ bool RPolyline::appendShapeTrim(const RShape &shape)
 
 bool RPolyline::closeTrim()
 {
-    if (isGeometricallyClosed()) {
-        return true;
-    }
+    if (isGeometricallyClosed()) { return true; }
 
-    if (countSegments() > 1) {
+    if (countSegments() > 1)
+    {
         std::shared_ptr<RShape> firstSegment = getFirstSegment();
         std::shared_ptr<RShape> lastSegment = getLastSegment();
 
-        if (!firstSegment || !lastSegment) {
-            return false;
-        }
+        if (!firstSegment || !lastSegment) { return false; }
 
         if (firstSegment->getShapeType() == RS::Line &&
-            lastSegment->getShapeType() == RS::Line) {
+            lastSegment->getShapeType() == RS::Line)
+        {
             std::vector<RVector> ips =
-                lastSegment->getIntersectionPoints(*firstSegment, false);
-            if (ips.size() == 1) {
+                    lastSegment->getIntersectionPoints(*firstSegment, false);
+            if (ips.size() == 1)
+            {
                 RVector ip = ips[0];
                 moveStartPoint(ip);
                 moveEndPoint(ip);
@@ -392,9 +418,7 @@ void RPolyline::insertVertex(int index, const RVector &vertex,
 {
 
     m_vertices.insert(m_vertices.begin() + index, vertex);
-    if (index > 0) {
-        m_bulges[index - 1] = bulgeBefore;
-    }
+    if (index > 0) { m_bulges[index - 1] = bulgeBefore; }
     m_bulges.insert(m_bulges.begin() + index, bulgeAfter);
     m_startWidths.insert(m_startWidths.begin() + index, 0.0);
     m_endWidths.insert(m_endWidths.begin() + index, 0.0);
@@ -407,22 +431,16 @@ void RPolyline::insertVertex(int index, const RVector &vertex,
 void RPolyline::insertVertexAt(const RVector &point)
 {
     int index = getClosestSegment(point);
-    if (index < 0) {
-        return;
-    }
+    if (index < 0) { return; }
 
     std::shared_ptr<RShape> seg1 = getSegmentAt(index);
-    if (!seg1) {
-        return;
-    }
+    if (!seg1) { return; }
 
     RVector p = seg1->getClosestPointOnShape(point, false);
 
     std::shared_ptr<RShape> seg2 = std::shared_ptr<RShape>(seg1->clone());
 
-    if (!seg1->isDirected() || !seg2->isDirected()) {
-        return;
-    }
+    if (!seg1->isDirected() || !seg2->isDirected()) { return; }
 
     seg1->trimEndPoint(p);
     seg2->trimStartPoint(p);
@@ -431,19 +449,11 @@ void RPolyline::insertVertexAt(const RVector &point)
 
     std::shared_ptr<RArc> arc1 = std::dynamic_pointer_cast<RArc>(seg1);
     std::shared_ptr<RArc> arc2 = std::dynamic_pointer_cast<RArc>(seg2);
-    if (!arc1) {
-        setBulgeAt(index, 0.0);
-    }
-    else {
-        setBulgeAt(index, arc1->getBulge());
-    }
+    if (!arc1) { setBulgeAt(index, 0.0); }
+    else { setBulgeAt(index, arc1->getBulge()); }
 
-    if (!arc2) {
-        setBulgeAt(index + 1, 0.0);
-    }
-    else {
-        setBulgeAt(index + 1, arc2->getBulge());
-    }
+    if (!arc2) { setBulgeAt(index + 1, 0.0); }
+    else { setBulgeAt(index + 1, arc2->getBulge()); }
 
     assert(m_vertices.size() == m_bulges.size());
     assert(m_vertices.size() == m_startWidths.size());
@@ -457,9 +467,7 @@ RVector RPolyline::insertVertexAtDistance(double dist)
 
 void RPolyline::removeFirstVertex()
 {
-    if (m_vertices.empty()) {
-        return;
-    }
+    if (m_vertices.empty()) { return; }
 
     m_vertices.erase(m_vertices.begin());
     m_bulges.erase(m_bulges.begin());
@@ -473,9 +481,7 @@ void RPolyline::removeFirstVertex()
 
 void RPolyline::removeLastVertex()
 {
-    if (m_vertices.empty()) {
-        return;
-    }
+    if (m_vertices.empty()) { return; }
 
     m_vertices.pop_back();
     m_bulges.pop_back();
@@ -531,7 +537,8 @@ void RPolyline::setVertices(const std::vector<RVector> &vertices)
     m_bulges.clear();
     m_startWidths.clear();
     m_endWidths.clear();
-    for (int i = 0; i < vertices.size(); ++i) {
+    for (int i = 0; i < vertices.size(); ++i)
+    {
         m_bulges.push_back(0.0);
         m_startWidths.push_back(0.0);
         m_endWidths.push_back(0.0);
@@ -542,14 +549,12 @@ void RPolyline::setVertices(const std::vector<RVector> &vertices)
     assert(m_vertices.size() == m_endWidths.size());
 }
 
-std::vector<RVector> RPolyline::getVertices() const
-{
-    return m_vertices;
-}
+std::vector<RVector> RPolyline::getVertices() const { return m_vertices; }
 
 RVector RPolyline::getVertexAt(int i) const
 {
-    if (i < 0 || i >= m_vertices.size()) {
+    if (i < 0 || i >= m_vertices.size())
+    {
         assert(false);
         return RVector::invalid;
     }
@@ -559,10 +564,9 @@ RVector RPolyline::getVertexAt(int i) const
 
 int RPolyline::getVertexIndex(const RVector &v, double tolerance) const
 {
-    for (int i = 0; i < m_vertices.size(); i++) {
-        if (m_vertices[i].equalsFuzzy(v, tolerance)) {
-            return i;
-        }
+    for (int i = 0; i < m_vertices.size(); i++)
+    {
+        if (m_vertices[i].equalsFuzzy(v, tolerance)) { return i; }
     }
 
     return -1;
@@ -570,16 +574,15 @@ int RPolyline::getVertexIndex(const RVector &v, double tolerance) const
 
 RVector RPolyline::getLastVertex() const
 {
-    if (m_vertices.size() == 0) {
-        return RVector::invalid;
-    }
+    if (m_vertices.size() == 0) { return RVector::invalid; }
 
     return m_vertices.at(m_vertices.size() - 1);
 }
 
 void RPolyline::setVertexAt(int i, const RVector &v)
 {
-    if (i < 0 || i >= m_vertices.size()) {
+    if (i < 0 || i >= m_vertices.size())
+    {
         assert(false);
         return;
     }
@@ -589,7 +592,8 @@ void RPolyline::setVertexAt(int i, const RVector &v)
 
 void RPolyline::moveVertexAt(int i, const RVector &offset)
 {
-    if (i < 0 || i >= m_vertices.size()) {
+    if (i < 0 || i >= m_vertices.size())
+    {
         assert(false);
         return;
     }
@@ -597,45 +601,31 @@ void RPolyline::moveVertexAt(int i, const RVector &offset)
     m_vertices[i] += offset;
 }
 
-int RPolyline::countVertices() const
-{
-    return m_vertices.size();
-}
+int RPolyline::countVertices() const { return m_vertices.size(); }
 
-void RPolyline::setBulges(const std::vector<double> &b)
-{
-    m_bulges = b;
-}
+void RPolyline::setBulges(const std::vector<double> &b) { m_bulges = b; }
 
-std::vector<double> RPolyline::getBulges() const
-{
-    return m_bulges;
-}
+std::vector<double> RPolyline::getBulges() const { return m_bulges; }
 
 double RPolyline::getBulgeAt(int i) const
 {
-    if (i < 0 || i >= m_bulges.size()) {
-        return RNANDOUBLE;
-    }
+    if (i < 0 || i >= m_bulges.size()) { return RNANDOUBLE; }
 
     return m_bulges.at(i);
 }
 
 void RPolyline::setBulgeAt(int i, double b)
 {
-    if (i < 0 || i >= m_bulges.size()) {
-        return;
-    }
+    if (i < 0 || i >= m_bulges.size()) { return; }
 
     m_bulges[i] = b;
 }
 
 bool RPolyline::hasArcSegments() const
 {
-    for (int i = 0; i < m_bulges.size(); i++) {
-        if (!isStraight(m_bulges[i])) {
-            return true;
-        }
+    for (int i = 0; i < m_bulges.size(); i++)
+    {
+        if (!isStraight(m_bulges[i])) { return true; }
     }
 
     return false;
@@ -645,7 +635,8 @@ std::vector<double> RPolyline::getVertexAngles() const
 {
     RS::Orientation orientation = getOrientation(true);
     std::vector<double> ret;
-    for (int i = 0; i < countVertices(); i++) {
+    for (int i = 0; i < countVertices(); i++)
+    {
         ret.push_back(getVertexAngle(i, orientation));
     }
     return ret;
@@ -653,17 +644,16 @@ std::vector<double> RPolyline::getVertexAngles() const
 
 double RPolyline::getVertexAngle(int i, RS::Orientation orientation) const
 {
-    if (!isGeometricallyClosed() && (i == 0 || i == countVertices() - 1)) {
+    if (!isGeometricallyClosed() && (i == 0 || i == countVertices() - 1))
+    {
         // angles at first / last vertex for open polyline:
         return 0.0;
     }
 
-    if (countSegments() == 0) {
-        return 0.0;
-    }
+    if (countSegments() == 0) { return 0.0; }
 
     std::shared_ptr<RShape> prevSegment =
-        getSegmentAt(RMath::absmod(i - 1, countSegments()));
+            getSegmentAt(RMath::absmod(i - 1, countSegments()));
     std::shared_ptr<RShape> nextSegment = getSegmentAt(i % countSegments());
 
     // angle from vertex to next segment:
@@ -671,74 +661,61 @@ double RPolyline::getVertexAngle(int i, RS::Orientation orientation) const
     // angle from vertex to previous segment:
     double aPrev = prevSegment->getDirection2();
 
-    if (orientation == RS::UnknownOrientation) {
+    if (orientation == RS::UnknownOrientation)
+    {
         orientation = getOrientation(true);
     }
-    if (orientation == RS::CW) {
+    if (orientation == RS::CW)
+    {
         return RMath::getAngleDifference(aPrev, aNext);
     }
-    else {
-        return RMath::getAngleDifference(aNext, aPrev);
-    }
+    else { return RMath::getAngleDifference(aNext, aPrev); }
 }
 
 void RPolyline::setGlobalWidth(double w)
 {
-    for (int i = 0; i < m_startWidths.size(); i++) {
-        m_startWidths[i] = w;
-    }
-    for (int i = 0; i < m_endWidths.size(); i++) {
-        m_endWidths[i] = w;
-    }
+    for (int i = 0; i < m_startWidths.size(); i++) { m_startWidths[i] = w; }
+    for (int i = 0; i < m_endWidths.size(); i++) { m_endWidths[i] = w; }
 }
 
 void RPolyline::setStartWidthAt(int i, double w)
 {
-    if (i < 0 || i >= m_startWidths.size()) {
-        return;
-    }
+    if (i < 0 || i >= m_startWidths.size()) { return; }
     m_startWidths[i] = w;
 }
 
 double RPolyline::getStartWidthAt(int i) const
 {
-    if (i < 0 || i >= m_startWidths.size()) {
-        return -1.0;
-    }
+    if (i < 0 || i >= m_startWidths.size()) { return -1.0; }
 
     return m_startWidths.at(i);
 }
 
 void RPolyline::setEndWidthAt(int i, double w)
 {
-    if (i < 0 || i >= m_endWidths.size()) {
-        return;
-    }
+    if (i < 0 || i >= m_endWidths.size()) { return; }
     m_endWidths[i] = w;
 }
 
 double RPolyline::getEndWidthAt(int i) const
 {
-    if (i < 0 || i >= m_endWidths.size()) {
-        return -1.0;
-    }
+    if (i < 0 || i >= m_endWidths.size()) { return -1.0; }
 
     return m_endWidths.at(i);
 }
 
 bool RPolyline::hasWidths() const
 {
-    for (int i = 0; i < m_startWidths.size() && i < m_endWidths.size(); i++) {
-        if (!RMath::isNaN(m_startWidths[i]) && m_startWidths[i] > 0.0) {
+    for (int i = 0; i < m_startWidths.size() && i < m_endWidths.size(); i++)
+    {
+        if (!RMath::isNaN(m_startWidths[i]) && m_startWidths[i] > 0.0)
+        {
             // widths in last vertex only count if closed:
-            if (i != m_startWidths.size() - 1 || isClosed()) {
-                return true;
-            }
+            if (i != m_startWidths.size() - 1 || isClosed()) { return true; }
         }
-        if (!RMath::isNaN(m_endWidths[i]) && m_endWidths[i] > 0.0) {
-            if (i != m_startWidths.size() - 1 || isClosed()) {
-                return true;
-            }
+        if (!RMath::isNaN(m_endWidths[i]) && m_endWidths[i] > 0.0)
+        {
+            if (i != m_startWidths.size() - 1 || isClosed()) { return true; }
         }
     }
 
@@ -750,30 +727,18 @@ void RPolyline::setStartWidths(const std::vector<double> &sw)
     m_startWidths = sw;
 }
 
-std::vector<double> RPolyline::getStartWidths() const
-{
-    return m_startWidths;
-}
+std::vector<double> RPolyline::getStartWidths() const { return m_startWidths; }
 
 void RPolyline::setEndWidths(const std::vector<double> &ew)
 {
     m_endWidths = ew;
 }
 
-std::vector<double> RPolyline::getEndWidths() const
-{
-    return m_endWidths;
-}
+std::vector<double> RPolyline::getEndWidths() const { return m_endWidths; }
 
-void RPolyline::setClosed(bool on)
-{
-    m_closed = on;
-}
+void RPolyline::setClosed(bool on) { m_closed = on; }
 
-bool RPolyline::isClosed() const
-{
-    return m_closed;
-}
+bool RPolyline::isClosed() const { return m_closed; }
 
 bool RPolyline::isGeometricallyClosed(double tolerance) const
 {
@@ -783,13 +748,9 @@ bool RPolyline::isGeometricallyClosed(double tolerance) const
 
 bool RPolyline::toLogicallyClosed(double tolerance)
 {
-    if (isClosed()) {
-        return false;
-    }
+    if (isClosed()) { return false; }
 
-    if (!isGeometricallyClosed(tolerance)) {
-        return false;
-    }
+    if (!isGeometricallyClosed(tolerance)) { return false; }
 
     removeLastVertex();
     setClosed(true);
@@ -803,9 +764,7 @@ bool RPolyline::toLogicallyClosed(double tolerance)
 
 bool RPolyline::toLogicallyOpen()
 {
-    if (!isClosed()) {
-        return false;
-    }
+    if (!isClosed()) { return false; }
 
     appendVertex(getEndPoint(), getBulgeAt(m_vertices.size() - 1));
     setClosed(false);
@@ -825,26 +784,32 @@ RPolyline::getSelfIntersectionPoints(double tolerance) const
     bool cl = isGeometricallyClosed();
 
     std::vector<std::shared_ptr<RShape>> segments = getExploded();
-    for (int i = 0; i < segments.size(); i++) {
+    for (int i = 0; i < segments.size(); i++)
+    {
         std::shared_ptr<RShape> segment = getSegmentAt(i);
 
-        for (int k = i + 1; k < segments.size(); k++) {
+        for (int k = i + 1; k < segments.size(); k++)
+        {
             std::shared_ptr<RShape> otherSegment = getSegmentAt(k);
 
             std::vector<RVector> ips =
-                segment->getIntersectionPoints(*otherSegment);
-            for (int n = 0; n < ips.size(); n++) {
+                    segment->getIntersectionPoints(*otherSegment);
+            for (int n = 0; n < ips.size(); n++)
+            {
                 RVector ip = ips[n];
                 if (k == i + 1 &&
-                    ip.equalsFuzzy(segment->getEndPoint(), tolerance)) {
+                    ip.equalsFuzzy(segment->getEndPoint(), tolerance))
+                {
                     // ignore intersection at vertex between two consecutive
                     // segments:
                     continue;
                 }
 
-                if (cl) {
+                if (cl)
+                {
                     if (i == 0 && k == segments.size() - 1 &&
-                        ip.equalsFuzzy(segment->getStartPoint(), tolerance)) {
+                        ip.equalsFuzzy(segment->getStartPoint(), tolerance))
+                    {
                         continue;
                     }
                 }
@@ -859,15 +824,15 @@ RPolyline::getSelfIntersectionPoints(double tolerance) const
 
 RS::Orientation RPolyline::getOrientation(bool implicitelyClosed) const
 {
-    if (!implicitelyClosed && !isGeometricallyClosed(0.00001)) {
+    if (!implicitelyClosed && !isGeometricallyClosed(0.00001))
+    {
         return RS::Any;
     }
 
-    if (countSegments() < 1) {
-        return RS::Any;
-    }
+    if (countSegments() < 1) { return RS::Any; }
 
-    if (hasArcSegments()) {
+    if (hasArcSegments())
+    {
         RPolyline plSegmented = convertArcToLineSegments(16);
         return plSegmented.getOrientation(implicitelyClosed);
     }
@@ -880,19 +845,16 @@ RS::Orientation RPolyline::getOrientation(bool implicitelyClosed) const
 
     // find minimum vertex (lower left corner):
     std::vector<std::shared_ptr<RShape>> segments = getExploded();
-    for (int i = 0; i < segments.size(); i++) {
+    for (int i = 0; i < segments.size(); i++)
+    {
         shape = getSegmentAt(i);
-        if (!shape) {
-            continue;
-        }
+        if (!shape) { continue; }
 
-        if (shape->getLength() < 0.001) {
-            continue;
-        }
+        if (shape->getLength() < 0.001) { continue; }
 
         RVector v = shape->getStartPoint();
-        if (!minV.isValid() || v.x < minV.x ||
-            (v.x == minV.x && v.y < minV.y)) {
+        if (!minV.isValid() || v.x < minV.x || (v.x == minV.x && v.y < minV.y))
+        {
             minV = v;
             shapeBefore = previousShape;
             shapeAfter = shape;
@@ -928,9 +890,7 @@ RS::Orientation RPolyline::getOrientation(bool implicitelyClosed) const
     //        }
     //    }
 
-    if (!shapeBefore || !shapeAfter) {
-        return RS::Any;
-    }
+    if (!shapeBefore || !shapeAfter) { return RS::Any; }
 
     double xa = shapeBefore->getStartPoint().x;
     double ya = shapeBefore->getStartPoint().y;
@@ -941,11 +901,13 @@ RS::Orientation RPolyline::getOrientation(bool implicitelyClosed) const
 
     double det = (xb - xa) * (yc - ya) - (xc - xa) * (yb - ya);
 
-    if (det < 0.0) {
+    if (det < 0.0)
+    {
         // clockwise:
         return RS::CW;
     }
-    else {
+    else
+    {
         // counter-clockwise:
         return RS::CCW;
     }
@@ -953,9 +915,7 @@ RS::Orientation RPolyline::getOrientation(bool implicitelyClosed) const
 
 bool RPolyline::setOrientation(RS::Orientation orientation)
 {
-    if (getOrientation(true) != orientation) {
-        return reverse();
-    }
+    if (getOrientation(true) != orientation) { return reverse(); }
     return false;
 }
 
@@ -964,17 +924,17 @@ RPolyline RPolyline::convertArcToLineSegments(int segments) const
     RPolyline ret;
 
     std::vector<std::shared_ptr<RShape>> segs = getExploded();
-    for (int i = 0; i < segs.size(); i++) {
+    for (int i = 0; i < segs.size(); i++)
+    {
         std::shared_ptr<RShape> seg = segs[i];
-        if (seg->getShapeType() == RS::Arc) {
+        if (seg->getShapeType() == RS::Arc)
+        {
             std::shared_ptr<RArc> arc = std::dynamic_pointer_cast<RArc>(seg);
             RPolyline pl =
-                arc->approximateWithLinesTan(arc->getLength() / segments);
+                    arc->approximateWithLinesTan(arc->getLength() / segments);
             ret.appendShape(pl);
         }
-        else {
-            ret.appendShape(*seg);
-        }
+        else { ret.appendShape(*seg); }
     }
 
     ret.autoClose();
@@ -986,16 +946,16 @@ RPolyline RPolyline::convertArcToLineSegmentsLength(double segmentLength) const
     RPolyline ret;
 
     std::vector<std::shared_ptr<RShape>> segs = getExploded();
-    for (int i = 0; i < segs.size(); i++) {
+    for (int i = 0; i < segs.size(); i++)
+    {
         std::shared_ptr<RShape> seg = segs[i];
-        if (seg->getShapeType() == RS::Arc) {
+        if (seg->getShapeType() == RS::Arc)
+        {
             std::shared_ptr<RArc> arc = std::dynamic_pointer_cast<RArc>(seg);
             RPolyline pl = arc->approximateWithLinesTan(segmentLength);
             ret.appendShape(pl);
         }
-        else {
-            ret.appendShape(*seg);
-        }
+        else { ret.appendShape(*seg); }
     }
 
     ret.autoClose();
@@ -1004,55 +964,39 @@ RPolyline RPolyline::convertArcToLineSegmentsLength(double segmentLength) const
 
 void RPolyline::stripWidths()
 {
-    for (int i = 0; i < m_startWidths.size(); i++) {
-        m_startWidths[i] = 0.0;
-    }
-    for (int i = 0; i < m_endWidths.size(); i++) {
-        m_endWidths[i] = 0.0;
-    }
+    for (int i = 0; i < m_startWidths.size(); i++) { m_startWidths[i] = 0.0; }
+    for (int i = 0; i < m_endWidths.size(); i++) { m_endWidths[i] = 0.0; }
 }
 
 void RPolyline::setMinimumWidth(double w)
 {
-    for (int i = 0; i < m_startWidths.size(); i++) {
-        if (m_startWidths[i] > RS::PointTolerance) {
-            m_startWidths[i] = std::max(m_startWidths[i], w);
+    for (int i = 0; i < m_startWidths.size(); i++)
+    {
+        if (m_startWidths[i] > RS::PointTolerance)
+        {
+            m_startWidths[i] = qMax(m_startWidths[i], w);
         }
     }
-    for (int i = 0; i < m_endWidths.size(); i++) {
-        if (m_endWidths[i] > RS::PointTolerance) {
-            m_endWidths[i] = std::max(m_endWidths[i], w);
+    for (int i = 0; i < m_endWidths.size(); i++)
+    {
+        if (m_endWidths[i] > RS::PointTolerance)
+        {
+            m_endWidths[i] = qMax(m_endWidths[i], w);
         }
     }
 }
 
-int RPolyline::getSegmentAtDist(double dist)
-{
-    return -1;
-}
+int RPolyline::getSegmentAtDist(double dist) { return -1; }
 
-bool RPolyline::relocateStartPoint(const RVector &p)
-{
-    return false;
-}
+bool RPolyline::relocateStartPoint(const RVector &p) { return false; }
 
-bool RPolyline::relocateStartPoint(double dist)
-{
-    return false;
-}
+bool RPolyline::relocateStartPoint(double dist) { return false; }
 
 bool RPolyline::convertToClosed()
 {
-    if (isClosed()) {
-        // nothing to do: polyline is already logically closed:
-        return true;
-    }
+    if (isClosed()) { return true; }
 
-    if (!isGeometricallyClosed()) {
-        // cannot convert geometrically open polyline to closed (use setClosed
-        // instead):
-        return false;
-    }
+    if (!isGeometricallyClosed()) { return false; }
 
     removeLastVertex();
     setClosed(true);
@@ -1061,10 +1005,7 @@ bool RPolyline::convertToClosed()
 
 bool RPolyline::convertToOpen()
 {
-    if (!isClosed()) {
-        // nothing to do: polyline is already logically or geometrically open:
-        return true;
-    }
+    if (!isClosed()) { return true; }
 
     std::shared_ptr<RShape> last = getLastSegment();
     setClosed(false);
@@ -1074,36 +1015,26 @@ bool RPolyline::convertToOpen()
 
 bool RPolyline::isLineSegment(int i) const
 {
-    if (i < 0 || i > m_bulges.size()) {
-        return true;
-    }
+    if (i < 0 || i > m_bulges.size()) { return true; }
 
     return RPolyline::isStraight(m_bulges.at(i));
 }
 
-bool RPolyline::isStraight(double bulge)
-{
-    return fabs(bulge) < 1.0e-6;
-}
+bool RPolyline::isStraight(double bulge) { return fabs(bulge) < 1.0e-6; }
 
 std::vector<std::shared_ptr<RShape>> RPolyline::getExploded(int segments) const
 {
 
     std::vector<std::shared_ptr<RShape>> ret;
 
-    if (m_vertices.size() <= 1) {
-        return ret;
-    }
+    if (m_vertices.size() <= 1) { return ret; }
 
-    for (int i = 0; i < m_vertices.size(); i++) {
-        if (!m_closed && i == m_vertices.size() - 1) {
-            break;
-        }
+    for (int i = 0; i < m_vertices.size(); i++)
+    {
+        if (!m_closed && i == m_vertices.size() - 1) { break; }
 
         std::shared_ptr<RShape> subShape = getSegmentAt(i);
-        if (!subShape) {
-            continue;
-        }
+        if (!subShape) { continue; }
 
         ret.push_back(subShape);
     }
@@ -1119,41 +1050,40 @@ RPolyline::getLeftRightOutline() const
 
 std::vector<RPolyline> RPolyline::getOutline() const
 {
-
     return std::vector<RPolyline>();
 }
 
 int RPolyline::countSegments() const
 {
     int ret = countVertices();
-    if (!m_closed) {
-        ret -= 1;
-    }
-    if (ret < 0) {
-        ret = 0;
-    }
+    if (!m_closed) { ret -= 1; }
+    if (ret < 0) { ret = 0; }
     return ret;
 }
 
 std::shared_ptr<RShape> RPolyline::getSegmentAt(int i) const
 {
-    if (i < 0 || i >= m_vertices.size() || i >= m_bulges.size()) {
+    if (i < 0 || i >= m_vertices.size() || i >= m_bulges.size())
+    {
         return std::shared_ptr<RShape>();
     }
 
     RVector p1 = m_vertices.at(i);
     RVector p2 = m_vertices.at((i + 1) % m_vertices.size());
 
-    if (RPolyline::isStraight(m_bulges.at(i))) {
+    if (RPolyline::isStraight(m_bulges.at(i)))
+    {
         return std::shared_ptr<RShape>(new RLine(p1, p2));
     }
 
-    else {
+    else
+    {
         double bulge = m_bulges.at(i);
         bool reversed = bulge < 0.0;
         double alpha = atan(bulge) * 4.0;
 
-        if (fabs(alpha) > 2 * M_PI - RS::PointTolerance) {
+        if (fabs(alpha) > 2 * M_PI - RS::PointTolerance)
+        {
             return std::shared_ptr<RShape>(new RLine(p1, p2));
             // return std::shared_ptr<RShape>();
         }
@@ -1174,16 +1104,10 @@ std::shared_ptr<RShape> RPolyline::getSegmentAt(int i) const
         double rootTerm = fabs(radius * radius - dist * dist);
         double h = sqrt(rootTerm);
 
-        if (bulge > 0.0) {
-            angle += M_PI / 2.0;
-        }
-        else {
-            angle -= M_PI / 2.0;
-        }
+        if (bulge > 0.0) { angle += M_PI / 2.0; }
+        else { angle -= M_PI / 2.0; }
 
-        if (fabs(alpha) > M_PI) {
-            h *= -1.0;
-        }
+        if (fabs(alpha) > M_PI) { h *= -1.0; }
 
         center.setPolar(h, angle);
         center += middle;
@@ -1195,47 +1119,38 @@ std::shared_ptr<RShape> RPolyline::getSegmentAt(int i) const
         a2 = center.getAngleTo(p2);
 
         return std::shared_ptr<RShape>(
-            new RArc(center, radius, a1, a2, reversed));
+                new RArc(center, radius, a1, a2, reversed));
     }
 }
 
 bool RPolyline::isArcSegmentAt(int i) const
 {
-    if (i < 0 || i >= m_bulges.size()) {
-        return false;
-    }
+    if (i < 0 || i >= m_bulges.size()) { return false; }
     return !RPolyline::isStraight(m_bulges[i]);
 }
 
 std::shared_ptr<RShape> RPolyline::getLastSegment() const
 {
-    if (countSegments() == 0) {
-        return std::shared_ptr<RShape>();
-    }
+    if (countSegments() == 0) { return std::shared_ptr<RShape>(); }
     return getSegmentAt(countSegments() - 1);
 }
 
 std::shared_ptr<RShape> RPolyline::getFirstSegment() const
 {
-    if (countSegments() == 0) {
-        return std::shared_ptr<RShape>();
-    }
+    if (countSegments() == 0) { return std::shared_ptr<RShape>(); }
     return getSegmentAt(0);
 }
 
 bool RPolyline::contains(const RVector &point, bool borderIsInside,
                          double tolerance) const
 {
-    if (!isGeometricallyClosed(tolerance)) {
-        return false;
-    }
+    if (!isGeometricallyClosed(tolerance)) { return false; }
 
     // check if point is on polyline:
-    if (isOnShape(point, true, tolerance)) {
-        return borderIsInside;
-    }
+    if (isOnShape(point, true, tolerance)) { return borderIsInside; }
 
-    if (hasArcSegments()) {
+    if (hasArcSegments())
+    {
         // TODO: not always reliable:
         // TODO
     }
@@ -1243,12 +1158,14 @@ bool RPolyline::contains(const RVector &point, bool borderIsInside,
     int nvert = m_vertices.size();
     int i, j;
     bool c = false;
-    for (i = 0, j = nvert - 1; i < nvert; j = i++) {
+    for (i = 0, j = nvert - 1; i < nvert; j = i++)
+    {
         if (((m_vertices[i].y > point.y) != (m_vertices[j].y > point.y)) &&
             (point.x < (m_vertices[j].x - m_vertices[i].x) *
-                               (point.y - m_vertices[i].y) /
-                               (m_vertices[j].y - m_vertices[i].y) +
-                           m_vertices[i].x)) {
+                                       (point.y - m_vertices[i].y) /
+                                       (m_vertices[j].y - m_vertices[i].y) +
+                               m_vertices[i].x))
+        {
             c = !c;
         }
     }
@@ -1259,30 +1176,27 @@ bool RPolyline::containsShape(const RShape &shape) const
 {
     // check if the shape intersects with any of the polygon edges:
     bool gotIntersection = false;
-    if (shape.intersectsWith(*this)) {
-        gotIntersection = true;
-    }
+    if (shape.intersectsWith(*this)) { gotIntersection = true; }
 
-    if (gotIntersection) {
+    if (gotIntersection)
+    {
         // normal selection:
         // entity does not match if there is an intersection:
         return false;
     }
 
-    if (shape.getShapeType() == RS::Polyline) {
+    if (shape.getShapeType() == RS::Polyline)
+    {
         const RPolyline &pl = dynamic_cast<const RPolyline &>(shape);
 
         RBox bbOuter = pl.getBoundingBox();
         RBox bbInner = shape.getBoundingBox();
 
-        if (!bbOuter.contains(bbInner)) {
-            return false;
-        }
+        if (!bbOuter.contains(bbInner)) { return false; }
 
-        for (int i = 0; i < pl.countVertices() && i < 5; i++) {
-            if (!contains(pl.getVertexAt(i))) {
-                return false;
-            }
+        for (int i = 0; i < pl.countVertices() && i < 5; i++)
+        {
+            if (!contains(pl.getVertexAt(i))) { return false; }
         }
         return true;
     }
@@ -1290,26 +1204,26 @@ bool RPolyline::containsShape(const RShape &shape) const
     // check if the shape is completely inside the polygon.
     // this is the case if one point on the entity is inside the polygon
     // and the entity does not intersect with the polygon.
-    else if (shape.isDirected()) {
+    else if (shape.isDirected())
+    {
         return contains(shape.getStartPoint()) && contains(shape.getEndPoint());
     }
-    else {
+    else
+    {
         // circle:
-        if (shape.getShapeType() == RS::Circle) {
+        if (shape.getShapeType() == RS::Circle)
+        {
             const RCircle &circle = dynamic_cast<const RCircle &>(shape);
             RVector p1 = circle.getCenter() + RVector(circle.getRadius(), 0);
             RVector p2 = circle.getCenter() + RVector(-circle.getRadius(), 0);
-            if (contains(p1) || contains(p2)) {
-                return true;
-            }
+            if (contains(p1) || contains(p2)) { return true; }
             return false;
         }
-        else {
+        else
+        {
             // other shapes:
             RVector pointOnShape = shape.getPointOnShape();
-            if (contains(pointOnShape, true)) {
-                return true;
-            }
+            if (contains(pointOnShape, true)) { return true; }
             return false;
         }
     }
@@ -1319,29 +1233,20 @@ bool RPolyline::containsShape(const RShape &shape) const
     return false;
 }
 
-RVector RPolyline::getPointInside() const
-{
-    return RVector::invalid;
-}
+RVector RPolyline::getPointInside() const { return RVector::invalid; }
 
 RVector RPolyline::getStartPoint() const
 {
-    if (m_vertices.size() == 0) {
-        return RVector::invalid;
-    }
+    if (m_vertices.size() == 0) { return RVector::invalid; }
 
     return m_vertices.front();
 }
 
 RVector RPolyline::getEndPoint() const
 {
-    if (m_vertices.size() == 0) {
-        return RVector::invalid;
-    }
+    if (m_vertices.size() == 0) { return RVector::invalid; }
 
-    if (isClosed()) {
-        return m_vertices.front();
-    }
+    if (isClosed()) { return m_vertices.front(); }
 
     return m_vertices.back();
 }
@@ -1349,47 +1254,36 @@ RVector RPolyline::getEndPoint() const
 RVector RPolyline::getMiddlePoint() const
 {
     std::vector<RVector> pts =
-        getPointsWithDistanceToEnd(getLength() / 2, RS::FromStart);
-    if (pts.size() == 1) {
-        return pts[0];
-    }
+            getPointsWithDistanceToEnd(getLength() / 2, RS::FromStart);
+    if (pts.size() == 1) { return pts[0]; }
     return RVector::invalid;
 }
 
 void RPolyline::moveStartPoint(const RVector &pos)
 {
-    if (m_vertices.empty()) {
-        return;
-    }
+    if (m_vertices.empty()) { return; }
     m_vertices.front() = pos;
 }
 
 void RPolyline::moveEndPoint(const RVector &pos)
 {
-    if (m_vertices.empty()) {
-        return;
-    }
+    if (m_vertices.empty()) { return; }
     m_vertices.back() = pos;
 }
 
 void RPolyline::moveSegmentAt(int i, const RVector &offset)
 {
     moveVertexAt(i, offset);
-    if (i + 1 < countVertices()) {
-        moveVertexAt(i + 1, offset);
-    }
-    else {
-        if (m_closed) {
-            moveVertexAt(0, offset);
-        }
+    if (i + 1 < countVertices()) { moveVertexAt(i + 1, offset); }
+    else
+    {
+        if (m_closed) { moveVertexAt(0, offset); }
     }
 }
 
 double RPolyline::getDirection1() const
 {
-    if (m_vertices.size() == 0) {
-        return RNANDOUBLE;
-    }
+    if (m_vertices.size() == 0) { return RNANDOUBLE; }
 
     std::shared_ptr<RShape> shape = getSegmentAt(0);
     return shape->getDirection1();
@@ -1397,33 +1291,23 @@ double RPolyline::getDirection1() const
 
 double RPolyline::getDirection2() const
 {
-    if (m_vertices.size() == 0) {
-        return RNANDOUBLE;
-    }
+    if (m_vertices.size() == 0) { return RNANDOUBLE; }
 
     int i = m_vertices.size() - 2;
-    if (isClosed()) {
-        i++;
-    }
+    if (isClosed()) { i++; }
 
     std::shared_ptr<RShape> shape = getSegmentAt(i);
-    if (!shape) {
-        return RNANDOUBLE;
-    }
+    if (!shape) { return RNANDOUBLE; }
     return shape->getDirection2();
 }
 
 RS::Side RPolyline::getSideOfPoint(const RVector &point) const
 {
     int i = getClosestSegment(point);
-    if (i < 0 || i >= countSegments()) {
-        return RS::NoSide;
-    }
+    if (i < 0 || i >= countSegments()) { return RS::NoSide; }
 
     std::shared_ptr<RShape> segment = getSegmentAt(i);
-    if (!segment) {
-        return RS::NoSide;
-    }
+    if (!segment) { return RS::NoSide; }
     return segment->getSideOfPoint(point);
 }
 
@@ -1431,9 +1315,11 @@ RBox RPolyline::getBoundingBox() const
 {
     RBox ret;
 
-    if (hasWidths()) {
+    if (hasWidths())
+    {
         std::vector<RPolyline> outline = getOutline();
-        for (int i = 0; i < outline.size(); i++) {
+        for (int i = 0; i < outline.size(); i++)
+        {
             assert(!outline[i].hasWidths());
             RBox bb = outline[i].getBoundingBox();
             ret.growToInclude(bb);
@@ -1441,13 +1327,15 @@ RBox RPolyline::getBoundingBox() const
         return ret;
     }
 
-    if (countVertices() == 1) {
+    if (countVertices() == 1)
+    {
         ret = RBox(m_vertices.at(0), m_vertices.at(0));
     }
 
     std::vector<std::shared_ptr<RShape>> sub = getExploded();
     std::vector<std::shared_ptr<RShape>>::iterator it;
-    for (it = sub.begin(); it != sub.end(); ++it) {
+    for (it = sub.begin(); it != sub.end(); ++it)
+    {
         RBox bb = (*it)->getBoundingBox();
         ret.growToInclude(bb);
     }
@@ -1468,11 +1356,10 @@ double RPolyline::getLength() const
 
     std::vector<std::shared_ptr<RShape>> sub = getExploded();
     std::vector<std::shared_ptr<RShape>>::iterator it;
-    for (it = sub.begin(); it != sub.end(); ++it) {
+    for (it = sub.begin(); it != sub.end(); ++it)
+    {
         double l = (*it)->getLength();
-        if (RMath::isNormal(l)) {
-            ret += l;
-        }
+        if (RMath::isNormal(l)) { ret += l; }
     }
 
     return ret;
@@ -1482,27 +1369,20 @@ double RPolyline::getLengthTo(const RVector &p, bool limited) const
 {
     double ret = 0.0;
 
-    if (p.equalsFuzzy(getStartPoint())) {
-        return 0.0;
-    }
+    if (p.equalsFuzzy(getStartPoint())) { return 0.0; }
 
     int segIdx = getClosestSegment(p);
-    if (segIdx < 0) {
-        return -1.0;
-    }
+    if (segIdx < 0) { return -1.0; }
 
-    for (int i = 0; i < segIdx; i++) {
+    for (int i = 0; i < segIdx; i++)
+    {
         double l = getSegmentAt(i)->getLength();
-        if (RMath::isNormal(l)) {
-            ret += l;
-        }
+        if (RMath::isNormal(l)) { ret += l; }
     }
 
     std::shared_ptr<RShape> seg = getSegmentAt(segIdx);
     bool lim = limited;
-    if (segIdx != 0 && segIdx != countSegments() - 1) {
-        lim = true;
-    }
+    if (segIdx != 0 && segIdx != countSegments() - 1) { lim = true; }
     RVector p2 = seg->getClosestPointOnShape(p, lim);
     seg->trimEndPoint(p2);
     ret += seg->getLength();
@@ -1513,12 +1393,15 @@ double RPolyline::getLengthTo(const RVector &p, bool limited) const
 double RPolyline::getSegmentsLength(int fromIndex, int toIndex) const
 {
     double len = 0.0;
-    for (int i = fromIndex; i < toIndex; i++) {
+    for (int i = fromIndex; i < toIndex; i++)
+    {
         std::shared_ptr<RShape> segment = getSegmentAt(i);
         len += segment->getLength();
     }
     return len;
 }
+
+double RPolyline::getDistanceFromStart(const RVector &p) const { return 0.0; }
 
 std::vector<double> RPolyline::getDistancesFromStart(const RVector &p) const
 {
@@ -1526,26 +1409,23 @@ std::vector<double> RPolyline::getDistancesFromStart(const RVector &p) const
 
     // any segment might contain point (self intersection):
     double len = 0.0;
-    for (int i = 0; i < countSegments(); i++) {
+    for (int i = 0; i < countSegments(); i++)
+    {
         std::shared_ptr<RShape> segment = getSegmentAt(i);
-        if (segment->getDistanceTo(p) < 0.0001) {
+        if (segment->getDistanceTo(p) < 0.0001)
+        {
             ret.push_back(len + segment->getDistanceFromStart(p));
         }
         len += segment->getLength();
     }
 
     // point is not on polyline, return distance to point closest to position:
-    if (ret.empty()) {
-        ret.push_back(getLengthTo(p, true));
-    }
+    if (ret.empty()) { ret.push_back(getLengthTo(p, true)); }
 
     return ret;
 }
 
-std::vector<RVector> RPolyline::getEndPoints() const
-{
-    return m_vertices;
-}
+std::vector<RVector> RPolyline::getEndPoints() const { return m_vertices; }
 
 std::vector<RVector> RPolyline::getMiddlePoints() const
 {
@@ -1553,7 +1433,8 @@ std::vector<RVector> RPolyline::getMiddlePoints() const
 
     std::vector<std::shared_ptr<RShape>> sub = getExploded();
     std::vector<std::shared_ptr<RShape>>::iterator it;
-    for (it = sub.begin(); it != sub.end(); ++it) {
+    for (it = sub.begin(); it != sub.end(); ++it)
+    {
         auto pps = (*it)->getMiddlePoints();
         ret.insert(ret.end(), pps.begin(), pps.end());
     }
@@ -1567,7 +1448,8 @@ std::vector<RVector> RPolyline::getCenterPoints() const
 
     std::vector<std::shared_ptr<RShape>> sub = getExploded();
     std::vector<std::shared_ptr<RShape>>::iterator it;
-    for (it = sub.begin(); it != sub.end(); ++it) {
+    for (it = sub.begin(); it != sub.end(); ++it)
+    {
         auto pps = (*it)->getCenterPoints();
         ret.insert(ret.end(), pps.begin(), pps.end());
     }
@@ -1579,11 +1461,9 @@ RVector RPolyline::getPointAtPercent(double p) const
 {
     double length = getLength();
     double distance = p * length;
-    std::vector<RVector> candidates =
-        getPointsWithDistanceToEnd(distance, RS::FromStart | RS::AlongPolyline);
-    if (candidates.size() != 1) {
-        return RVector::invalid;
-    }
+    std::vector<RVector> candidates = getPointsWithDistanceToEnd(
+            distance, RS::FromStart | RS::AlongPolyline);
+    if (candidates.size() != 1) { return RVector::invalid; }
     return candidates.at(0);
 }
 
@@ -1594,31 +1474,33 @@ std::vector<RVector> RPolyline::getPointsWithDistanceToEnd(double distance,
 
     std::vector<std::shared_ptr<RShape>> sub = getExploded();
 
-    if (sub.empty()) {
-        return ret;
-    }
+    if (sub.empty()) { return ret; }
 
-    if (from & RS::AlongPolyline) {
+    if (from & RS::AlongPolyline)
+    {
         double remainingDist;
         double len;
 
-        if (from & RS::FromStart) {
-            if (distance < 0.0) {
+        if (from & RS::FromStart)
+        {
+            if (distance < 0.0)
+            {
                 // extend at start:
                 auto pps = sub.front()->getPointsWithDistanceToEnd(
-                    distance, RS::FromStart);
+                        distance, RS::FromStart);
                 ret.insert(ret.end(), pps.begin(), pps.end());
             }
-            else {
+            else
+            {
                 remainingDist = distance;
-                for (int i = 0; i < sub.size(); i++) {
+                for (int i = 0; i < sub.size(); i++)
+                {
                     len = sub[i]->getLength();
-                    if (remainingDist > len) {
-                        remainingDist -= len;
-                    }
-                    else {
+                    if (remainingDist > len) { remainingDist -= len; }
+                    else
+                    {
                         auto pps = sub[i]->getPointsWithDistanceToEnd(
-                            remainingDist, RS::FromStart);
+                                remainingDist, RS::FromStart);
                         ret.insert(ret.end(), pps.begin(), pps.end());
                         break;
                     }
@@ -1626,23 +1508,26 @@ std::vector<RVector> RPolyline::getPointsWithDistanceToEnd(double distance,
             }
         }
 
-        if (from & RS::FromEnd) {
-            if (distance < 0.0) {
+        if (from & RS::FromEnd)
+        {
+            if (distance < 0.0)
+            {
                 // extend at end:
                 auto pps = sub.back()->getPointsWithDistanceToEnd(distance,
                                                                   RS::FromEnd);
                 ret.insert(ret.end(), pps.begin(), pps.end());
             }
-            else {
+            else
+            {
                 remainingDist = distance;
-                for (int i = sub.size() - 1; i >= 0; i--) {
+                for (int i = sub.size() - 1; i >= 0; i--)
+                {
                     len = sub[i]->getLength();
-                    if (remainingDist > len) {
-                        remainingDist -= len;
-                    }
-                    else {
+                    if (remainingDist > len) { remainingDist -= len; }
+                    else
+                    {
                         auto pps = sub[i]->getPointsWithDistanceToEnd(
-                            remainingDist, RS::FromEnd);
+                                remainingDist, RS::FromEnd);
                         ret.insert(ret.end(), pps.begin(), pps.end());
                         break;
                     }
@@ -1650,9 +1535,11 @@ std::vector<RVector> RPolyline::getPointsWithDistanceToEnd(double distance,
             }
         }
     }
-    else {
+    else
+    {
         std::vector<std::shared_ptr<RShape>>::iterator it;
-        for (it = sub.begin(); it != sub.end(); ++it) {
+        for (it = sub.begin(); it != sub.end(); ++it)
+        {
             auto pps = (*it)->getPointsWithDistanceToEnd(distance, from);
             ret.insert(ret.end(), pps.begin(), pps.end());
         }
@@ -1664,11 +1551,10 @@ std::vector<RVector> RPolyline::getPointsWithDistanceToEnd(double distance,
 std::vector<RVector> RPolyline::getPointCloud(double segmentLength) const
 {
     std::vector<RVector> ret;
-    for (int i = 0; i < countSegments(); i++) {
+    for (int i = 0; i < countSegments(); i++)
+    {
         std::shared_ptr<RShape> seg = getSegmentAt(i);
-        if (!seg) {
-            continue;
-        }
+        if (!seg) { continue; }
         auto pps = seg->getPointCloud(segmentLength);
         ret.insert(ret.end(), pps.begin(), pps.end());
     }
@@ -1679,33 +1565,33 @@ double RPolyline::getAngleAt(double distance, RS::From from) const
 {
     std::vector<std::shared_ptr<RShape>> sub = getExploded();
 
-    if (from & RS::AlongPolyline) {
+    if (from & RS::AlongPolyline)
+    {
         double remainingDist;
         double len;
 
-        if (from & RS::FromStart) {
+        if (from & RS::FromStart)
+        {
             remainingDist = distance;
-            for (int i = 0; i < sub.size(); i++) {
+            for (int i = 0; i < sub.size(); i++)
+            {
                 len = sub[i]->getLength();
-                if (remainingDist > len) {
-                    remainingDist -= len;
-                }
-                else {
+                if (remainingDist > len) { remainingDist -= len; }
+                else
+                {
                     return sub[i]->getAngleAt(remainingDist, RS::FromStart);
                 }
             }
         }
 
-        if (from & RS::FromEnd) {
+        if (from & RS::FromEnd)
+        {
             remainingDist = distance;
-            for (int i = sub.size() - 1; i >= 0; i--) {
+            for (int i = sub.size() - 1; i >= 0; i--)
+            {
                 len = sub[i]->getLength();
-                if (remainingDist > len) {
-                    remainingDist -= len;
-                }
-                else {
-                    return sub[i]->getAngleAt(remainingDist, RS::FromEnd);
-                }
+                if (remainingDist > len) { remainingDist -= len; }
+                else { return sub[i]->getAngleAt(remainingDist, RS::FromEnd); }
             }
         }
     }
@@ -1723,16 +1609,19 @@ RVector RPolyline::getVectorTo(const RVector &point, bool limited,
     RVector ret = RVector::invalid;
 
     std::vector<std::shared_ptr<RShape>> sub = getExploded();
-    for (int i = 0; i < sub.size(); i++) {
+    for (int i = 0; i < sub.size(); i++)
+    {
         std::shared_ptr<RShape> shape = sub.at(i);
         bool lim = limited;
-        if (i != 0 && i != sub.size() - 1) {
+        if (i != 0 && i != sub.size() - 1)
+        {
             // segments in the middle: always limited:
             lim = true;
         }
         RVector v = shape->getVectorTo(point, lim, strictRange);
         if (v.isValid() &&
-            (!ret.isValid() || v.getMagnitude() < ret.getMagnitude())) {
+            (!ret.isValid() || v.getMagnitude() < ret.getMagnitude()))
+        {
             ret = v;
         }
     }
@@ -1743,27 +1632,31 @@ RVector RPolyline::getVectorTo(const RVector &point, bool limited,
 double RPolyline::getDistanceTo(const RVector &point, bool limited,
                                 double strictRange) const
 {
-    if (!hasWidths()) {
+    if (!hasWidths())
+    {
         return RShape::getDistanceTo(point, limited, strictRange);
     }
 
-    if (!getBoundingBox().grow(strictRange).contains(point)) {
+    if (!getBoundingBox().grow(strictRange).contains(point))
+    {
         return RNANDOUBLE;
     }
 
     double ret = RNANDOUBLE;
 
     std::vector<RPolyline> outline = getOutline();
-    for (int i = 0; i < outline.size(); i++) {
+    for (int i = 0; i < outline.size(); i++)
+    {
         assert(!outline[i].hasWidths());
         double d = outline[i].getDistanceTo(point);
-        if (RMath::isNaN(ret) || d < ret) {
-            ret = d;
-        }
+        if (RMath::isNaN(ret) || d < ret) { ret = d; }
 
-        if (outline[i].isGeometricallyClosed()) {
-            if (outline[i].contains(point)) {
-                if (RMath::isNaN(ret) || strictRange < ret) {
+        if (outline[i].isGeometricallyClosed())
+        {
+            if (outline[i].contains(point))
+            {
+                if (RMath::isNaN(ret) || strictRange < ret)
+                {
                     ret = strictRange;
                 }
             }
@@ -1778,16 +1671,14 @@ int RPolyline::getClosestSegment(const RVector &point) const
     int ret = -1;
     double minDist = -1;
 
-    for (int i = 0; i < countSegments(); i++) {
+    for (int i = 0; i < countSegments(); i++)
+    {
         std::shared_ptr<RShape> segment = getSegmentAt(i);
-        if (!segment) {
-            break;
-        }
+        if (!segment) { break; }
         double dist = segment->getDistanceTo(point, true);
-        if (!RMath::isNormal(dist)) {
-            continue;
-        }
-        if (minDist < 0 || dist < minDist) {
+        if (!RMath::isNormal(dist)) { continue; }
+        if (minDist < 0 || dist < minDist)
+        {
             minDist = dist;
             ret = i;
         }
@@ -1803,18 +1694,15 @@ int RPolyline::getClosestVertex(const RVector &point) const
 
 bool RPolyline::move(const RVector &offset)
 {
-    for (int i = 0; i < m_vertices.size(); i++) {
-        m_vertices[i].move(offset);
-    }
+    for (int i = 0; i < m_vertices.size(); i++) { m_vertices[i].move(offset); }
     return true;
 }
 
 bool RPolyline::rotate(double rotation, const RVector &center)
 {
-    if (fabs(rotation) < RS::AngleTolerance) {
-        return false;
-    }
-    for (int i = 0; i < m_vertices.size(); i++) {
+    if (fabs(rotation) < RS::AngleTolerance) { return false; }
+    for (int i = 0; i < m_vertices.size(); i++)
+    {
         m_vertices[i].rotate(rotation, center);
     }
     return true;
@@ -1828,51 +1716,52 @@ bool RPolyline::scale(double scaleFactor, const RVector &center)
 bool RPolyline::scale(const RVector &scaleFactors, const RVector &center)
 {
     if (hasArcSegments() &&
-        !RMath::fuzzyCompare(scaleFactors.x, scaleFactors.y)) {
+        !RMath::fuzzyCompare(scaleFactors.x, scaleFactors.y))
+    {
         // non-uniform scaling of polyline with arcs:
         RPolyline pl;
-        for (int i = 0; i < countSegments(); i++) {
+        for (int i = 0; i < countSegments(); i++)
+        {
             std::shared_ptr<RShape> seg = getSegmentAt(i);
-            if (!seg) {
-                continue;
-            }
+            if (!seg) { continue; }
 
             std::shared_ptr<RShape> newSeg;
-            if (seg->getShapeType() == RS::Line) {
+            if (seg->getShapeType() == RS::Line)
+            {
                 newSeg = seg;
                 newSeg->scale(scaleFactors, center);
             }
-            else {
+            else
+            {
                 newSeg = RShapePrivate::scaleArc(*seg, scaleFactors, center);
             }
 
-            if (newSeg) {
-                pl.appendShape(*newSeg);
-            }
+            if (newSeg) { pl.appendShape(*newSeg); }
         }
 
         *this = pl;
         return true;
     }
 
-    for (int i = 0; i < m_vertices.size(); i++) {
+    for (int i = 0; i < m_vertices.size(); i++)
+    {
         m_vertices[i].scale(scaleFactors, center);
     }
-    for (int i = 0; i < m_startWidths.size(); i++) {
-        if (m_startWidths[i] > 0.0) {
+    for (int i = 0; i < m_startWidths.size(); i++)
+    {
+        if (m_startWidths[i] > 0.0)
+        {
             m_startWidths[i] *= fabs(scaleFactors.x);
         }
     }
-    for (int i = 0; i < m_endWidths.size(); i++) {
-        if (m_endWidths[i] > 0.0) {
-            m_endWidths[i] *= fabs(scaleFactors.x);
-        }
+    for (int i = 0; i < m_endWidths.size(); i++)
+    {
+        if (m_endWidths[i] > 0.0) { m_endWidths[i] *= fabs(scaleFactors.x); }
     }
     // factor in x or in y is negative -> mirror:
-    if ((scaleFactors.x < 0) != (scaleFactors.y < 0)) {
-        for (int i = 0; i < m_bulges.size(); i++) {
-            m_bulges[i] *= -1;
-        }
+    if ((scaleFactors.x < 0) != (scaleFactors.y < 0))
+    {
+        for (int i = 0; i < m_bulges.size(); i++) { m_bulges[i] *= -1; }
     }
     return true;
 }
@@ -1880,36 +1769,33 @@ bool RPolyline::scale(const RVector &scaleFactors, const RVector &center)
 bool RPolyline::mirror(const RLine &axis)
 {
     int i;
-    for (i = 0; i < m_vertices.size(); i++) {
+    for (i = 0; i < m_vertices.size(); i++)
+    {
         m_vertices[i].mirror(axis.getStartPoint(), axis.getEndPoint());
     }
-    for (i = 0; i < m_bulges.size(); i++) {
-        m_bulges[i] *= -1;
-    }
+    for (i = 0; i < m_bulges.size(); i++) { m_bulges[i] *= -1; }
     return true;
 }
 
 bool RPolyline::reverse()
 {
     std::vector<RVector> vs = m_vertices;
-    if (m_closed) {
-        vs.push_back(vs.front());
-    }
+    if (m_closed) { vs.push_back(vs.front()); }
 
     RPolyline nPolyline;
 
-    for (int i = vs.size() - 1, k = 0; i >= 0; i--, k++) {
+    for (int i = vs.size() - 1, k = 0; i >= 0; i--, k++)
+    {
         nPolyline.appendVertex(vs[i]);
-        if (i > 0) {
+        if (i > 0)
+        {
             nPolyline.setBulgeAt(k, -m_bulges[i - 1]);
 
             nPolyline.setStartWidthAt(k, m_endWidths[i - 1]);
             nPolyline.setEndWidthAt(k, m_startWidths[i - 1]);
         }
     }
-    if (m_closed) {
-        nPolyline.convertToClosed();
-    }
+    if (m_closed) { nPolyline.convertToClosed(); }
 
     *this = nPolyline;
 
@@ -1929,7 +1815,8 @@ RPolyline RPolyline::getReversed() const
 
 bool RPolyline::stretch(const RPolyline &area, const RVector &offset)
 {
-    for (int i = 0; i < m_vertices.size(); i++) {
+    for (int i = 0; i < m_vertices.size(); i++)
+    {
         m_vertices[i].stretch(area, offset);
     }
     return true;
@@ -1953,20 +1840,11 @@ bool RPolyline::trimEndPoint(const RVector &trimPoint,
     return false;
 }
 
-bool RPolyline::trimStartPoint(double trimDist)
-{
-    return false;
-}
+bool RPolyline::trimStartPoint(double trimDist) { return false; }
 
-bool RPolyline::trimEndPoint(double trimDist)
-{
-    return false;
-}
+bool RPolyline::trimEndPoint(double trimDist) { return false; }
 
-bool RPolyline::simplify(double tolerance)
-{
-    return false;
-}
+bool RPolyline::simplify(double tolerance) { return false; }
 
 std::vector<RVector> RPolyline::verifyTangency(double toleranceMin,
                                                double toleranceMax)
@@ -1985,8 +1863,10 @@ RPolyline RPolyline::modifyPolylineCorner(const RShape &trimmedShape1,
     RPolyline pl;
 
     if (segmentIndex1 < segmentIndex2 && ending1 == RS::EndingEnd &&
-        ending2 == RS::EndingStart) {
-        for (int i = 0; i < segmentIndex1; i++) {
+        ending2 == RS::EndingStart)
+    {
+        for (int i = 0; i < segmentIndex1; i++)
+        {
             segment = getSegmentAt(i);
             pl.appendShape(*segment);
             pl.setStartWidthAt(pl.m_startWidths.size() - 2, getStartWidthAt(i));
@@ -1994,12 +1874,11 @@ RPolyline RPolyline::modifyPolylineCorner(const RShape &trimmedShape1,
         }
 
         pl.appendShapeAuto(trimmedShape1);
-        if (cornerShape != NULL) {
-            pl.appendShapeAuto(*cornerShape);
-        }
+        if (cornerShape != NULL) { pl.appendShapeAuto(*cornerShape); }
         pl.appendShapeAuto(trimmedShape2);
 
-        for (int i = segmentIndex2 + 1; i < countSegments(); i++) {
+        for (int i = segmentIndex2 + 1; i < countSegments(); i++)
+        {
             segment = getSegmentAt(i);
             pl.appendShape(*segment);
             pl.setStartWidthAt(pl.m_startWidths.size() - 2, getStartWidthAt(i));
@@ -2007,8 +1886,10 @@ RPolyline RPolyline::modifyPolylineCorner(const RShape &trimmedShape1,
         }
     }
     else if (segmentIndex1 > segmentIndex2 && ending1 == RS::EndingStart &&
-             ending2 == RS::EndingEnd) {
-        for (int i = 0; i < segmentIndex2; i++) {
+             ending2 == RS::EndingEnd)
+    {
+        for (int i = 0; i < segmentIndex2; i++)
+        {
             segment = getSegmentAt(i);
             pl.appendShape(*segment);
             pl.setStartWidthAt(pl.m_startWidths.size() - 2, getStartWidthAt(i));
@@ -2016,12 +1897,11 @@ RPolyline RPolyline::modifyPolylineCorner(const RShape &trimmedShape1,
         }
 
         pl.appendShapeAuto(trimmedShape2);
-        if (cornerShape != NULL) {
-            pl.appendShapeAuto(*cornerShape);
-        }
+        if (cornerShape != NULL) { pl.appendShapeAuto(*cornerShape); }
         pl.appendShapeAuto(trimmedShape1);
 
-        for (int i = segmentIndex1 + 1; i < countSegments(); i++) {
+        for (int i = segmentIndex1 + 1; i < countSegments(); i++)
+        {
             segment = getSegmentAt(i);
             pl.appendShape(*segment);
             pl.setStartWidthAt(pl.m_startWidths.size() - 2, getStartWidthAt(i));
@@ -2029,47 +1909,42 @@ RPolyline RPolyline::modifyPolylineCorner(const RShape &trimmedShape1,
         }
     }
     else if (segmentIndex1 < segmentIndex2 && ending1 == RS::EndingStart &&
-             ending2 == RS::EndingEnd) {
+             ending2 == RS::EndingEnd)
+    {
         pl.appendShapeAuto(trimmedShape1);
-        for (int i = segmentIndex1 + 1; i < segmentIndex2; i++) {
+        for (int i = segmentIndex1 + 1; i < segmentIndex2; i++)
+        {
             segment = getSegmentAt(i);
             pl.appendShape(*segment);
             pl.setStartWidthAt(pl.m_startWidths.size() - 2, getStartWidthAt(i));
             pl.setEndWidthAt(pl.m_endWidths.size() - 2, getEndWidthAt(i));
         }
         pl.appendShapeAuto(trimmedShape2);
-        if (cornerShape != NULL) {
-            pl.appendShapeAuto(*cornerShape);
-        }
+        if (cornerShape != NULL) { pl.appendShapeAuto(*cornerShape); }
     }
     else if (segmentIndex1 > segmentIndex2 && ending1 == RS::EndingEnd &&
-             ending2 == RS::EndingStart) {
+             ending2 == RS::EndingStart)
+    {
         pl.appendShapeAuto(trimmedShape2);
-        for (int i = segmentIndex2 + 1; i < segmentIndex1; i++) {
+        for (int i = segmentIndex2 + 1; i < segmentIndex1; i++)
+        {
             segment = getSegmentAt(i);
             pl.appendShape(*segment);
             pl.setStartWidthAt(pl.m_startWidths.size() - 2, getStartWidthAt(i));
             pl.setEndWidthAt(pl.m_endWidths.size() - 2, getEndWidthAt(i));
         }
         pl.appendShapeAuto(trimmedShape1);
-        if (cornerShape != NULL) {
-            pl.appendShapeAuto(*cornerShape);
-        }
+        if (cornerShape != NULL) { pl.appendShapeAuto(*cornerShape); }
     }
 
     return pl;
 }
 
-bool RPolyline::isConcave() const
-{
-    return !getConcaveVertices().empty();
-}
+bool RPolyline::isConcave() const { return !getConcaveVertices().empty(); }
 
 std::vector<RVector> RPolyline::getConvexVertices(bool convex) const
 {
-    if (!isGeometricallyClosed()) {
-        return std::vector<RVector>();
-    }
+    if (!isGeometricallyClosed()) { return std::vector<RVector>(); }
 
     RPolyline pl = *this;
     pl.autoClose();
@@ -2078,7 +1953,8 @@ std::vector<RVector> RPolyline::getConvexVertices(bool convex) const
 
     std::vector<RVector> ret;
 
-    for (int i = 0; i < pl.m_vertices.size(); i++) {
+    for (int i = 0; i < pl.m_vertices.size(); i++)
+    {
         int iPrev = RMath::absmod(i - 1, pl.m_vertices.size());
         std::shared_ptr<RShape> segmentPrev = pl.getSegmentAt(iPrev);
         std::shared_ptr<RShape> segmentNext = pl.getSegmentAt(i);
@@ -2091,13 +1967,17 @@ std::vector<RVector> RPolyline::getConvexVertices(bool convex) const
 
         double cp = RVector::getCrossProduct(pPrev, pNext);
 
-        if (convex) {
-            if (ori == RS::CW && cp < 0.0 || ori == RS::CCW && cp > 0.0) {
+        if (convex)
+        {
+            if (ori == RS::CW && cp < 0.0 || ori == RS::CCW && cp > 0.0)
+            {
                 ret.push_back(pl.m_vertices[i]);
             }
         }
-        else {
-            if (ori == RS::CCW && cp < 0.0 || ori == RS::CW && cp > 0.0) {
+        else
+        {
+            if (ori == RS::CCW && cp < 0.0 || ori == RS::CW && cp > 0.0)
+            {
                 ret.push_back(pl.m_vertices[i]);
             }
         }
@@ -2113,16 +1993,15 @@ std::vector<RVector> RPolyline::getConcaveVertices() const
 
 RVector RPolyline::getCentroid() const
 {
-    if (hasArcSegments()) {
-        return RVector::invalid;
-    }
+    if (hasArcSegments()) { return RVector::invalid; }
 
     double xSum = 0;
     double ySum = 0;
     double signedArea = 0;
     int n = m_vertices.size();
 
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; i++)
+    {
         double x0 = m_vertices[i].x;
         double y0 = m_vertices[i].y;
         double x1 = m_vertices[(i + 1) % n].x;
@@ -2152,40 +2031,19 @@ std::vector<RPolyline> RPolyline::splitAtSegmentTypeChange() const
     return {*this};
 }
 
-double RPolyline::getBaseAngle() const
-{
-    return 0.0;
-}
+double RPolyline::getBaseAngle() const { return 0.0; }
 
-double RPolyline::getWidth() const
-{
-    return 0.0;
-}
+double RPolyline::getWidth() const { return 0.0; }
 
-bool RPolyline::setWidth(double v)
-{
-    return false;
-}
+bool RPolyline::setWidth(double v) { return false; }
 
-double RPolyline::getHeight() const
-{
-    return 0.0;
-}
+double RPolyline::getHeight() const { return 0.0; }
 
-bool RPolyline::setHeight(double v)
-{
-    return false;
-}
+bool RPolyline::setHeight(double v) { return false; }
 
-RPolyline RPolyline::roundAllCorners(double radius) const
-{
-    return *this;
-}
+RPolyline RPolyline::roundAllCorners(double radius) const { return *this; }
 
-RPolyline RPolyline::getPolygon(double segmentLength) const
-{
-    return *this;
-}
+RPolyline RPolyline::getPolygon(double segmentLength) const { return *this; }
 
 RPolyline RPolyline::getPolygonHull(double angle, double tolerance,
                                     bool inner) const

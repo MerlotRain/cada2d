@@ -28,18 +28,21 @@
 
 #include <algorithm>
 
-class RVectorDistanceSort {
+class RVectorDistanceSort
+{
 public:
     static bool lessThan(const RVector &v1, const RVector &v2);
     static RVector v;
 };
 
-class RVectorLeftRightTopBottomSort {
+class RVectorLeftRightTopBottomSort
+{
 public:
     static bool lessThan(const RVector &v1, const RVector &v2);
 };
 
-class RVectorAngleSort {
+class RVectorAngleSort
+{
 public:
     static bool lessThan(const RVector &v1, const RVector &v2);
     static RVector center;
@@ -60,14 +63,9 @@ RVector::RVector(double vx, double vy, bool valid_in) : x(vx), y(vy)
     valid = valid_in && RMath::isNormal(x) && RMath::isNormal(y);
 }
 
-RVector::~RVector()
-{
-}
+RVector::~RVector() {}
 
-bool RVector::isValid() const
-{
-    return valid;
-}
+bool RVector::isValid() const { return valid; }
 
 bool RVector::isZero() const
 {
@@ -79,30 +77,15 @@ bool RVector::isSane() const
     return isValid() && RMath::isSane(x) && RMath::isSane(y);
 }
 
-bool RVector::isNaN() const
-{
-    return RMath::isNaN(x) || RMath::isNaN(y);
-}
+bool RVector::isNaN() const { return RMath::isNaN(x) || RMath::isNaN(y); }
 
-void RVector::setX(double x)
-{
-    this->x = x;
-}
+void RVector::setX(double x) { this->x = x; }
 
-double RVector::getX()
-{
-    return x;
-}
+double RVector::getX() const { return x; }
 
-void RVector::setY(double y)
-{
-    this->y = y;
-}
+void RVector::setY(double y) { this->y = y; }
 
-double RVector::getY()
-{
-    return y;
-}
+double RVector::getY() const { return y; }
 
 void RVector::setPolar(double radius, double angle)
 {
@@ -122,20 +105,13 @@ double RVector::getAngle() const
     double ret = 0.0;
     double m = getMagnitude();
 
-    if (m > 1.0e-6) {
+    if (m > 1.0e-6)
+    {
         double dp = getDotProduct(*this, RVector(1.0, 0.0));
-        if (dp / m >= 1.0) {
-            ret = 0.0;
-        }
-        else if (dp / m < -1.0) {
-            ret = M_PI;
-        }
-        else {
-            ret = acos(dp / m);
-        }
-        if (y < 0.0) {
-            ret = 2 * M_PI - ret;
-        }
+        if (dp / m >= 1.0) { ret = 0.0; }
+        else if (dp / m < -1.0) { ret = M_PI; }
+        else { ret = acos(dp / m); }
+        if (y < 0.0) { ret = 2 * M_PI - ret; }
     }
     return ret;
 }
@@ -144,25 +120,21 @@ double RVector::getAngleToPlaneXY() const
 {
     RVector n(0, 0, 1);
 
-    if (getMagnitude() < 1.0e-4) {
-        return M_PI / 2;
-    }
-    else if ((getDotProduct(*this, n) / (getMagnitude() * 1)) > 1.0) {
+    if (getMagnitude() < 1.0e-4) { return M_PI / 2; }
+    else if ((getDotProduct(*this, n) / (getMagnitude() * 1)) > 1.0)
+    {
         return 0.0;
     }
-    else {
+    else
+    {
         return M_PI / 2 - acos(getDotProduct(*this, n) / (getMagnitude() * 1));
     }
 }
 
 double RVector::getAngleTo(const RVector &v) const
 {
-    if (!valid || !v.valid) {
-        return RNANDOUBLE;
-    }
-    else {
-        return (v - *this).getAngle();
-    }
+    if (!valid || !v.valid) { return RNANDOUBLE; }
+    else { return (v - *this).getAngle(); }
 }
 
 void RVector::setMagnitude(double m)
@@ -173,9 +145,7 @@ void RVector::setMagnitude(double m)
 
 double RVector::getMagnitude() const
 {
-    if (!valid) {
-        return RNANDOUBLE;
-    }
+    if (!valid) { return RNANDOUBLE; }
     // Note that the z coordinate is also needed for 2d
     //   (due to definition of crossP())
     return sqrt(x * x + y * y);
@@ -183,9 +153,7 @@ double RVector::getMagnitude() const
 
 double RVector::getSquaredMagnitude() const
 {
-    if (!valid) {
-        return RNANDOUBLE;
-    }
+    if (!valid) { return RNANDOUBLE; }
 
     return x * x + y * y;
 }
@@ -195,10 +163,7 @@ RVector RVector::getLerp(const RVector &v, double t) const
     return RVector(x + (v.x - x) * t, y + (v.y - y) * t);
 }
 
-RVector RVector::getUnitVector() const
-{
-    return *this / getMagnitude();
-}
+RVector RVector::getUnitVector() const { return *this / getMagnitude(); }
 
 bool RVector::isInside(const RBox &b) const
 {
@@ -216,12 +181,8 @@ bool RVector::equalsFuzzy(const RVector &v, double tol) const
 
 double RVector::getDistanceTo(const RVector &v) const
 {
-    if (!valid || !v.valid) {
-        return RNANDOUBLE;
-    }
-    else {
-        return (*this - v).getMagnitude();
-    }
+    if (!valid || !v.valid) { return RNANDOUBLE; }
+    else { return (*this - v).getMagnitude(); }
 }
 
 RVector RVector::move(const RVector &offset)
@@ -232,16 +193,12 @@ RVector RVector::move(const RVector &offset)
 
 void RVector::moveList(std::vector<RVector> &list, const RVector &offset)
 {
-    for (int i = 0; i < list.size(); i++) {
-        list[i].move(offset);
-    }
+    for (int i = 0; i < list.size(); i++) { list[i].move(offset); }
 }
 
 RVector RVector::rotate(double rotation)
 {
-    if (!valid) {
-        return *this;
-    }
+    if (!valid) { return *this; }
 
     double r = getMagnitude();
     double a = getAngle() + rotation;
@@ -286,7 +243,8 @@ RVector RVector::scale(double factor, const RVector &center)
 
 RVector RVector::scale(const RVector &factors, const RVector &center)
 {
-    if (center == RVector()) {
+    if (center == RVector())
+    {
         x *= factors.x;
         y *= factors.y;
         return *this;
@@ -311,10 +269,12 @@ RVector RVector::mirror(const RVector &axis1, const RVector &axis2)
     double r1 = axis1.getDistanceTo(*this);
     double r2 = axis2.getDistanceTo(*this);
 
-    if (r1 < 1.0e-6 || r2 < 1.0e-6) {
+    if (r1 < 1.0e-6 || r2 < 1.0e-6)
+    {
         // point touches one axis point
     }
-    else {
+    else
+    {
         setPolar(r1, phi1 + 2 * phi2);
         (*this) += axis1;
     }
@@ -334,9 +294,7 @@ RVector RVector::flipVertical()
 
 RVector RVector::stretch(const RPolyline &area, const RVector &offset)
 {
-    if (area.contains(*this, true)) {
-        return move(offset);
-    }
+    if (area.contains(*this, true)) { return move(offset); }
     return *this;
 }
 
@@ -360,20 +318,11 @@ RVector RVector::operator/(double s) const
     return RVector(x / s, y / s, valid);
 }
 
-RVector RVector::operator-() const
-{
-    return getNegated();
-}
+RVector RVector::operator-() const { return getNegated(); }
 
-RVector RVector::getNegated() const
-{
-    return RVector(-x, -y, valid);
-}
+RVector RVector::getNegated() const { return RVector(-x, -y, valid); }
 
-RVector RVector::getAbsolute() const
-{
-    return RVector(fabs(x), fabs(y));
-}
+RVector RVector::getAbsolute() const { return RVector(fabs(x), fabs(y)); }
 
 RVector RVector::normalize()
 {
@@ -384,9 +333,7 @@ RVector RVector::normalize()
 RVector RVector::getNormalized() const
 {
     double l = getMagnitude();
-    if (l < RS::PointTolerance) {
-        return RVector::invalid;
-    }
+    if (l < RS::PointTolerance) { return RVector::invalid; }
     return *this / l;
 }
 
@@ -423,12 +370,8 @@ void RVector::operator/=(double s)
 
 bool RVector::operator==(const RVector &v) const
 {
-    if (valid == true && v.valid == true) {
-        return x == v.x && y == v.y;
-    }
-    else if (valid == false && v.valid == false) {
-        return true;
-    }
+    if (valid == true && v.valid == true) { return x == v.x && y == v.y; }
+    else if (valid == false && v.valid == false) { return true; }
     return false;
 }
 
@@ -441,10 +384,9 @@ bool RVector::containsFuzzy(const std::vector<RVector> &vectors,
 int RVector::findFirstFuzzy(const std::vector<RVector> &vectors,
                             const RVector &v, double tol)
 {
-    for (int i = 0; i < vectors.size(); i++) {
-        if (v.equalsFuzzy(vectors[i], tol)) {
-            return i;
-        }
+    for (int i = 0; i < vectors.size(); i++)
+    {
+        if (v.equalsFuzzy(vectors[i], tol)) { return i; }
     }
 
     return -1;
@@ -452,50 +394,39 @@ int RVector::findFirstFuzzy(const std::vector<RVector> &vectors,
 
 RVector RVector::getMinimum(const std::vector<RVector> &vectors)
 {
-    if (vectors.size() == 0) {
-        return RVector();
-    }
+    if (vectors.size() == 0) { return RVector(); }
 
     RVector ret = vectors[0];
 
     std::vector<RVector>::const_iterator it = vectors.begin();
     it++;
-    for (; it != vectors.end(); it++) {
-        ret = getMinimum(ret, *it);
-    }
+    for (; it != vectors.end(); it++) { ret = getMinimum(ret, *it); }
 
     return ret;
 }
 
 RVector RVector::getMaximum(const std::vector<RVector> &vectors)
 {
-    if (vectors.size() == 0) {
-        return RVector();
-    }
+    if (vectors.size() == 0) { return RVector(); }
 
     RVector ret = vectors[0];
 
     std::vector<RVector>::const_iterator it = vectors.begin();
     it++;
-    for (; it != vectors.end(); it++) {
-        ret = getMaximum(ret, *it);
-    }
+    for (; it != vectors.end(); it++) { ret = getMaximum(ret, *it); }
 
     return ret;
 }
 
 RVector RVector::getMinimumX(const std::vector<RVector> &vectors)
 {
-    if (vectors.size() == 0) {
-        return RVector();
-    }
+    if (vectors.size() == 0) { return RVector(); }
 
     RVector ret = vectors[0];
 
-    for (int i = 0; i < vectors.size(); i++) {
-        if (vectors[i].x < ret.x) {
-            ret = vectors[i];
-        }
+    for (int i = 0; i < vectors.size(); i++)
+    {
+        if (vectors[i].x < ret.x) { ret = vectors[i]; }
     }
 
     return ret;
@@ -503,16 +434,13 @@ RVector RVector::getMinimumX(const std::vector<RVector> &vectors)
 
 RVector RVector::getMaximumX(const std::vector<RVector> &vectors)
 {
-    if (vectors.size() == 0) {
-        return RVector();
-    }
+    if (vectors.size() == 0) { return RVector(); }
 
     RVector ret = vectors[0];
 
-    for (int i = 0; i < vectors.size(); i++) {
-        if (vectors[i].x > ret.x) {
-            ret = vectors[i];
-        }
+    for (int i = 0; i < vectors.size(); i++)
+    {
+        if (vectors[i].x > ret.x) { ret = vectors[i]; }
     }
 
     return ret;
@@ -520,16 +448,13 @@ RVector RVector::getMaximumX(const std::vector<RVector> &vectors)
 
 RVector RVector::getMinimumY(const std::vector<RVector> &vectors)
 {
-    if (vectors.size() == 0) {
-        return RVector();
-    }
+    if (vectors.size() == 0) { return RVector(); }
 
     RVector ret = vectors[0];
 
-    for (int i = 0; i < vectors.size(); i++) {
-        if (vectors[i].y < ret.y) {
-            ret = vectors[i];
-        }
+    for (int i = 0; i < vectors.size(); i++)
+    {
+        if (vectors[i].y < ret.y) { ret = vectors[i]; }
     }
 
     return ret;
@@ -537,16 +462,13 @@ RVector RVector::getMinimumY(const std::vector<RVector> &vectors)
 
 RVector RVector::getMaximumY(const std::vector<RVector> &vectors)
 {
-    if (vectors.size() == 0) {
-        return RVector();
-    }
+    if (vectors.size() == 0) { return RVector(); }
 
     RVector ret = vectors[0];
 
-    for (int i = 0; i < vectors.size(); i++) {
-        if (vectors[i].y > ret.y) {
-            ret = vectors[i];
-        }
+    for (int i = 0; i < vectors.size(); i++)
+    {
+        if (vectors[i].y > ret.y) { ret = vectors[i]; }
     }
 
     return ret;
@@ -572,9 +494,7 @@ RVector RVector::getAverage(const RVector &v1, const RVector &v2)
 RVector RVector::getAverage(const std::vector<RVector> &vectors)
 {
     RVector sum = RVector::nullVector;
-    for (int i = 0; i < vectors.size(); i++) {
-        sum += vectors[i];
-    }
+    for (int i = 0; i < vectors.size(); i++) { sum += vectors[i]; }
     return sum / vectors.size();
 }
 
@@ -583,10 +503,7 @@ RVector RVector::getFloor() const
     return RVector(floorl(x), floorl(y), valid);
 }
 
-RVector RVector::getCeil() const
-{
-    return RVector(ceill(x), ceill(y), valid);
-}
+RVector RVector::getCeil() const { return RVector(ceill(x), ceill(y), valid); }
 
 double RVector::getCrossProduct(const RVector &v1, const RVector &v2)
 {
@@ -606,9 +523,7 @@ RVector RVector::getMultipliedComponents(const RVector &v) const
 RVector RVector::getClosest(const std::vector<RVector> &list) const
 {
     int index = getClosestIndex(list);
-    if (index == -1) {
-        return RVector::invalid;
-    }
+    if (index == -1) { return RVector::invalid; }
     return list[index];
 }
 
@@ -616,19 +531,36 @@ double RVector::getClosestDistance(const std::vector<RVector> &list, int counts)
 {
     double ret = RMAXDOUBLE;
     int i = list.size();
-    if (counts < i) {
-        i = counts;
-    }
-    if (i < 1) {
-        return ret;
-    }
-    for (int j = 0; j < i; j++) {
+    if (counts < i) { i = counts; }
+    if (i < 1) { return ret; }
+    for (int j = 0; j < i; j++)
+    {
         double d = getDistanceTo(list[j]);
-        if (d < ret) {
-            ret = d;
-        }
+        if (d < ret) { ret = d; }
     }
     return ret;
+}
+
+int RVector::getClosestIndex(const std::vector<RVector> &list) const
+{
+    double minDist = RMAXDOUBLE;
+    int index = -1;
+
+    for (int i = 0; i < list.size(); ++i)
+    {
+        if (list[i].valid)
+        {
+            double dist;
+            dist = getDistanceTo(list[i]);
+            if (dist < minDist)
+            {
+                minDist = dist;
+                index = i;
+            }
+        }
+    }
+
+    return index;
 }
 
 std::vector<RVector>
@@ -659,10 +591,7 @@ std::vector<RVector> RVector::getSortedByAngle(const std::vector<RVector> &list,
     return ret;
 }
 
-RVector operator*(double s, const RVector &v)
-{
-    return v * s;
-}
+RVector operator*(double s, const RVector &v) { return v * s; }
 
 bool RVectorDistanceSort::lessThan(const RVector &v1, const RVector &v2)
 {
@@ -681,12 +610,8 @@ bool RVectorAngleSort::lessThan(const RVector &v1, const RVector &v2)
     double a2 = center.getAngleTo(v2);
 
     double diff1 = RMath::getAngleDifference(angle, a1);
-    if (RMath::fuzzyAngleCompare(diff1, M_PI * 2)) {
-        diff1 = 0.0;
-    }
+    if (RMath::fuzzyAngleCompare(diff1, M_PI * 2)) { diff1 = 0.0; }
     double diff2 = RMath::getAngleDifference(angle, a2);
-    if (RMath::fuzzyAngleCompare(diff2, M_PI * 2)) {
-        diff2 = 0.0;
-    }
+    if (RMath::fuzzyAngleCompare(diff2, M_PI * 2)) { diff2 = 0.0; }
     return diff1 < diff2;
 }

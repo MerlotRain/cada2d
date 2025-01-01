@@ -23,14 +23,15 @@
 #ifndef RELLIPSE_H
 #define RELLIPSE_H
 
+#include <cada2d/RLine.h>
 #include <cada2d/RShape.h>
 #include <cada2d/RSpline.h>
-#include <cada2d/RLine.h>
 #include <cada2d/RVector.h>
 
 class RBox;
 
-class CADA_API REllipse : public RShape {
+class CADA_API REllipse : public RShape
+{
 public:
     REllipse();
     REllipse(const RVector &center, const RVector &majorPoint, double ratio,
@@ -45,7 +46,7 @@ public:
                                       const RVector &p3, const RVector &p4);
 
     RS::ShapeType getShapeType() const override;
-    REllipse *clone() const override;
+    std::shared_ptr<RShape> clone() const override;
     bool isDirected() const override;
     bool isValid() const override;
 
@@ -160,6 +161,7 @@ public:
 
     std::vector<std::shared_ptr<RShape>>
     getOffsetShapes(double distance, int number, RS::Side side,
+                    RS::JoinType join,
                     const RVector &position = RVector::invalid) override;
     std::vector<std::shared_ptr<RShape>>
     splitAt(const std::vector<RVector> &points) const override;
