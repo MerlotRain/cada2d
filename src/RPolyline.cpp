@@ -1825,19 +1825,96 @@ bool RPolyline::stretch(const RPolyline &area, const RVector &offset)
 RS::Ending RPolyline::getTrimEnd(const RVector &trimPoint,
                                  const RVector &clickPoint)
 {
-    return RS::EndingNone;
+    int segIndex = getClosestSegment(clickPoint);
+    if (segIndex == -1)
+        return RS::EndingNone;
+    
+    auto&& seg = getSegmentAt(segIndex);
+    if(!seg)
+        return RS::EndingNone;
+    
+    return seg->getTrimEnd(trimPoint, clickPoint);
 }
 
 bool RPolyline::trimStartPoint(const RVector &trimPoint,
                                const RVector &clickPoint, bool extend)
 {
-    return false;
+    int segIndex = getClosestSegment(clickPoint);
+    if (segIndex == -1)
+        return false;
+    
+    for (size_t i = 0; i < segIndex; ++i)
+        removeVertex(0);
+
+    auto&& seg = getSegmentAt(0);
+    if(!seg)
+        return false;
+    
+    if(!seg->trimStartPoint(trimPoint, clickPoint, extend))
+        return false;
+
+    RVector v;
+    double bugle = 0.0;
+    if(seg->getShapeType() == RS::Line)
+    {
+        auto l = std::dynamic_pointer_cast<RLine>(seg);
+        v = l->getStartPoint();
+    }
+    else if (seg->getShapeType() == RS::Arc)
+    {
+        auto a = std::dynamic_pointer_cast<RArc>(seg);
+        v = a->getStartPoint();
+        bulge = a->getBulge();
+    }
+    else
+    {
+        return false;
+    }
+
+    pline->setVertexAt(0, v);
+    pline->setBulgeAt(0, bulge);
+    return true;
 }
 
 bool RPolyline::trimEndPoint(const RVector &trimPoint,
                              const RVector &clickPoint, bool extend)
 {
-    return false;
+    int segIndex = getClosestSegment(clickPoint);
+    if (segIndex == -1)
+        return false;
+    
+    int segCount = countSegments();
+    for (size_t i = 0; i < segCount - segIndex - 1; ++i)
+        removeLastVertex();
+
+    auto&& seg = getSegmentAt(countSegments() - 1);
+    if(!seg)
+        return false;
+    
+    if(!seg->trimEndPoint(trimPoint, clickPoint, extend))
+        return false;
+
+    RVector v;
+    double bugle = 0.0;
+    if(seg->getShapeType() == RS::Line)
+    {
+        auto l = std::dynamic_pointer_cast<RLine>(seg);
+        v = l->getEndPoint();
+    }
+    else if (seg->getShapeType() == RS::Arc)
+    {
+        auto a = std::dynamic_pointer_cast<RArc>(seg);
+        v = a->getEndPoint();
+        bulge = a->getBulge();
+    }
+    else
+    {
+        return false;
+    }
+
+    pline->setVertexAt(countVertices() - 1, v);
+    pline->setBulgeAt(countVertices() - 2, bulge);
+    return true;
 }
 
 bool RPolyline::trimStartPoint(double trimDist) { return false; }
