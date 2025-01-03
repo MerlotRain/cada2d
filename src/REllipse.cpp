@@ -1263,7 +1263,104 @@ std::vector<RSpline> REllipse::approximateWithSplines() const
 
 RPolyline REllipse::approximateWithArcs(int segments) const
 {
-    return RPolyline();
+    double a = getMajorRadius();
+    double b = getMinorRadius();
+    if (segments < 2 || a == b)
+        // At least 2 arcs are required.  The ellipse cannot already be a
+        // circle.
+        return RPolyline();
+
+    auto calcFirstQuadPoints = [&]() -> std::vector<RVector> {
+        std::vector<RVector> points(segments + 1);
+
+        // Compute intermediate ellipse quantities.
+        double a2 = a * a, b2 = b * b, ab = a * b;
+        double invB2mA2 = 1.0 / (b2 - a2);
+
+        // Compute the endpoints of the ellipse in the first quadrant.  The
+        // points are generated in counterclockwise order.
+        points[0] = {a, 0.0};
+        points[segments] = {0.0, b};
+
+        // Compute the curvature at the endpoints.  These are used when
+        // computing the arcs.
+        double curv0 = a / b2;
+        double curv1 = b / a2;
+
+        // Select the ellipse points based on curvature properties.
+        double invNumArcs = 1.0 / segments;
+        for (int32_t i = 1; i < segments; ++i)
+        {
+            // The curvature at a new point is a weighted average of curvature
+            // at the endpoints.
+            double weight1 = static_cast<double>(i) * invNumArcs;
+            double weight0 = 1.0 - weight1;
+            double curv = weight0 * curv0 + weight1 * curv1;
+
+            // Compute point having this curvature.
+            double tmp = std::pow(ab / curv, 2.0 / 3.0);
+            points[i].x = a * std::sqrt(std::fabs((tmp - a2) * invB2mA2));
+            points[i].y = b * std::sqrt(std::fabs((tmp - b2) * invB2mA2));
+        }
+        return points;
+    };
+
+    auto calcAllQuadPoints = [](std::vector<RVector> &points) {
+        std::vector<RVector> firstQuadrantPoints = points;
+
+        for (int i = firstQuadrantPoints.size() - 2; i >= 0; --i)
+        {
+            points.emplace_back(-firstQuadrantPoints[i].x,
+                                firstQuadrantPoints[i].y);
+        }
+
+        for (size_t i = 1; i < firstQuadrantPoints.size(); ++i)
+        {
+            points.emplace_back(-firstQuadrantPoints[i].x,
+                                -firstQuadrantPoints[i].y);
+        }
+
+        for (int i = firstQuadrantPoints.size() - 2; i > 0; --i)
+        {
+            points.emplace_back(firstQuadrantPoints[i].x,
+                                -firstQuadrantPoints[i].y);
+        }
+    };
+
+    auto calcPolyline = [](const std::vector<RVector> &points) -> RPolyline {
+        RPolyline pline;
+
+        {
+            auto &&arc = RArc::createFrom3Points(points[points.size() - 1],
+                                                 points[0], points[1]);
+            pline.appendShape(arc);
+        }
+
+        // Compute arc at (0,b).
+        int32_t last = points.size() - 2;
+        // Compute arcs at intermediate points between (a,0) and (0,b).
+        for (int32_t iM = 0, i = 1, iP = 2; i < last; ++iM, ++i, ++iP)
+        {
+            auto &&arc =
+                    RArc::createFrom3Points(points[iM], points[i], points[iP]);
+            arc.trimStartPoint(points[i]);
+            pline.appendShape(arc);
+        }
+
+        {
+            auto &&arc = RArc::createFrom3Points(points[points.size() - 2],
+                                                 points[points.size() - 1],
+                                                 points[0]);
+            arc.trimStartPoint(points[points.size() - 1]);
+            pline.setBulgeAt(pline.countVertices() - 1, arc.getBulge());
+            pline.setClosed(true);
+        }
+        return pline;
+    };
+
+    std::vector<RVector> points = calcFirstQuadPoints();
+    calcAllQuadPoints(points);
+    return calcPolyline(points);
 }
 
 std::vector<std::shared_ptr<RShape>>
