@@ -1917,9 +1917,74 @@ bool RPolyline::trimEndPoint(const RVector &trimPoint,
     return true;
 }
 
-bool RPolyline::trimStartPoint(double trimDist) { return false; }
+bool RPolyline::trimStartPoint(double trimDist) 
+{ 
+    if (countVertices() < 2) {
+        return false;
+    }
 
-bool RPolyline::trimEndPoint(double trimDist) { return false; }
+    if (isClosed()) {
+        convertToOpen();
+    }
+
+    double totalLength = getLength();
+    if (dist >= totalLength) {
+        clear();
+        return false;
+    }
+
+    RVector newStart = getPointWithDistanceToStart(dist);
+
+    double accumulated = 0.0;
+    QList<QSharedPointer<RShape>> segments = getExploded();
+    for (int i = 0; i < segments.size(); ++i) {
+        double len = segments[i]->getLength();
+        if (accumulated + len >= dist) {
+            removeVerticesBefore(i + 1);
+            prependVertex(newStart);
+
+            return true;
+        }
+        accumulated += len;
+    }
+
+    return true;
+}
+
+bool RPolyline::trimEndPoint(double trimDist) 
+{ 
+    if (countVertices() < 2) {
+        return false;
+    }
+
+    if (isClosed()) {
+        convertToOpen();
+    }
+
+    double totalLength = getLength();
+    if (dist >= totalLength) {
+        clear();
+        return false;
+    }
+
+    double keepLength = totalLength - dist;
+    RVector newEnd = getPointWithDistanceToStart(keepLength);
+
+    double accumulated = 0.0;
+    QList<QSharedPointer<RShape>> segments = getExploded();
+    for (int i = 0; i < segments.size(); ++i) {
+        double len = segments[i]->getLength();
+        if (accumulated + len >= keepLength) {
+            removeVerticesAfter(i);
+            appendVertex(newEnd);
+
+            return true;
+        }
+        accumulated += len;
+    }
+
+    return true;
+}
 
 bool RPolyline::simplify(double tolerance) { return false; }
 

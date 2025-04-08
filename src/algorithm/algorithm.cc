@@ -810,7 +810,7 @@ auto_split_manual(const shape::Shape *shp, double cutDist1, double cutDist2,
 
         if (closed)
         {
-            rest1->trimEndPoint(cutPos2);
+            rest1->trimEndPoint(cutDist2);
             segment = nullptr;
             rest2->trimStartPoint(cutDist2);
         }
