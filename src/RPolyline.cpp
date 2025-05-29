@@ -1852,20 +1852,21 @@ bool RPolyline::trimStartPoint(const RVector &trimPoint,
         double dist = getDistanceFromStart(trimPoint);
         return trimStartPoint(dist);
     } else if (extend) {
-        auto&& firstSeg = getSegmentAt(0);
-        if (!firstSeg) {
-            return false;
-        }
+        int it = getClosestSegment(clickPoint);
+        if (it == -1) { return false; }
 
-        if (firstSeg->trimStartPoint(trimPoint, clickPoint, true)) {
-            return false;
-        }
+        for (int i = 0; i < it; ++i) { removeFirstVertex(); }
+
+
+        auto &&firstSeg = getSegmentAt(0);
+        if (!firstSeg) { return false; }
+
+        bool trimmed = firstSeg->trimStartPoint(trimPoint, clickPoint, true);
+        if (!trimmed) { return false; }
 
         RVector newStart = firstSeg->getStartPoint();
-
         removeVertex(0);
         prependVertex(newStart);
-
         return true;
     }
 
@@ -1890,21 +1891,25 @@ bool RPolyline::trimEndPoint(const RVector &trimPoint,
         double newEndDist = totalLength - dist;
         return trimEndPoint(newEndDist);
     } else if (extend) {
-        auto&& lastSeg = getLastSegment();
-        if (!lastSeg) {
-            return false;
+        int it = getClosestSegment(clickPoint);
+        if (it == -1) { return false; }
+
+        for (int i = it + 2; i < countVertices(); ++i)
+        {
+            removeLastVertex();
         }
 
-        if (lastSeg->trimEndPoint(trimPoint, clickPoint, true)) {
+        auto &&lastSeg = getLastSegment();
+        if (!lastSeg) { return false; }
+
+        if (!lastSeg->trimEndPoint(trimPoint, clickPoint, true))
+        {
             return false;
         }
-
         RVector newEnd = lastSeg->getEndPoint();
-
         removeVertex(countVertices() - 1);
         appendVertex(newEnd);
-
-        return true;
+        return true;        
     }
 
     return false;
@@ -1914,33 +1919,32 @@ bool RPolyline::trimStartPoint(double trimDist)
 { 
     if (countVertices() < 2) {
         return false;
-    }
+    }    
+    if (trimDist == 0.0) return true;
 
     if (isClosed()) {
         convertToOpen();
     }
 
     double totalLength = getLength();
-    if (dist >= totalLength) {
+    if (trimDist >= totalLength) {
         clear();
         return false;
     }
 
-    RVector newStart = getPointWithDistanceToStart(dist);
+    RVector newStart = getPointWithDistanceToStart(trimDist);
 
     double accumulated = 0.0;
-    QList<QSharedPointer<RShape>> segments = getExploded();
+    auto &&segments = getExploded();
     for (int i = 0; i < segments.size(); ++i) {
         double len = segments[i]->getLength();
-        if (accumulated + len >= dist) {
+        if (accumulated + len >= trimDist) {
             removeVerticesBefore(i + 1);
             prependVertex(newStart);
-
             return true;
         }
         accumulated += len;
     }
-
     return true;
 }
 
@@ -1949,22 +1953,23 @@ bool RPolyline::trimEndPoint(double trimDist)
     if (countVertices() < 2) {
         return false;
     }
+    if (trimDist == 0.0) return true;
 
     if (isClosed()) {
         convertToOpen();
     }
 
     double totalLength = getLength();
-    if (dist >= totalLength) {
+    if (trimDist >= totalLength) {
         clear();
         return false;
     }
 
-    double keepLength = totalLength - dist;
+    double keepLength = totalLength - trimDist;
     RVector newEnd = getPointWithDistanceToStart(keepLength);
 
     double accumulated = 0.0;
-    QList<QSharedPointer<RShape>> segments = getExploded();
+    auto &&segments = getExploded();
     for (int i = 0; i < segments.size(); ++i) {
         double len = segments[i]->getLength();
         if (accumulated + len >= keepLength) {
