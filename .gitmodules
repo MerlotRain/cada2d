@@ -4,9 +4,9 @@
 [submodule "thirdparty/LBFGSpp"]
 	path = thirdparty/LBFGSpp
 	url = https://github.com/yixuan/LBFGSpp.git
-[submodule "thirdparty/CavalierContours"]
-	path = thirdparty/CavalierContours
-	url = https://github.com/MerlotRain/CavalierContours.git
 [submodule "thirdparty/apollonius"]
 	path = thirdparty/apollonius
 	url = https://github.com/MerlotRain/apollonius.git
+[submodule "thirdparty/CavalierContours"]
+	path = thirdparty/CavalierContours
+	url = https://github.com/MerlotRain/CavalierContours.git

@@ -1,0 +1,16 @@
+shape_src = files(
+    'arc.cc',
+    'bbox.cc',
+    'circle.cc',
+    'ellipse.cc',
+    'line.cc',
+    'math.cc',
+    'point.cc',
+    'polyline.cc',
+    'ray.cc',
+    'shape.cc',
+    'shapefactory.cc',
+    'spline.cc',
+    'vec2d.cc',
+    'xline.cc',
+)
